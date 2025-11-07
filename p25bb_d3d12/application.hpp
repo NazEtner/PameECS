@@ -3,6 +3,7 @@
 #include <boost/dll.hpp>
 #include <spdlog/spdlog.h>
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
+#include "graphics/window.hpp"
 
 namespace PameECS {
 	class Application : public Pame::Core::IApplication {
@@ -16,7 +17,7 @@ namespace PameECS {
 		}
 
 		std::shared_ptr<Pame::Graphics::IWindow> GetWindow() const override {
-			return nullptr; // とりあえず
+			return m_window;
 		}
 
 		void Finalize() override;
@@ -30,6 +31,7 @@ namespace PameECS {
 		}
 	private:
 		std::shared_ptr<spdlog::logger> m_logger;
+		std::shared_ptr<Graphics::Window> m_window;
 	};
 
 	Application application;

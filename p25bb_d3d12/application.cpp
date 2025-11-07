@@ -6,6 +6,29 @@
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
 
+LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	auto* window = reinterpret_cast<PameECS::Graphics::Window*>(
+		GetWindowLongPtr(hWnd, GWLP_USERDATA));
+
+	switch (msg) {
+	case WM_DESTROY:
+		PostQuitMessage(0);
+		return 0;
+	case WM_CLOSE:
+		if (window) {
+			window->Destroy();
+		}
+		else {
+			DestroyWindow(hWnd);
+		}
+		return 0;
+	default:
+		break;
+	}
+
+	return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
 using PameECS::Application;
 
 void Application::Initialize() {
@@ -24,20 +47,18 @@ void Application::Initialize() {
 #endif
 
 	m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%^level %L%$] [thread %t] %v");
+	m_logger->info("PameECS D3D12 - P25BB_D3D12 (c)2025 Nananami(NazEt)");
 
 #ifdef _DEBUG
 	m_logger->info("Debug build");
 #else
 	m_logger->info("Release build");
 #endif
+	Graphics::Window::Properties properties;
+	properties.windowProcedure = WndProc;
 
-	m_logger->info("PameECS D3D12 - P25BB_D3D12 (c)2025 Nananami(NazEt)");
-
-	PameECS::Helpers::IdGenerator idGen;
-
-	m_logger->debug("apple : ID {}", idGen.GetId<"apple">());
-	m_logger->debug("banana : ID {}", idGen.GetId<"banana">());
-	m_logger->debug("apple : ID {}", idGen.GetId<"apple">());
+	m_window = std::make_shared<Graphics::Window>(properties, m_logger);
+	m_window->Show();
 }
 
 void Application::Update() {

@@ -150,13 +150,16 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="graphics\window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.hpp" />
+    <ClInclude Include="exceptions\window_error.hpp" />
     <ClInclude Include="graphics\window.hpp" />
+    <ClInclude Include="helpers\errors\windows.hpp" />
     <ClInclude Include="helpers\id_generator.hpp" />
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />

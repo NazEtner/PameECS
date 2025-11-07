@@ -25,6 +25,15 @@
     <Filter Include="ヘッダー ファイル\graphics">
       <UniqueIdentifier>{52ac6ad7-0f7e-4339-a2cf-1d815e92ed7e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\helpers\errors">
+      <UniqueIdentifier>{5c661e00-48a3-41ad-be88-fb49d99142ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\graphics">
+      <UniqueIdentifier>{5c3e8737-59b2-44fc-b6bc-ca8dcb0d291f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\exceptions">
+      <UniqueIdentifier>{62223570-1419-4e45-abe9-396143d7335a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -32,6 +41,9 @@
     </ClCompile>
     <ClCompile Include="application.cpp">
       <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\window.cpp">
+      <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -55,6 +67,12 @@
     </ClInclude>
     <ClInclude Include="graphics\window.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\errors\windows.hpp">
+      <Filter>ヘッダー ファイル\helpers\errors</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\window_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
