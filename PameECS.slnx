@@ -1,0 +1,8 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="p25bb_d3d12/p25bb_d3d12.vcxproj" />
+  <Project Path="PameECS/PameECS.vcxproj" />
+</Solution>
