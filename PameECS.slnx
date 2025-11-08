@@ -3,6 +3,6 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="p25bb_d3d12/p25bb_d3d12.vcxproj" />
-  <Project Path="PameECS/PameECS.vcxproj" />
+  <Project Path="p25bb_d3d12/p25bb_d3d12.vcxproj" Id="f5204462-d60c-468b-8d9a-e10fa17e33a7" />
+  <Project Path="PameECS/PameECS.vcxproj" Id="d0222253-a398-48f4-b1a8-035b9024d570" />
 </Solution>

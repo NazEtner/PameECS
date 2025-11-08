@@ -49,7 +49,9 @@ namespace PameECS::Graphics {
 		// ウィンドウクラス名とウィンドウプロシージャは設定できないことに注意
 		void SetProperties(const Properties& property);
 
-		HWND GetWindowHandle() noexcept;
+		HWND GetWindowHandle() noexcept {
+			return m_window_handle;
+		}
 
 		void Destroy() noexcept; // DestroyWindow()のラッパー的なやつ
 	private:

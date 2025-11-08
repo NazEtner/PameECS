@@ -10,6 +10,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	auto* window = reinterpret_cast<PameECS::Graphics::Window*>(
 		GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
+	auto renderer = PameECS::application.GetRenderer();
+
 	switch (msg) {
 	case WM_DESTROY:
 		PostQuitMessage(0);
@@ -22,6 +24,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DestroyWindow(hWnd);
 		}
 		return 0;
+	case WM_SIZE:
+		if (renderer) {
+			renderer->Reset(PameECS::Graphics::RendererFlags::NoDeviceReset);
+			return 0;
+		}
+		break;
 	default:
 		break;
 	}
@@ -32,6 +40,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 using PameECS::Application;
 
 void Application::Initialize() {
+	m_initializeLogger();
+	m_logInfo();
+	m_initializeThreadPoolTable();
+	m_initializeWindow();
+}
+
+void Application::Update() {
+	// とりあえず何もしない
+}
+
+void Application::SubmitRenderTask() {
+	// とりあえず何もしない
+}
+
+void Application::Finalize() {
+	m_logger->info("Finalizing application...");
+}
+
+void Application::m_initializeLogger() {
 	auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
 	auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>("application.log", true);
 	std::vector<spdlog::sink_ptr> sinks{ consoleSink, fileSink };
@@ -47,6 +74,9 @@ void Application::Initialize() {
 #endif
 
 	m_logger->set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%n] [%^level %L%$] [thread %t] %v");
+}
+
+void Application::m_logInfo() {
 	m_logger->info("PameECS D3D12 - P25BB_D3D12 (c)2025 Nananami(NazEt)");
 
 #ifdef _DEBUG
@@ -54,21 +84,16 @@ void Application::Initialize() {
 #else
 	m_logger->info("Release build");
 #endif
+}
+
+void Application::m_initializeThreadPoolTable() {
+	m_thread_pool_table = std::make_shared<Thread::ThreadPoolTable<true>>();
+}
+
+void Application::m_initializeWindow() {
 	Graphics::Window::Properties properties;
 	properties.windowProcedure = WndProc;
 
 	m_window = std::make_shared<Graphics::Window>(properties, m_logger);
 	m_window->Show();
-}
-
-void Application::Update() {
-	// とりあえず何もしない
-}
-
-void Application::SubmitRenderTask() {
-	// とりあえず何もしない
-}
-
-void Application::Finalize() {
-	m_logger->info("Finalizing application...");
 }

@@ -34,6 +34,12 @@
     <Filter Include="ヘッダー ファイル\exceptions">
       <UniqueIdentifier>{62223570-1419-4e45-abe9-396143d7335a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\thread">
+      <UniqueIdentifier>{f37fba3c-be52-43af-a43e-29be1c1a475b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\graphics\renderer_flags">
+      <UniqueIdentifier>{99c61876-4355-476f-81f5-8de10f1ed2cd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -73,6 +79,18 @@
     </ClInclude>
     <ClInclude Include="exceptions\window_error.hpp">
       <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\renderer.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="thread\thread_pool_table.hpp">
+      <Filter>ヘッダー ファイル\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="thread\dummy_lock.hpp">
+      <Filter>ヘッダー ファイル\thread</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\renderer_flags\reset_flags.hpp">
+      <Filter>ヘッダー ファイル\graphics\renderer_flags</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

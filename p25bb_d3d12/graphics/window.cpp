@@ -88,7 +88,7 @@ void Window::m_create() {
 		hInstance = std::get<HINSTANCE>(instanceOrError);
 	}
 	else {
-		// HINSTANCEを持たないなら、std::string意外に持てる物はない
+		// HINSTANCEを持たないなら、std::string意外に持てる物はない(はず)
 		throw Exceptions::WindowError(std::get<std::string>(instanceOrError));
 	}
 

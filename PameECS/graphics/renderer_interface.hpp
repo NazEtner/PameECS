@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 namespace Pame::Graphics {
 	class IRenderer {
@@ -7,6 +8,6 @@ namespace Pame::Graphics {
 		virtual bool Render() = 0;
 		virtual bool Present() = 0;
 		virtual void Recovery() = 0;
-		virtual bool Reset() = 0;
+		virtual bool Reset(uint32_t flags = 0) = 0;
 	};
 }

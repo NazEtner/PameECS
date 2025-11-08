@@ -4,6 +4,8 @@
 #include <spdlog/spdlog.h>
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 #include "graphics/window.hpp"
+#include "graphics/renderer.hpp"
+#include "thread/thread_pool_table.hpp"
 
 namespace PameECS {
 	class Application : public Pame::Core::IApplication {
@@ -30,8 +32,14 @@ namespace PameECS {
 			return false; // とりあえず
 		}
 	private:
+		void m_initializeLogger();
+		void m_logInfo();
+		void m_initializeThreadPoolTable();
+		void m_initializeWindow();
+
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::shared_ptr<Graphics::Window> m_window;
+		std::shared_ptr<Thread::ThreadPoolTable<true>> m_thread_pool_table;
 	};
 
 	Application application;
