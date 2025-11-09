@@ -3,7 +3,12 @@
 
 namespace PameECS::Graphics::RendererFlags {
 	enum ResetFlags : uint32_t {
-		None = 0,
-		NoDeviceReset = 1 << 0,
+		// D3Dデバイスとスワップチェーンをリセットする
+		All = 0,
+		// デバイスをリセットしない
+		NoDeviceReset = 1u << 0,
+
+		// 予約済み : リセットの有無を変更しない
+		NoReset = 1u << 31,
 	};
 }

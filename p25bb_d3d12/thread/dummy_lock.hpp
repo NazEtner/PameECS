@@ -1,7 +1,6 @@
 #pragma once
+#include "../helpers/empty_type.hpp"
 
 namespace PameECS::Thread {
-	struct DummyLock {
-		DummyLock(...) {}
-	};
+	using DummyLock = Helpers::EmptyType;
 }

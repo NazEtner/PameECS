@@ -157,10 +157,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.hpp" />
+    <ClInclude Include="constants\string_literals.hpp" />
     <ClInclude Include="exceptions\window_error.hpp" />
     <ClInclude Include="graphics\renderer.hpp" />
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp" />
+    <ClInclude Include="graphics\renderer_types.hpp" />
     <ClInclude Include="graphics\window.hpp" />
+    <ClInclude Include="helpers\empty_type.hpp" />
     <ClInclude Include="helpers\errors\windows.hpp" />
     <ClInclude Include="helpers\id_generator.hpp" />
     <ClInclude Include="macros\assertion.hpp" />

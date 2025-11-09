@@ -70,9 +70,7 @@ void CoreLoop::Execute() {
 		while (m_window->Update() && !m_application->IsStopped()) {
 			m_application->Update();
 			m_application->SubmitRenderTask();
-			if (!m_renderer->Render() || !m_renderer->Present()) {
-				m_logger->error("Rendering error or Presentation error occurred!");
-				m_logger->info("Trying to recovery renderer...");
+			if (m_renderer->Reset(1u << 31) || (!m_renderer->Render() || !m_renderer->Present())) {
 				m_renderer->Recovery();
 			}
 		}

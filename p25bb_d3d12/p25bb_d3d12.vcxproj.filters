@@ -40,6 +40,9 @@
     <Filter Include="ヘッダー ファイル\graphics\renderer_flags">
       <UniqueIdentifier>{99c61876-4355-476f-81f5-8de10f1ed2cd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\constants">
+      <UniqueIdentifier>{bd5fa812-33dd-4693-a489-f2d3335c11f4}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -91,6 +94,15 @@
     </ClInclude>
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp">
       <Filter>ヘッダー ファイル\graphics\renderer_flags</Filter>
+    </ClInclude>
+    <ClInclude Include="constants\string_literals.hpp">
+      <Filter>ヘッダー ファイル\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\empty_type.hpp">
+      <Filter>ヘッダー ファイル\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\renderer_types.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
