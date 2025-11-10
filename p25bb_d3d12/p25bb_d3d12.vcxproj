@@ -150,6 +150,7 @@
   <ItemGroup>
     <ClCompile Include="application.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -158,6 +159,8 @@
   <ItemGroup>
     <ClInclude Include="application.hpp" />
     <ClInclude Include="constants\string_literals.hpp" />
+    <ClInclude Include="exceptions\invalid_argument.hpp" />
+    <ClInclude Include="exceptions\renderer_error.hpp" />
     <ClInclude Include="exceptions\window_error.hpp" />
     <ClInclude Include="graphics\renderer.hpp" />
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp" />

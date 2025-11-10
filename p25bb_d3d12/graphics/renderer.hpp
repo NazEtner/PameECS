@@ -10,14 +10,14 @@
 #include <functional>
 #include <graphics/renderer_interface.hpp>
 #include <spdlog/spdlog.h>
-#include <graphics/window_interface.hpp>
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 
+#include "window.hpp"
 #include "renderer_types.hpp"
 #include "renderer_flags/reset_flags.hpp"
 
 namespace PameECS::Graphics {
-	class Renderer : public Pame::Graphics::IRenderer {
+	class Renderer final : public Pame::Graphics::IRenderer {
 	public:
 		Renderer(
 			std::shared_ptr<spdlog::logger>& logger,
@@ -43,7 +43,7 @@ namespace PameECS::Graphics {
 		bool Reset(uint32_t flags) noexcept override {
 			if (!(flags & (RendererFlags::ResetFlags::NoReset))) {
 				m_reset = true;
-				m_reset_flags = flags;
+				m_reset_flags |= flags;
 			}
 			return m_reset;
 		}
@@ -70,8 +70,9 @@ namespace PameECS::Graphics {
 		[[nodiscard]]
 		HRESULT m_enableSynchronizedCommandQueueValidation()noexcept;
 
-		[[nodiscard]]
-		HRESULT m_initD3D12(uint32_t flags);
+		void m_initDXGIFactory(bool useDebugLayer, bool useAdvancedDebugLayer);
+
+		void m_initD3D12(uint32_t flags);
 		// End of initialize functions
 
 		void m_release(uint32_t flags);
@@ -79,7 +80,7 @@ namespace PameECS::Graphics {
 		[[nodiscard]]
 		HRESULT m_resetD3D12() {
 			m_release(m_reset_flags);
-			auto result = m_initD3D12(m_reset_flags);
+			m_initD3D12(m_reset_flags);
 			m_reset_flags = 0;
 		}
 
@@ -101,6 +102,9 @@ namespace PameECS::Graphics {
 
 		std::queue<RendererTypes::RenderTask> m_render_tasks;
 		std::queue<RendererTypes::RenderTask> m_pretreatment_render_tasks;
+
+		std::shared_ptr<BS::thread_pool<0U>> m_thread_pool;
+		std::shared_ptr<PameECS::Graphics::Window> m_window;
 
 		uint32_t m_reset_flags = 0;
 		bool m_is_device_removed_on_previous_frame = false;

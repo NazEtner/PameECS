@@ -54,6 +54,9 @@
     <ClCompile Include="graphics\window.cpp">
       <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\renderer.cpp">
+      <Filter>ソース ファイル\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -103,6 +106,12 @@
     </ClInclude>
     <ClInclude Include="graphics\renderer_types.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\renderer_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\invalid_argument.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <windows.h>
+#include <sstream>
 
 namespace PameECS::Helpers::Errors::Windows {
 	inline std::string GetLastErrorMessage() noexcept {
@@ -25,5 +26,14 @@ namespace PameECS::Helpers::Errors::Windows {
 			}), ret.end());
 
 		return ret;
+	}
+
+	template <class ExceptionType>
+	inline void HandleHRESULTError(HRESULT result, const std::string& message) {
+		if (FAILED(result)) {
+			std::ostringstream convertStream;
+			convertStream << "0x" << std::hex << result;
+			throw ExceptionType(message + "\n" + convertStream.str());
+		}
 	}
 }
