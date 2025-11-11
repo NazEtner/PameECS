@@ -65,6 +65,64 @@ void Window::Destroy() noexcept {
 	}
 }
 
+void Window::SetProperties(const Properties& property) {
+	assert(m_properties.windowStyle.has_value());
+
+	if (!m_window_handle) {
+		throw Exceptions::WindowError("Window handle is null.");
+	}
+
+	if (property.windowStyle.has_value()) {
+		auto style = property.windowStyle.value();
+		if (SetWindowLongPtr(m_window_handle, GWL_STYLE, static_cast<LONG_PTR>(style)) == 0) {
+			std::string message = std::string("Failed to set window style : ") + Helpers::Errors::Windows::GetLastErrorMessage();
+			throw Exceptions::WindowError(message.c_str());
+		}
+
+		SetWindowPos(
+			m_window_handle,
+			nullptr,
+			0, 0, 0, 0,
+			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+		);
+		m_properties.windowStyle = style;
+	}
+
+	if (property.width.has_value() || property.height.has_value()) {
+		uint32_t width = property.width.value_or(m_properties.width.value_or(800));
+		uint32_t height = property.height.value_or(m_properties.height.value_or(600));
+		RECT rect;
+		if (GetWindowRect(m_window_handle, &rect)) {
+			rect.right = rect.left + width;
+			rect.bottom = rect.top + height;
+			auto style = m_properties.windowStyle.value();
+			if (AdjustWindowRect(&rect, style, FALSE) == 0) {
+				std::string message = std::string("Failed to adjust window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
+				throw Exceptions::WindowError(message.c_str());
+			}
+
+			SetWindowPos(
+				m_window_handle,
+				nullptr,
+				rect.left, rect.top,
+				rect.right - rect.left, rect.bottom - rect.top,
+				SWP_NOZORDER | SWP_NOACTIVATE
+			);
+			m_properties.width = width;
+			m_properties.height = height;
+		}
+		else {
+			std::string message = std::string("Failed to get window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
+			throw Exceptions::WindowError(message.c_str());
+		}
+	}
+
+	if (property.windowName.has_value()) {
+		SetWindowText(m_window_handle, property.windowName.value().c_str());
+		m_properties.windowName = property.windowName;
+	}
+}
+
 void Window::m_setDefaultProperties(const Properties& properties) {
 	m_properties.className = properties.className.value_or("DefaultWindowClassName");
 	m_properties.windowName = properties.windowName.value_or("DefaultWindowName");
@@ -107,14 +165,14 @@ void Window::m_create() {
 		throw Exceptions::WindowError(message.c_str());
 	}
 
-	m_style = m_properties.windowStyle.value();
+	auto style = m_properties.windowStyle.value();
 	RECT windowRect;
 	windowRect.left = 0;
 	windowRect.top = 0;
 	windowRect.right = m_properties.width.value();
 	windowRect.bottom = m_properties.height.value();
 
-	if (AdjustWindowRect(&windowRect, m_style, FALSE) == 0) {
+	if (AdjustWindowRect(&windowRect, style, FALSE) == 0) {
 		std::string message = std::string("Failed to adjust window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
 		throw Exceptions::WindowError(message.c_str());
 	}
@@ -123,7 +181,7 @@ void Window::m_create() {
 		0,
 		m_properties.className.value().c_str(),
 		m_properties.windowName.value().c_str(),
-		m_style,
+		style,
 		CW_USEDEFAULT,
 		CW_USEDEFAULT,
 		windowRect.right - windowRect.left,

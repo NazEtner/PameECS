@@ -44,7 +44,34 @@ namespace PameECS::Graphics {
 		void Show() override;
 		bool Update() override;
 
-		Properties GetProperties(const PropertyGetFlags flags = None);
+		Properties GetProperties(const uint32_t flags = None) {
+			Properties result;
+
+			if (m_window_handle && !(flags & NoWidth || flags & NoHeight)) {
+				RECT rect;
+				if (GetClientRect(m_window_handle, &rect)) {
+					m_properties.width = static_cast<int>(rect.right - rect.left);
+					m_properties.height = static_cast<int>(rect.bottom - rect.top);
+				}
+			}
+
+			if (!(flags & NoClassName)) {
+				result.className = m_properties.className;
+			}
+			if (!(flags & NoWindowName)) {
+				result.windowName = m_properties.windowName;
+			}
+			if (!(flags & NoWidth)) {
+				result.width = m_properties.width;
+			}
+			if (!(flags & NoHeight)) {
+				result.height = m_properties.height;
+			}
+			if (!(flags & NoWindowStyle)) {
+				result.windowStyle = m_properties.windowStyle;
+			}
+			return result;
+		}
 
 		// ウィンドウクラス名とウィンドウプロシージャは設定できないことに注意
 		void SetProperties(const Properties& property);
@@ -68,7 +95,6 @@ namespace PameECS::Graphics {
 		}
 		HWND m_window_handle = nullptr;
 		Properties m_properties;
-		DWORD m_style;
 		std::shared_ptr<spdlog::logger> m_logger;
 	};
 }

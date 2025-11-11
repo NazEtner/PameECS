@@ -13,4 +13,16 @@ namespace PameECS::Graphics::RendererTypes {
 	};
 
 	using RenderTask = std::function<RenderCommand(RenderCommand)>;
+
+	struct ComPtrHash {
+		size_t operator()(const Microsoft::WRL::ComPtr<IUnknown>& ptr) const {
+			return std::hash<void*>()(ptr.Get());
+		}
+	};
+
+	struct ComPtrEqual {
+		bool operator()(const Microsoft::WRL::ComPtr<IUnknown>& lhs, const Microsoft::WRL::ComPtr<IUnknown>& rhs) const {
+			return lhs.Get() == rhs.Get();
+		}
+	};
 }

@@ -58,6 +58,12 @@ void Application::SubmitRenderTask() {
 
 void Application::Finalize() {
 	m_logger->info("Finalizing application...");
+
+	m_thread_pool_table.reset();
+	m_renderer.reset();
+	m_window.reset();
+
+	m_logger->info("Application finalized.");
 }
 
 void Application::m_initializeLogger() {
