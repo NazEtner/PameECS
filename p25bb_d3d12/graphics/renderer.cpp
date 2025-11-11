@@ -85,11 +85,13 @@ bool Renderer::Render() noexcept {
 	}
 	catch (const std::exception& e) {
 		m_logger->error("Failed to execute rendering tasks.\n" + std::string(e.what()));
+		m_pretreatment_render_tasks = {};
 		m_render_tasks = {};
 		return false;
 	}
 	catch (...) {
 		m_logger->error("Failed to execute rendering tasks.\nUnknown error");
+		m_pretreatment_render_tasks = {};
 		m_render_tasks = {};
 		return false;
 	}
