@@ -157,6 +157,6 @@ namespace PameECS::Graphics {
 		HANDLE m_fence_event = nullptr;
 		uint64_t m_fence_value = 0;
 
-		bool m_vertical_sync_enabled = false;
+		bool m_vertical_sync_enabled = true;
 	};
 }

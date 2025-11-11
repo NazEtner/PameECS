@@ -124,11 +124,12 @@ bool Renderer::Present() {
 }
 
 void Renderer::Recovery() {
-	HRESULT hr = m_device->GetDeviceRemovedReason();
 	try {
 		if (m_command_lists.size() > std::numeric_limits<UINT>::max()) {
 			throw Exceptions::RendererError("Command lists overflow.");
 		}
+
+		HRESULT hr = m_device->GetDeviceRemovedReason();
 
 		switch (hr) {
 		case DXGI_ERROR_DEVICE_REMOVED:
