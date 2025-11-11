@@ -75,7 +75,8 @@ bool Renderer::Render() noexcept {
 
 		emplaceAndReturnCommand(clearCommandAllocator, clearCommandList);
 
-		m_command_lists.reserve(m_command_futures.size());
+		// 画面クリア用とトランジション用が+2の部分
+		m_command_lists.reserve(m_command_futures.size() + 2);
 		for (auto& future : m_command_futures) {
 			auto command = future.get();
 			emplaceAndReturnCommand(command.commandAllocator, command.commandList);
