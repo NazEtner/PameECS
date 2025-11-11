@@ -20,9 +20,9 @@ namespace PameECS::Graphics {
 	class Renderer final : public Pame::Graphics::IRenderer {
 	public:
 		Renderer(
-			std::shared_ptr<spdlog::logger>& logger,
-			std::shared_ptr<PameECS::Graphics::Window>& window,
-			std::shared_ptr<BS::thread_pool<0U>>& threadPool,
+			std::shared_ptr<spdlog::logger> logger,
+			std::shared_ptr<PameECS::Graphics::Window> window,
+			std::shared_ptr<BS::thread_pool<0U>> threadPool,
 			bool useDebugLayer, bool useAdvancedDebug);
 
 		virtual ~Renderer();

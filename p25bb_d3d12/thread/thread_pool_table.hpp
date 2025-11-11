@@ -12,13 +12,13 @@ namespace PameECS::Thread {
 	class ThreadPoolTable {
 	public:
 		template<TemplateTypes::StringLiteral Name>
-		std::shared_ptr<BS::thread_pool<0U>> GetThreadPool() const {
+		std::shared_ptr<BS::thread_pool<0U>> GetThreadPool() {
 			const size_t id = m_id_generator.GetId<Name>();
 
 			lockType lock(m_mutex);
 
 			auto it = m_thread_pools.find(id);
-			if (it != m_thread_pools.end) {
+			if (it != m_thread_pools.end()) {
 				return it->second;
 			}
 

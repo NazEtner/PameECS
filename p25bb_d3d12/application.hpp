@@ -15,7 +15,7 @@ namespace PameECS {
 		void Update() override;
 		void SubmitRenderTask() override;
 		std::shared_ptr<Pame::Graphics::IRenderer> GetRenderer() const override {
-			return nullptr; // とりあえず
+			return m_renderer;
 		}
 
 		std::shared_ptr<Pame::Graphics::IWindow> GetWindow() const override {
@@ -36,9 +36,11 @@ namespace PameECS {
 		void m_logInfo();
 		void m_initializeThreadPoolTable();
 		void m_initializeWindow();
+		void m_initializeRenderer();
 
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::shared_ptr<Graphics::Window> m_window;
+		std::shared_ptr<Graphics::Renderer> m_renderer;
 		std::shared_ptr<Thread::ThreadPoolTable<true>> m_thread_pool_table;
 	};
 

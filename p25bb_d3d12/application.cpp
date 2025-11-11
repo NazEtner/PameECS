@@ -5,6 +5,7 @@
 
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
+#include "constants/string_literals.hpp"
 
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	auto* window = reinterpret_cast<PameECS::Graphics::Window*>(
@@ -44,6 +45,7 @@ void Application::Initialize() {
 	m_logInfo();
 	m_initializeThreadPoolTable();
 	m_initializeWindow();
+	m_initializeRenderer();
 }
 
 void Application::Update() {
@@ -96,4 +98,15 @@ void Application::m_initializeWindow() {
 
 	m_window = std::make_shared<Graphics::Window>(properties, m_logger);
 	m_window->Show();
+}
+
+void Application::m_initializeRenderer() {
+	m_thread_pool_table->Allocate<Constants::StringLiterals::RendererThreadPoolName>();
+
+	m_renderer = std::make_shared<Graphics::Renderer>(
+		m_logger,
+		m_window,
+		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::RendererThreadPoolName>(),
+		true, false
+	);
 }
