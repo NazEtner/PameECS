@@ -9,6 +9,10 @@ Microsoft::WRL::ComPtr<ID3D12CommandAllocator> CommandListPool::GetCommandAlloca
 
 	auto allocator = m_allocators.front();
 	m_allocators.pop();
+	m_handleError(
+		allocator->Reset(),
+		"Failed to reset command allocator from pool."
+	);
 	return allocator;
 }
 

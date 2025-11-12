@@ -40,7 +40,7 @@ namespace PameECS::Graphics {
 			renderTaskQueue->push(std::move(renderTask));
 		}
 
-		bool Render() noexcept override;
+		bool Render() override;
 		bool Present() override;
 		void Recovery() override;
 		bool Reset(uint32_t flags) noexcept override {

@@ -27,10 +27,9 @@ Renderer::~Renderer() {
 	CloseHandle(m_fence_event);
 }
 
-bool Renderer::Render() noexcept {
+bool Renderer::Render() {
 	try {
 		auto clearCommandAllocator = m_command_list_pool->GetCommandAllocator();
-		clearCommandAllocator->Reset();
 		auto clearCommandList = m_command_list_pool->GetCommandList(clearCommandAllocator.Get());
 		clearCommandList->Reset(clearCommandAllocator.Get(), nullptr);
 
@@ -41,7 +40,6 @@ bool Renderer::Render() noexcept {
 				auto renderTask = std::move(tasks.front());
 				tasks.pop();
 				auto commandAllocator = m_command_list_pool->GetCommandAllocator();
-				commandAllocator->Reset();
 				auto commandList = m_command_list_pool->GetCommandList(commandAllocator.Get());
 
 				RendererTypes::RenderCommand renderCommand;
@@ -62,7 +60,6 @@ bool Renderer::Render() noexcept {
 		distributer(m_render_tasks);
 
 		auto transitionCommandAllocator = m_command_list_pool->GetCommandAllocator();
-		transitionCommandAllocator->Reset();
 		auto transitionCommandList = m_command_list_pool->GetCommandList(transitionCommandAllocator.Get());
 		transitionCommandList->Reset(transitionCommandAllocator.Get(), nullptr);
 		m_transitionBackBufferToPresent(transitionCommandList);
