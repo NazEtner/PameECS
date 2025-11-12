@@ -10,7 +10,7 @@
 #include "../helpers/errors/windows.hpp"
 
 namespace PameECS::Graphics {
-	// アロケーターとコマンドリストは自動でResetされない
+	// コマンドリストは自動でResetされない
 	class CommandListPool {
 	public:
 		CommandListPool(Microsoft::WRL::ComPtr<ID3D12Device> device, D3D12_COMMAND_LIST_TYPE type)
