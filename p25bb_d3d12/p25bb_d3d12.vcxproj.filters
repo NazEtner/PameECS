@@ -43,6 +43,15 @@
     <Filter Include="ヘッダー ファイル\constants">
       <UniqueIdentifier>{bd5fa812-33dd-4693-a489-f2d3335c11f4}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\debug_tools">
+      <UniqueIdentifier>{1c8557ab-3eee-463c-93f9-4b8427d807bb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\imgui">
+      <UniqueIdentifier>{367ac8f6-eda1-40a6-8589-13e437469fff}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\debug_tools">
+      <UniqueIdentifier>{be3fb5c3-b174-4cc2-b132-e92b511d4e34}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -59,6 +68,30 @@
     </ClCompile>
     <ClCompile Include="graphics\command_list_pool.cpp">
       <Filter>ソース ファイル\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_demo.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_draw.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_impl_dx12.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_impl_win32.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_tables.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp">
+      <Filter>ソース ファイル\imgui</Filter>
+    </ClCompile>
+    <ClCompile Include="debug_tools\debug_gui_host.cpp">
+      <Filter>ソース ファイル\debug_tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -118,6 +151,9 @@
     </ClInclude>
     <ClInclude Include="graphics\command_list_pool.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="debug_tools\debug_gui_host.hpp">
+      <Filter>ヘッダー ファイル\debug_tools</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -6,6 +6,7 @@
 #include "graphics/window.hpp"
 #include "graphics/renderer.hpp"
 #include "thread/thread_pool_table.hpp"
+#include "debug_tools/debug_gui_host.hpp"
 
 namespace PameECS {
 	class Application : public Pame::Core::IApplication {
@@ -37,11 +38,13 @@ namespace PameECS {
 		void m_initializeThreadPoolTable();
 		void m_initializeWindow();
 		void m_initializeRenderer();
+		void m_initializeDebugTools();
 
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::shared_ptr<Graphics::Window> m_window;
 		std::shared_ptr<Graphics::Renderer> m_renderer;
 		std::shared_ptr<Thread::ThreadPoolTable<true>> m_thread_pool_table;
+		std::shared_ptr<DebugTools::DebugGUIHost> m_debug_gui_host;
 	};
 
 	Application application;

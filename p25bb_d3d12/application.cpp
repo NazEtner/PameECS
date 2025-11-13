@@ -2,12 +2,19 @@
 
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <imgui/imgui_impl_win32.h>
 
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
 #include "constants/string_literals.hpp"
 
+extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
 LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+	if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam)) {
+		return 1L;
+	}
+
 	auto* window = reinterpret_cast<PameECS::Graphics::Window*>(
 		GetWindowLongPtr(hWnd, GWLP_USERDATA));
 
@@ -46,14 +53,15 @@ void Application::Initialize() {
 	m_initializeThreadPoolTable();
 	m_initializeWindow();
 	m_initializeRenderer();
+	m_initializeDebugTools();
 }
 
 void Application::Update() {
-	// とりあえず何もしない
+	m_debug_gui_host->Update();
 }
 
 void Application::SubmitRenderTask() {
-	// とりあえず何もしない
+	m_debug_gui_host->SubmitRenderTask();
 }
 
 void Application::Finalize() {
@@ -62,6 +70,7 @@ void Application::Finalize() {
 	m_thread_pool_table.reset();
 	m_renderer.reset();
 	m_window.reset();
+	m_debug_gui_host.reset();
 
 	m_logger->info("Application finalized.");
 }
@@ -115,4 +124,8 @@ void Application::m_initializeRenderer() {
 		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::RendererThreadPoolName>(),
 		true, false
 	);
+}
+
+void Application::m_initializeDebugTools() {
+	m_debug_gui_host = std::make_shared<DebugTools::DebugGUIHost>(m_window, m_renderer);
 }
