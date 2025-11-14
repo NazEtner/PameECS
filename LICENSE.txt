@@ -13,7 +13,8 @@ Restrictions:
    and is not freely open to the public.
 2. Redistribution of executable or binary forms is permitted only if:
    - The Software has been modified, or
-   - The redistributed work incorporates only a portion of the Software’s source code and does not consist of the Software in its entirety.
+   - The redistributed work incorporates the Software in whole or in part, such as being used as a library within another software,
+   provided that such redistribution complies with the other restrictions in this license.
 3. Redistribution of modified source code outside of such a closed community is allowed only with explicit prior written permission from the original author.
 4. Notwithstanding the above restrictions, the original author may grant explicit permission to redistribute
    modified source code without this license, effectively allowing the license to be removed entirely for that copy.
