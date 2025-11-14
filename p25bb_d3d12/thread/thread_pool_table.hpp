@@ -40,7 +40,7 @@ namespace PameECS::Thread {
 		}
 	private:
 		using lockType = std::conditional_t<ThreadSafe, std::lock_guard<std::mutex>, DummyLock>;
-		Helpers::IdGenerator<ThreadSafe, false> m_id_generator;
+		Helpers::IdGenerator<ThreadSafe, false, ThreadPoolTable<ThreadSafe>> m_id_generator;
 		std::unordered_map<size_t, std::shared_ptr<BS::thread_pool<0U>>> m_thread_pools;
 		std::mutex m_mutex;
 	};
