@@ -19,7 +19,7 @@
 
 ## en-US
 ## A Fundamentally ECS-Based Game Engine
-### This repository is currently under development. We sincerely apologize, but please wait until it becomes fully usable.
+### This repository is currently under development. Please wait until it becomes fully usable.
 
 ### TODO
 - Implement archive file system
