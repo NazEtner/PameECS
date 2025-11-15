@@ -52,6 +52,12 @@
     <Filter Include="ソース ファイル\debug_tools">
       <UniqueIdentifier>{be3fb5c3-b174-4cc2-b132-e92b511d4e34}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\file">
+      <UniqueIdentifier>{ffe20744-8b59-4fcf-a093-2e9a59218417}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\file\archive">
+      <UniqueIdentifier>{55ab5528-4156-43ed-8dc5-f9d427775f92}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
