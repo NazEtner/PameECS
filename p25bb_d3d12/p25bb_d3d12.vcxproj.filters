@@ -155,5 +155,11 @@
     <ClInclude Include="debug_tools\debug_gui_host.hpp">
       <Filter>ヘッダー ファイル\debug_tools</Filter>
     </ClInclude>
+    <ClInclude Include="exceptions\invalid_operation.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="constants\thread_pool_table_ids.hpp">
+      <Filter>ヘッダー ファイル\constants</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

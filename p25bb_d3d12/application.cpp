@@ -57,10 +57,14 @@ void Application::Initialize() {
 }
 
 void Application::Update() {
+	// ECSの更新はデバッグGUIより前
+	// m_ecs_host->Update(); // まだ実装がないので
 	m_debug_gui_host->Update();
 }
 
 void Application::SubmitRenderTask() {
+	// ECSのレンダリングタスクはデバッグGUIより前
+	// m_ecs_host->SubmitRenderTask();
 	m_debug_gui_host->SubmitRenderTask();
 }
 
@@ -104,7 +108,8 @@ void Application::m_logInfo() {
 }
 
 void Application::m_initializeThreadPoolTable() {
-	m_thread_pool_table = std::make_shared<Thread::ThreadPoolTable<true>>();
+	// スレッドセーフではない
+	m_thread_pool_table = std::make_shared<Thread::ThreadPoolTable<false, static_cast<size_t>(Constants::ThreadPoolTableIds::ApplicationMain)>>();
 }
 
 void Application::m_initializeWindow() {

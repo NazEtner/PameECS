@@ -474,8 +474,10 @@
   <ItemGroup>
     <ClInclude Include="application.hpp" />
     <ClInclude Include="constants\string_literals.hpp" />
+    <ClInclude Include="constants\thread_pool_table_ids.hpp" />
     <ClInclude Include="debug_tools\debug_gui_host.hpp" />
     <ClInclude Include="exceptions\invalid_argument.hpp" />
+    <ClInclude Include="exceptions\invalid_operation.hpp" />
     <ClInclude Include="exceptions\renderer_error.hpp" />
     <ClInclude Include="exceptions\window_error.hpp" />
     <ClInclude Include="graphics\command_list_pool.hpp" />

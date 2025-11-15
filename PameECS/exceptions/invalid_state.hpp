@@ -2,13 +2,10 @@
 #include "exception_of.hpp"
 
 namespace Pame::Exceptions {
-	class InvalidState : public ExceptionOf<InvalidState> {
+	class InvalidStateTag {
 	public:
 		static constexpr const char* typeName = "InvalidState";
-		explicit InvalidState(const char* message, const std::stacktrace stackTrace = std::stacktrace::current())
-			: ExceptionOf<InvalidState>(message, stackTrace) {}
-		explicit InvalidState(const std::string& message, const std::stacktrace stackTrace = std::stacktrace::current())
-			: ExceptionOf<InvalidState>(message, stackTrace) {}
-		virtual ~InvalidState() = default;
 	};
+
+	using InvalidState = Pame::Exceptions::ExceptionOf<InvalidStateTag>;
 }

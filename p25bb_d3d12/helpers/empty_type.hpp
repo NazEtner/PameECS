@@ -2,6 +2,7 @@
 
 namespace PameECS::Helpers {
 	struct EmptyType {
-		EmptyType(...) {}
+		template<typename... Args>
+		EmptyType(Args&&...) {}
 	};
 }
