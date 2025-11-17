@@ -68,7 +68,9 @@ namespace PameECS::Helpers {
 		using lockType = std::conditional_t<ThreadSafe, std::lock_guard<std::mutex>, Thread::DummyLock>;
 		std::conditional_t<ThreadSafe, std::atomic_size_t, size_t> m_current_id{ 0 };
 
+		[[no_unique_address]]
 		std::conditional_t<EnableRuntimeGenerate, std::unordered_map<std::string, size_t>, EmptyType> m_runtime_generate_ids;
+		[[no_unique_address]]
 		std::conditional_t<EnableRuntimeGenerate && ThreadSafe, std::mutex, EmptyType> m_runtime_generate_mutex;
 #ifdef _DEBUG
 		std::unordered_map<size_t, std::string> m_id_to_name_map;

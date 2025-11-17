@@ -320,7 +320,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;$(SolutionDir)libraries\zstd\libzstd_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-NoDebugGUI|x64'">
@@ -340,7 +340,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;$(SolutionDir)libraries\zstd\libzstd_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -362,7 +362,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;$(SolutionDir)libraries\zstd\libzstd_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release-NoDebugGUI|x64'">
@@ -450,7 +450,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;xinput.lib;Shcore.lib;$(SolutionDir)libraries\zstd\libzstd_static.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -464,6 +464,7 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="file\archive\archive_loader.cpp" />
     <ClCompile Include="graphics\command_list_pool.cpp" />
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
@@ -476,6 +477,7 @@
     <ClInclude Include="constants\string_literals.hpp" />
     <ClInclude Include="constants\thread_pool_table_ids.hpp" />
     <ClInclude Include="debug_tools\debug_gui_host.hpp" />
+    <ClInclude Include="exceptions\compress_error.hpp" />
     <ClInclude Include="exceptions\file_error.hpp" />
     <ClInclude Include="exceptions\invalid_argument.hpp" />
     <ClInclude Include="exceptions\invalid_operation.hpp" />
@@ -488,6 +490,8 @@
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp" />
     <ClInclude Include="graphics\renderer_types.hpp" />
     <ClInclude Include="graphics\window.hpp" />
+    <ClInclude Include="helpers\binary.hpp" />
+    <ClInclude Include="helpers\compress.hpp" />
     <ClInclude Include="helpers\crc.hpp" />
     <ClInclude Include="helpers\empty_type.hpp" />
     <ClInclude Include="helpers\errors\windows.hpp" />

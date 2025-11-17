@@ -6,5 +6,6 @@ namespace PameECS::Exceptions {
 	public:
 		static constexpr const char* typeName = "FileError";
 	};
+
 	using FileError = Pame::Exceptions::ExceptionOf<FileErrorTag>;
 }
