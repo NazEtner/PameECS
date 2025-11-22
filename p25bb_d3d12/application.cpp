@@ -4,6 +4,7 @@
 #include <spdlog/sinks/basic_file_sink.h>
 #include <imgui/imgui_impl_win32.h>
 
+#include "macros/debug.hpp"
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
 #include "constants/string_literals.hpp"

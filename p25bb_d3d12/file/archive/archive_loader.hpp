@@ -11,6 +11,7 @@
 #include "types.hpp"
 #include "../../helpers/path.hpp"
 #include "../../helpers/binary.hpp"
+#include "../../exceptions/file_error.hpp"
 
 namespace PameECS::File::Archive {
 	class ArchiveLoader {
@@ -22,7 +23,9 @@ namespace PameECS::File::Archive {
 		ArchiveLoader(ArchiveLoader&&) = default;
 		ArchiveLoader& operator=(ArchiveLoader&&) = default;
 
-		Types::Entry GetEntry(const std::string& virtualPath) const;
+		Types::Entry GetEntry(const std::string& virtualPath) const {
+			return m_getEntry(Helpers::Path::PathToVector(virtualPath));
+		}
 
 		std::vector<uint8_t> GetFileData(const std::string& virtualPath) const {
 			GetFileData(GetEntry(virtualPath));
@@ -35,7 +38,9 @@ namespace PameECS::File::Archive {
 		}
 		std::future<std::vector<uint8_t>> GetFileDataAsync(const Types::Entry& entry) const;
 
-		bool IsExist(const std::string& virtualPath) const;
+		bool IsExist(const std::string& virtualPath) const {
+			return m_isExist(Helpers::Path::PathToVector(virtualPath));
+		}
 
 		bool IsFile(const Types::Entry& entry) const {
 			return entry.dataSize != 0;
@@ -50,7 +55,7 @@ namespace PameECS::File::Archive {
 
 		void m_readData(void* dest, const void* source, const size_t bytes, const size_t position, const size_t sourceSize) const {
 			if (!m_canRead(sourceSize, bytes, position)) {
-				throw std::out_of_range("Attempted to read beyond the end of the mapped file.");
+				throw Exceptions::FileError("Attempted to read beyond the end of the mapped file.");
 			}
 			std::memcpy(dest, static_cast<const uint8_t*>(source) + position, bytes);
 		}
@@ -74,15 +79,23 @@ namespace PameECS::File::Archive {
 			std::unordered_map<std::string, EntryIndex> children; // 子エントリのインデックス
 		};
 
+		inline static constexpr size_t m_chunk_size = 2048;
+
+		std::future<std::array<uint8_t, m_chunk_size>> m_getChunkDataAsync(size_t chunkIndex) const;
+
 		void m_fileMap(const std::filesystem::path& path);
 		void m_loadAndVerifyHeader();
 		void m_loadSizeInformationFromLastRead();
-		void m_constructEntries(std::vector<uint8_t>& data, size_t& readPosition);
-		void m_constructEntries(std::vector<uint8_t>& data, std::vector<Types::Entry>& entries, std::unordered_map<std::string, EntryIndex>& entryIndexes);
-		void m_loadDataChunkRanges(std::vector<uint8_t>& data, size_t& readPosition);
+		void m_constructEntries(const std::vector<uint8_t>& data, size_t& readPosition);
+		void m_constructEntries(const std::vector<uint8_t>& data, std::vector<Types::Entry>& entries, std::unordered_map<std::string, EntryIndex>& entryIndexes, size_t& readPosition);
+		void m_loadDataChunkRanges(const std::vector<uint8_t>& data, size_t& readPosition);
 		void m_loadAndVerifyFooterFromLastRead(const std::vector<uint8_t>& checkTarget);
 
-		inline static constexpr size_t m_chunk_size = 2048;
+		std::vector<uint16_t> m_pathVectorToIndexVector(
+			const std::vector<std::string>& path,
+			const std::unordered_map<std::string, EntryIndex>& indexMap) const;
+		bool m_isExist(const std::vector<std::string>& path) const;
+		Types::Entry m_getEntry(const std::vector<std::string>& path) const;
 
 		std::shared_ptr<BS::thread_pool<0U>> m_thread_pool;
 

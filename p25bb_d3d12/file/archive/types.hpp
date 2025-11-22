@@ -3,6 +3,7 @@
 #include <array>
 #include <string>
 #include <format>
+#include <vector>
 
 #include "../../macros/debug.hpp"
 #include "../../macros/assertion.hpp"
@@ -117,6 +118,7 @@ namespace PameECS::File::Archive::Types {
 		uint64_t dataOffset;
 		uint16_t nameLength;
 		std::string name;
+		std::vector<Entry> children;
 
 		template<typename Func>
 		void ForEachMember(Func&& func) {
@@ -131,8 +133,8 @@ namespace PameECS::File::Archive::Types {
 		static_assert(sizeof(Header) == 8, "Size of Header must be 8 bytes.");
 		static_assert(sizeof(SizeInformation) == 32, "Size of SizeInformation must be 32 bytes.");
 
-		static_assert(std::is_trivially_copyable<Header>::value, "Header must be trivially copyable.");
-		static_assert(std::is_trivially_copyable<SizeInformation>::value, "SizeInformation must be trivially copyable.");
+		static_assert(std::is_trivially_copyable_v<Header>, "Header must be trivially copyable.");
+		static_assert(std::is_trivially_copyable_v<SizeInformation>, "SizeInformation must be trivially copyable.");
 
 		return true; // 戻り値に意味はない
 	}
