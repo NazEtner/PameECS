@@ -229,6 +229,7 @@ std::vector<uint16_t> ArchiveLoader::m_pathVectorToIndexVector(
 			return {};
 		}
 
+		result.emplace_back(it->second.index);
 		currentIndexMap = &it->second.children;
 	}
 
