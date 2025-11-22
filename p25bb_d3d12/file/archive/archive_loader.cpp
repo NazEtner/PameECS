@@ -42,7 +42,7 @@ std::future<std::vector<uint8_t>> ArchiveLoader::GetFileDataAsync(const Types::E
 		chunkDataFutures.emplace_back(m_getChunkDataAsync(i));
 	}
 
-	auto func = [this, &entry](std::vector<std::future<std::array<uint8_t, m_chunk_size>>>&& futures) -> std::vector<uint8_t> {
+	auto func = [this, entry](std::vector<std::future<std::array<uint8_t, m_chunk_size>>>&& futures) mutable -> std::vector<uint8_t> {
 		std::pair<size_t, size_t> clip = {
 			entry.dataOffset % m_chunk_size,
 			((entry.dataOffset + entry.dataSize) % m_chunk_size) == 0
@@ -66,8 +66,8 @@ std::future<std::vector<uint8_t>> ArchiveLoader::GetFileDataAsync(const Types::E
 	};
 
 	return m_thread_pool->submit_task(
-		[&]() {
-			return func(std::move(chunkDataFutures));
+		[func, futures = std::move(chunkDataFutures)]() mutable {
+			return func(std::move(futures));
 		}
 	);
 }
