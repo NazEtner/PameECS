@@ -158,10 +158,9 @@ void ArchiveLoader::m_constructEntries(
 		read(&entry.dataSize);
 		read(&entry.dataOffset);
 		read(&entry.nameLength);
-		entry.name.resize(entry.nameLength);
 
 		entry.ToNativeEndian();
-
+		entry.name.resize(entry.nameLength);
 		read(entry.name.data(), entry.name.size());
 
 		entryIndexes[entry.name].index = static_cast<uint16_t>(i);
