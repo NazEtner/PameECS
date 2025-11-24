@@ -19,6 +19,12 @@ namespace PameECS::File::Archive::Types {
 			});
 		}
 
+		void ToExpectedEndian() {
+			static_cast<Derived*>(this)->ForEachMember([this]<TemplateTypes::StringLiteral Name>(auto& member) {
+				this->m_convertToExpectedEndian(member);
+			});
+		}
+
 		std::string GenerateDebugString() {
 #ifdef _DEBUG
 			std::string result = typeid(Derived).name() + std::string(" ");
@@ -69,6 +75,14 @@ namespace PameECS::File::Archive::Types {
 		void m_convertToNativeEndian(T& value) {
 			if constexpr (std::is_integral_v<T> || std::is_enum_v<T>) {
 				value = Helpers::Binary::ToNativeEndian<T, ExpectedEndian>(value);
+			}
+		}
+
+		template<typename T>
+		void m_convertToExpectedEndian(T& value) {
+			if constexpr (std::is_integral_v<T> || std::is_enum_v<T>) {
+				// テンプレート引数をSourceとNativeで逆にすると逆変換になるはず
+				value = Helpers::Binary::ToNativeEndian<T, std::endian::native, ExpectedEndian>(value);
 			}
 		}
 	};
@@ -138,6 +152,8 @@ namespace PameECS::File::Archive::Types {
 
 		return true; // 戻り値に意味はない
 	}
+
+	inline constexpr size_t ChunkSize = 2048;
 
 	GLOBAL_CHECK_NON_ARG(TypeAssertion);
 }

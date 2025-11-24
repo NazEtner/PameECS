@@ -464,6 +464,7 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
     <ClCompile Include="graphics\command_list_pool.cpp" />
     <ClCompile Include="graphics\renderer.cpp" />
@@ -483,6 +484,7 @@
     <ClInclude Include="exceptions\invalid_operation.hpp" />
     <ClInclude Include="exceptions\renderer_error.hpp" />
     <ClInclude Include="exceptions\window_error.hpp" />
+    <ClInclude Include="file\archive\archive_creator.hpp" />
     <ClInclude Include="file\archive\archive_loader.hpp" />
     <ClInclude Include="file\archive\types.hpp" />
     <ClInclude Include="graphics\command_list_pool.hpp" />

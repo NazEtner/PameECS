@@ -79,7 +79,7 @@ namespace PameECS::File::Archive {
 			std::unordered_map<std::string, EntryIndex> children; // 子エントリのインデックス
 		};
 
-		inline static constexpr size_t m_chunk_size = 2048;
+		inline static constexpr size_t m_chunk_size = Types::ChunkSize;
 
 		std::future<std::array<uint8_t, m_chunk_size>> m_getChunkDataAsync(size_t chunkIndex) const;
 

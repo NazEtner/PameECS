@@ -108,6 +108,9 @@
     <ClCompile Include="file\archive\archive_loader.cpp">
       <Filter>ソース ファイル\file\archive</Filter>
     </ClCompile>
+    <ClCompile Include="file\archive\archive_creator.cpp">
+      <Filter>ソース ファイル\file\archive</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -199,6 +202,9 @@
     </ClInclude>
     <ClInclude Include="exceptions\compress_error.hpp">
       <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="file\archive\archive_creator.hpp">
+      <Filter>ヘッダー ファイル\file\archive</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
