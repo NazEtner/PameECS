@@ -14,4 +14,8 @@
     <BuildType Solution="Debug-NoDebugGUI|*" Project="Debug" />
     <BuildType Solution="Release-NoDebugGUI|*" Project="Release" />
   </Project>
+  <Project Path="PEAC_archiver/PEAC_archiver.vcxproj" Id="083ba1bb-687b-4c40-bb2f-805de3d5fa67">
+    <BuildType Solution="Debug-NoDebugGUI|*" Project="Debug" />
+    <BuildType Solution="Release-NoDebugGUI|*" Project="Release" />
+  </Project>
 </Solution>
