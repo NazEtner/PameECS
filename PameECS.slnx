@@ -18,4 +18,8 @@
     <BuildType Solution="Debug-NoDebugGUI|*" Project="Debug" />
     <BuildType Solution="Release-NoDebugGUI|*" Project="Release" />
   </Project>
+  <Project Path="PEAC_tester/PEAC_tester.vcxproj" Id="e5fba14c-19f0-42b6-8ce8-702ceff54a22">
+    <BuildType Solution="Debug-NoDebugGUI|*" Project="Debug" />
+    <BuildType Solution="Release-NoDebugGUI|*" Project="Release" />
+  </Project>
 </Solution>

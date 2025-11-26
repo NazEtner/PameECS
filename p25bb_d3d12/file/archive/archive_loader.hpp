@@ -28,10 +28,10 @@ namespace PameECS::File::Archive {
 		}
 
 		std::vector<uint8_t> GetFileData(const std::string& virtualPath) const {
-			GetFileData(GetEntry(virtualPath));
+			return GetFileData(GetEntry(virtualPath));
 		}
 		std::vector<uint8_t> GetFileData(const Types::Entry& entry) const {
-			GetFileDataAsync(entry).get();
+			return GetFileDataAsync(entry).get();
 		}
 		std::future<std::vector<uint8_t>> GetFileDataAsync(const std::string& virtualPath) const {
 			return GetFileDataAsync(GetEntry(virtualPath));

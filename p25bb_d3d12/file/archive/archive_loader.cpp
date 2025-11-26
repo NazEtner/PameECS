@@ -166,6 +166,8 @@ void ArchiveLoader::m_constructEntries(
 		entryIndexes[entry.name].index = static_cast<uint16_t>(i);
 
 		m_constructEntries(data, entry.children, entryIndexes[entry.name].children, readPosition);
+
+		entries.emplace_back(entry);
 	}
 }
 

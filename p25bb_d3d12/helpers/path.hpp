@@ -4,7 +4,7 @@
 #include <vector>
 
 namespace PameECS::Helpers::Path {
-	std::vector<std::string> PathToVector(const std::filesystem::path& path) {
+	inline std::vector<std::string> PathToVector(const std::filesystem::path& path) {
 		std::vector<std::string> result;
 
 		for (const auto& part : path) {
