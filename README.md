@@ -6,7 +6,7 @@
 ### このリポジトリは開発中です。まともに使えるようになるまでお待ちください。
 
 ### TODO
-- アーカイブファイルの実装				完了！
+- アーカイブファイルの実装 <完了！>
 - アーカイブされたコンフィグファイルの読み込み
 - ファイルシステムの実装
 - ECSの実装
@@ -22,7 +22,7 @@
 ### This repository is currently under development. Please wait until it becomes fully usable.
 
 ### TODO
-- Implement archive file system				Completed!
+- Implement archive file system <Completed!>
 - Load configuration files from archives
 - Implement file system
 - Implement ECS
