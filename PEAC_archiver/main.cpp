@@ -6,24 +6,28 @@
 using PameECS::File::Archive::ArchiveCreator;
 
 int main() {
+	int returnCode = 0;
 	try {
 		ArchiveCreator creator;
-		int returnCode = 0;
 		while (true) {
-			std::string command, param;
-			std::cin >> command >> param;
+			std::string command;
+			std::cin >> command;
 			if (command == "add_file") {
-				creator.AddFileToVirtualRoot(param);
+				std::string path;
+				std::cin >> path;
+				creator.AddFileToVirtualRoot(path);
 			}
 			else if (command == "add_dir") {
-				creator.AddDirectoryToVirtualRoot(param);
+				std::string path;
+				std::cin >> path;
+				creator.AddDirectoryToVirtualRoot(path);
 			}
 			else if (command == "write") {
-				creator.Write(param);
+				std::string path;
+				std::cin >> path;
+				creator.Write(path);
 			}
 			else if (command == "exit") {
-				auto ss = std::istringstream(param);
-				ss >> returnCode;
 				break;
 			}
 			else {
@@ -34,11 +38,11 @@ int main() {
 				std::cout << "\t" << "exit {returncode}" << std::endl;
 			}
 		}
-
-		return returnCode;
 	}
 	catch (const Pame::Exceptions::ExceptionBase& e) {
 		std::cerr << e.GetExceptionTypeName() << " : " << e.what() << std::endl;
 		std::cerr << e.GetTrace() << std::endl;
+		returnCode = -1;
 	}
+	return returnCode;
 }
