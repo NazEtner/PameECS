@@ -35,7 +35,7 @@ int main() {
 				std::cout << "\t" << "add_file {filename}" << std::endl;
 				std::cout << "\t" << "add_dir {filename}" << std::endl;
 				std::cout << "\t" << "write {filename}" << std::endl;
-				std::cout << "\t" << "exit {returncode}" << std::endl;
+				std::cout << "\t" << "exit" << std::endl;
 			}
 		}
 	}
