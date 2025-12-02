@@ -64,6 +64,9 @@
     <Filter Include="ソース ファイル\file\archive">
       <UniqueIdentifier>{3af7b45d-d758-4593-9df4-5bd0bfb8b6a3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\json">
+      <UniqueIdentifier>{872974d9-5bc9-41c6-9deb-6b76f58afe6d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -205,6 +208,9 @@
     </ClInclude>
     <ClInclude Include="file\archive\archive_creator.hpp">
       <Filter>ヘッダー ファイル\file\archive</Filter>
+    </ClInclude>
+    <ClInclude Include="json\json_object.hpp">
+      <Filter>ヘッダー ファイル\json</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
