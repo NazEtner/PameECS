@@ -12,6 +12,7 @@
 #include "../../helpers/path.hpp"
 #include "../../helpers/binary.hpp"
 #include "../../exceptions/file_error.hpp"
+#include "../../macros/dll.hpp"
 
 namespace PameECS::File::Archive {
 	class ArchiveLoader {

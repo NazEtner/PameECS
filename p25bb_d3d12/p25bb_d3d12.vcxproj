@@ -466,6 +466,7 @@
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
+    <ClCompile Include="file\file_implementation.cpp" />
     <ClCompile Include="graphics\command_list_pool.cpp" />
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
@@ -487,6 +488,8 @@
     <ClInclude Include="file\archive\archive_creator.hpp" />
     <ClInclude Include="file\archive\archive_loader.hpp" />
     <ClInclude Include="file\archive\types.hpp" />
+    <ClInclude Include="file\file.hpp" />
+    <ClInclude Include="file\file_implementation.hpp" />
     <ClInclude Include="graphics\command_list_pool.hpp" />
     <ClInclude Include="graphics\renderer.hpp" />
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp" />
@@ -502,6 +505,7 @@
     <ClInclude Include="json\json_object.hpp" />
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />
+    <ClInclude Include="macros\dll.hpp" />
     <ClInclude Include="template_types\string_literal.hpp" />
     <ClInclude Include="thread\dummy_lock.hpp" />
     <ClInclude Include="thread\thread_pool_table.hpp" />
