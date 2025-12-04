@@ -65,7 +65,16 @@ std::future<std::vector<uint8_t>> ArchiveLoader::GetFileDataAsync(const Types::E
 		return fileData;
 	};
 
+	/*
 	return m_thread_pool->submit_task(
+		[func, futures = std::move(chunkDataFutures)]() mutable {
+			return func(std::move(futures));
+		}
+	);
+	*/
+
+	return std::async(
+		std::launch::async,
 		[func, futures = std::move(chunkDataFutures)]() mutable {
 			return func(std::move(futures));
 		}
