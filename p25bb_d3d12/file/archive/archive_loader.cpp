@@ -5,9 +5,13 @@
 
 using PameECS::File::Archive::ArchiveLoader;
 
-ArchiveLoader::ArchiveLoader(const std::filesystem::path& path, std::shared_ptr<BS::thread_pool<0U>> threadPool, std::shared_ptr<spdlog::logger> logger)
-	: m_thread_pool(threadPool), m_logger(logger) {
-	assert(m_thread_pool);
+ArchiveLoader::ArchiveLoader(
+	const std::filesystem::path& path,
+	std::shared_ptr<BS::thread_pool<0U>> chunkLoadThreadPool,
+	std::shared_ptr<spdlog::logger> logger,
+	std::shared_ptr<BS::thread_pool<0U>> mergeThreadPool)
+	: m_chunk_load_thread_pool(chunkLoadThreadPool), m_logger(logger), m_merge_thread_pool(mergeThreadPool) {
+	assert(m_chunk_load_thread_pool);
 	assert(m_logger);
 
 	m_fileMap(path);
@@ -42,7 +46,7 @@ std::future<std::vector<uint8_t>> ArchiveLoader::GetFileDataAsync(const Types::E
 		chunkDataFutures.emplace_back(m_getChunkDataAsync(i));
 	}
 
-	auto func = [this, entry](std::vector<std::future<std::array<uint8_t, m_chunk_size>>>&& futures) mutable -> std::vector<uint8_t> {
+	auto merge = [this, entry](std::vector<std::future<std::array<uint8_t, m_chunk_size>>>&& futures) mutable -> std::vector<uint8_t> {
 		std::pair<size_t, size_t> clip = {
 			entry.dataOffset % m_chunk_size,
 			((entry.dataOffset + entry.dataSize) % m_chunk_size) == 0
@@ -65,24 +69,24 @@ std::future<std::vector<uint8_t>> ArchiveLoader::GetFileDataAsync(const Types::E
 		return fileData;
 	};
 
-	/*
-	return m_thread_pool->submit_task(
-		[func, futures = std::move(chunkDataFutures)]() mutable {
-			return func(std::move(futures));
-		}
-	);
-	*/
+	if (!m_merge_thread_pool) {
+		return std::async(
+			std::launch::async,
+			[merge, futures = std::move(chunkDataFutures)]() mutable {
+				return merge(std::move(futures));
+			}
+		);
+	}
 
-	return std::async(
-		std::launch::async,
-		[func, futures = std::move(chunkDataFutures)]() mutable {
-			return func(std::move(futures));
+	return m_merge_thread_pool->submit_task(
+		[merge, futures = std::move(chunkDataFutures)]() mutable {
+			return merge(std::move(futures));
 		}
 	);
 }
 
 std::future<std::array<uint8_t, ArchiveLoader::m_chunk_size>> ArchiveLoader::m_getChunkDataAsync(size_t chunkIndex) const {
-	return m_thread_pool->submit_task(
+	return m_chunk_load_thread_pool->submit_task(
 		[this, chunkIndex]() -> std::array<uint8_t, m_chunk_size> {
 			const auto& [offset, size] = m_data_chunk_ranges.at(chunkIndex);
 			std::vector<uint8_t> compressed = std::vector<uint8_t>(size);

@@ -21,6 +21,7 @@ namespace PameECS::JSON {
 
 		// JSONからCRTPを使ってJSONObjectを継承した構造体(多分クラスでもいい)へデシリアライズする
 		// 構造体に存在するがJSONに存在しないプロパティは無視する
+		// const値がある構造体をデシリアライズするということは意味不明なので多分エラー
 		void Deserialize(const nlohmann::json& j) {
 			static_cast<Derived*>(this)->ForEachMember(
 				[&]<TemplateTypes::StringLiteral Name>(auto& member) {

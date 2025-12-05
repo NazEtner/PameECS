@@ -17,7 +17,14 @@
 namespace PameECS::File::Archive {
 	class ArchiveLoader {
 	public:
-		ArchiveLoader(const std::filesystem::path& path, std::shared_ptr<BS::thread_pool<0U>> threadPool, std::shared_ptr<spdlog::logger> logger);
+		// mergeThreadPool == nullptrの場合、内部でstd::asyncを使用する
+		// mergeThreadPool == nullptrは主にテストや軽いアーカイブ操作向け、普通に使うならスレッドプールを入れること
+		// chunkLoadThreadPool == mergeThreadPoolの場合、デッドロックが発生する場合があるので基本的に禁止
+		ArchiveLoader(
+			const std::filesystem::path& path,
+			std::shared_ptr<BS::thread_pool<0U>> chunkLoadThreadPool,
+			std::shared_ptr<spdlog::logger> logger,
+			std::shared_ptr<BS::thread_pool<0U>> mergeThreadPool = nullptr);
 		~ArchiveLoader() = default;
 		ArchiveLoader(const ArchiveLoader&) = delete;
 		ArchiveLoader& operator=(const ArchiveLoader&) = delete;
@@ -98,7 +105,8 @@ namespace PameECS::File::Archive {
 		bool m_isExist(const std::vector<std::string>& path) const;
 		Types::Entry m_getEntry(const std::vector<std::string>& path) const;
 
-		std::shared_ptr<BS::thread_pool<0U>> m_thread_pool;
+		std::shared_ptr<BS::thread_pool<0U>> m_chunk_load_thread_pool;
+		std::shared_ptr<BS::thread_pool<0U>> m_merge_thread_pool;
 
 		Types::SizeInformation m_size_info;
 		std::unordered_map<std::string, EntryIndex> m_virtual_root_entry_indexes;

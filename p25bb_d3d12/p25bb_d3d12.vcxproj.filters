@@ -224,5 +224,8 @@
     <ClInclude Include="macros\dll.hpp">
       <Filter>ヘッダー ファイル\macros</Filter>
     </ClInclude>
+    <ClInclude Include="file\file_global_state.hpp">
+      <Filter>ヘッダー ファイル\file</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
