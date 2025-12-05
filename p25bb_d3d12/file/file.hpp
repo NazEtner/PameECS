@@ -6,6 +6,7 @@ namespace PameECS::File {
 	// ロード先はImplementId毎に固有、グローバールステート(スレッドプール等)はGlobalStateId毎に固有
 	// テンプレートパラメータに関わらず、DLL(or EXE)ごとに(多分)固有
 	// DLL/EXE間で共有したい場合は、FileGlobalStateとFileの両方の特殊化にPECS_DLL_SHAREDをつければいい
+	// アーカイブファイルへの書き込みをFileクラスで行うのは意味不明なので、ファイルの出力はofstreamを使うべき
 	template<size_t ImplementId, size_t GlobalStateId = 0>
 	class File final {
 	public:
