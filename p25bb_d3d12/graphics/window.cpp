@@ -166,7 +166,7 @@ void Window::m_create() {
 	}
 
 	auto style = m_properties.windowStyle.value();
-	RECT windowRect;
+	RECT windowRect = {};
 	windowRect.left = 0;
 	windowRect.top = 0;
 	windowRect.right = m_properties.width.value();
