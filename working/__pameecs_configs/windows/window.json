@@ -1,0 +1,20 @@
+{
+    "windowStyles": {
+        "windowed": 281673728,
+        "fullscreen": 2415919104,
+        "resizableWindow": 282001408
+    },
+    "__wsComments": {
+        "windowed": "0x10CA0000 -> WS_VISIBLE | WS_CAPTION | WS_BORDER | WS_DLGFRAME | WS_SYSMENU | WS_MINIMIZEBOX",
+        "fullscreen": "0x90000000 -> WS_POPUP | WS_VISIBLE",
+        "resizableWindow": "0x10CF0000 -> WS_VISIBLE | WS_CAPTION | WS_BORDER | WS_DLGFRAME | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX"
+    },
+    "defaultWindowStyle": "resizableWindow",
+    "sizeIgnores": [
+        "fullscreen"
+    ],
+    "className": "PameECSWindow",
+    "windowName": "PameECS default window name",
+    "defaultWidth": 1600,
+    "defaultHeight": 900
+}

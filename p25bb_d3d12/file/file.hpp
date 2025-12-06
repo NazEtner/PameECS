@@ -29,8 +29,7 @@ namespace PameECS::File {
 
 		FileImplementation* m_getImplementation() {
 			// GetThreadPool()がnullptrになるときは、デバッグビルドのときにassertion failedするので注意
-			static FileImplementation impl = FileImplementation(m_getGlobalState()->GetThreadPool());
-			return &impl;
+			return m_getGlobalState()->GetFileImplementation<ImplementId>();
 		}
 	};
 }

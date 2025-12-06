@@ -470,12 +470,17 @@
     <ClCompile Include="graphics\command_list_pool.cpp" />
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
+    <ClCompile Include="graphics\window_setting_adaptor.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="application.hpp" />
+    <ClInclude Include="configs\asserts_config.hpp" />
+    <ClInclude Include="configs\renderer_config.hpp" />
+    <ClInclude Include="configs\window_config.hpp" />
+    <ClInclude Include="constants\file_implement_ids.hpp" />
     <ClInclude Include="constants\string_literals.hpp" />
     <ClInclude Include="constants\thread_pool_table_ids.hpp" />
     <ClInclude Include="debug_tools\debug_gui_host.hpp" />
@@ -496,6 +501,7 @@
     <ClInclude Include="graphics\renderer_flags\reset_flags.hpp" />
     <ClInclude Include="graphics\renderer_types.hpp" />
     <ClInclude Include="graphics\window.hpp" />
+    <ClInclude Include="graphics\window_setting_adaptor.hpp" />
     <ClInclude Include="helpers\binary.hpp" />
     <ClInclude Include="helpers\compress.hpp" />
     <ClInclude Include="helpers\crc.hpp" />

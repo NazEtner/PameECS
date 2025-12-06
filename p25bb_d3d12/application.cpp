@@ -7,7 +7,6 @@
 #include "macros/debug.hpp"
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
-#include "constants/string_literals.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -52,6 +51,7 @@ void Application::Initialize() {
 	m_initializeLogger();
 	m_logInfo();
 	m_initializeThreadPoolTable();
+	m_initializeFileSystem();
 	m_initializeWindow();
 	m_initializeRenderer();
 	m_initializeDebugTools();
@@ -72,9 +72,11 @@ void Application::SubmitRenderTask() {
 void Application::Finalize() {
 	m_logger->info("Finalizing application...");
 
+	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>().Reset();
 	m_thread_pool_table.reset();
 	m_renderer.reset();
 	m_window.reset();
+	m_window_setting_adaptor.reset();
 	m_debug_gui_host.reset();
 
 	m_logger->info("Application finalized.");
@@ -103,6 +105,8 @@ void Application::m_logInfo() {
 
 #ifdef _DEBUG
 	m_logger->info("Debug build");
+	m_logger->warn("DON'T CLOSE THE CONSOLE WINDOW, AS IT MAY CAUSE A RESOURCE LEAK!");
+
 #else
 	m_logger->info("Release build");
 #endif
@@ -113,12 +117,52 @@ void Application::m_initializeThreadPoolTable() {
 	m_thread_pool_table = std::make_shared<Thread::ThreadPoolTable<false, static_cast<size_t>(Constants::ThreadPoolTableIds::ApplicationMain)>>();
 }
 
+void Application::m_initializeFileSystem() {
+	// ファイルシステムの初期化
+	m_thread_pool_table->Allocate<Constants::StringLiterals::FileIOThreadPoolName>();
+	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>()
+		.GetThreadPool() = m_thread_pool_table->GetThreadPool<Constants::StringLiterals::FileIOThreadPoolName>();
+
+	// アーカイブファイルの初期化
+	m_thread_pool_table->Allocate<Constants::StringLiterals::ArchiveDecompressThreadPoolName>();
+	m_thread_pool_table->Allocate<Constants::StringLiterals::ArchiveMergeThreadPoolName>();
+	// * PameECSのコンフィグ用のアーカイブファイル
+	// (static_cast<size_t>(Constants::FileGlobalStateIds::Common) == 0(デフォルト値))なので、
+	// static_cast<size_t>(Constants::FileGlobalStateIds::Common)は省略してもいい
+	File::File<static_cast<size_t>(Constants::FileImplementIds::Internal), static_cast<size_t>(Constants::FileGlobalStateIds::Common)>()
+		.SetArchiveLoader(
+			std::make_shared<File::Archive::ArchiveLoader>(
+				m_config_archive_name,
+				m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ArchiveDecompressThreadPoolName>(),
+				m_logger,
+				m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ArchiveMergeThreadPoolName>()
+			)
+		);
+
+	// * PameECSのアセット用のアーカイブファイル
+	auto assetsConfig = m_loadAssetsConfig();
+	for (const auto& archive : assetsConfig.archives) {
+		File::File<static_cast<size_t>(Constants::FileImplementIds::Assets), static_cast<size_t>(Constants::FileGlobalStateIds::Common)>()
+			.SetArchiveLoader(
+				std::make_shared<File::Archive::ArchiveLoader>(
+					archive,
+					m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ArchiveDecompressThreadPoolName>(),
+					m_logger,
+					m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ArchiveMergeThreadPoolName>()
+				)
+			);
+	}
+}
+
 void Application::m_initializeWindow() {
-	Graphics::Window::Properties properties;
+	m_window_setting_adaptor = std::make_shared<Graphics::WindowSettingAdaptor>();
+	auto properties = m_window_setting_adaptor->CreateWindowProperty(m_loadWindowConfig());
 	properties.windowProcedure = WndProc;
 
 	m_window = std::make_shared<Graphics::Window>(properties, m_logger);
 	m_window->Show();
+
+	m_window_setting_adaptor->SetWindow(m_window);
 }
 
 void Application::m_initializeRenderer() {
@@ -134,4 +178,28 @@ void Application::m_initializeRenderer() {
 
 void Application::m_initializeDebugTools() {
 	m_debug_gui_host = std::make_shared<DebugTools::DebugGUIHost>(m_window, m_renderer);
+}
+
+PameECS::Configs::AssetsConfig Application::m_loadAssetsConfig() {
+	auto json = m_getConfigJson(m_asset_config_filename);
+
+	Configs::AssetsConfig ret;
+	ret.Deserialize(json);
+	return ret;
+}
+
+PameECS::Configs::RendererConfig Application::m_loadRendererConfig() {
+	auto json = m_getConfigJson(m_renderer_config_filename);
+
+	Configs::RendererConfig ret;
+	ret.Deserialize(json);
+	return ret;
+}
+
+PameECS::Configs::WindowConfig Application::m_loadWindowConfig() {
+	auto json = m_getConfigJson(m_window_config_filename);
+
+	Configs::WindowConfig ret;
+	ret.Deserialize(json);
+	return ret;
 }

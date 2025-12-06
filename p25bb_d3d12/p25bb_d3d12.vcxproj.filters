@@ -67,6 +67,9 @@
     <Filter Include="ヘッダー ファイル\json">
       <UniqueIdentifier>{872974d9-5bc9-41c6-9deb-6b76f58afe6d}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\configs">
+      <UniqueIdentifier>{afd5649f-af41-489e-be24-ad594a6d4c6f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -116,6 +119,9 @@
     </ClCompile>
     <ClCompile Include="file\file_implementation.cpp">
       <Filter>ソース ファイル\file</Filter>
+    </ClCompile>
+    <ClCompile Include="graphics\window_setting_adaptor.cpp">
+      <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -226,6 +232,21 @@
     </ClInclude>
     <ClInclude Include="file\file_global_state.hpp">
       <Filter>ヘッダー ファイル\file</Filter>
+    </ClInclude>
+    <ClInclude Include="constants\file_implement_ids.hpp">
+      <Filter>ヘッダー ファイル\constants</Filter>
+    </ClInclude>
+    <ClInclude Include="configs\window_config.hpp">
+      <Filter>ヘッダー ファイル\configs</Filter>
+    </ClInclude>
+    <ClInclude Include="configs\asserts_config.hpp">
+      <Filter>ヘッダー ファイル\configs</Filter>
+    </ClInclude>
+    <ClInclude Include="configs\renderer_config.hpp">
+      <Filter>ヘッダー ファイル\configs</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\window_setting_adaptor.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
