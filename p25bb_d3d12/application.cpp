@@ -168,11 +168,13 @@ void Application::m_initializeWindow() {
 void Application::m_initializeRenderer() {
 	m_thread_pool_table->Allocate<Constants::StringLiterals::RendererThreadPoolName>();
 
+	auto rendererConfig = m_loadRendererConfig();
+
 	m_renderer = std::make_shared<Graphics::Renderer>(
 		m_logger,
 		m_window,
 		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::RendererThreadPoolName>(),
-		true, false
+		rendererConfig.useDebugLayer, rendererConfig.useAdvancedDebug
 	);
 }
 
