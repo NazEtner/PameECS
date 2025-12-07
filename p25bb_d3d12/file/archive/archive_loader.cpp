@@ -93,7 +93,7 @@ std::future<std::array<uint8_t, ArchiveLoader::m_chunk_size>> ArchiveLoader::m_g
 			m_readData(compressed.data(), size, m_data_start_position + offset);
 			// ZStdDecompressは厳密にm_chunk_sizeバイトのデータを返すはずなので、サイズの確認は必要ない
 			std::vector<uint8_t> decompressed = Helpers::Compress::ZStdDecompress(compressed, m_chunk_size);
-			std::array<uint8_t, m_chunk_size> result;
+			std::array<uint8_t, m_chunk_size> result = {};
 			std::copy(decompressed.begin(), decompressed.end(), result.begin());
 			return result;
 		}
