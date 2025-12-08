@@ -7,8 +7,8 @@
 
 ### TODO
 - アーカイブファイルの実装 <完了！>
-- アーカイブされたコンフィグファイルの読み込み
-- ファイルシステムの実装
+- アーカイブされたコンフィグファイルの読み込み <完了！>
+- ファイルシステムの実装 <完了！>
 - ECSの実装
 - 入力システムの実装
 - オーディオシステムの実装
@@ -23,8 +23,8 @@
 
 ### TODO
 - Implement archive file system <Completed!>
-- Load configuration files from archives
-- Implement file system
+- Load configuration files from archives <Completed!>
+- Implement file system <Completed!>
 - Implement ECS
 - Implement input system
 - Implement audio system
