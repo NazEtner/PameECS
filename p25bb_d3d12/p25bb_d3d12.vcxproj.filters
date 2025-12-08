@@ -239,7 +239,7 @@
     <ClInclude Include="configs\window_config.hpp">
       <Filter>ヘッダー ファイル\configs</Filter>
     </ClInclude>
-    <ClInclude Include="configs\asserts_config.hpp">
+    <ClInclude Include="configs\assets_config.hpp">
       <Filter>ヘッダー ファイル\configs</Filter>
     </ClInclude>
     <ClInclude Include="configs\renderer_config.hpp">

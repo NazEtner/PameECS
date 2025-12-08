@@ -13,7 +13,7 @@
 #include "constants/string_literals.hpp"
 #include "constants/file_implement_ids.hpp"
 #include "file/file.hpp"
-#include "configs/asserts_config.hpp"
+#include "configs/assets_config.hpp"
 #include "configs/renderer_config.hpp"
 #include "configs/window_config.hpp"
 #include "graphics/window_setting_adaptor.hpp"
