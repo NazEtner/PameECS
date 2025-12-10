@@ -15,6 +15,7 @@
     ],
     "className": "PameECSWindow",
     "windowName": "PameECS default window name",
+    "altEnterSwitchables": ["fullscreen", "resizableWindow"],
     "defaultWidth": 1600,
     "defaultHeight": 900
 }

@@ -31,6 +31,7 @@ namespace PameECS::Graphics {
 		void SetStyle(const std::string& style);
 		void SetWidth(const uint32_t width);
 		void SetHeight(const uint32_t height);
+		void SetAltEnterSwitchables(const std::vector<std::string>& switchables);
 	private:
 		void m_save() {
 			try {
@@ -41,6 +42,16 @@ namespace PameECS::Graphics {
 			catch (const std::exception& e) {
 				throw Exceptions::FileError(std::string("Failed to save setting file : ") + e.what());
 			}
+		}
+		std::vector<DWORD> m_convertStyleNamesToStyles(const std::vector<std::string>& styleNames) {
+			std::vector<DWORD> styles;
+			for (const auto& styleName : styleNames) {
+				auto it = m_config.windowStyles.find(styleName);
+				if (it != m_config.windowStyles.end()) {
+					styles.push_back(it->second);
+				}
+			}
+			return styles;
 		}
 		// ファイルシステムにはFile::File<1, 0>ではなく、fstreamを使う
 		const std::filesystem::path m_setting_file_path = "window_setting.json";

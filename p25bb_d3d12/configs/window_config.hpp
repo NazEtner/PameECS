@@ -14,6 +14,7 @@ namespace PameECS::Configs {
 		std::string windowName;
 		uint32_t defaultWidth = 800;
 		uint32_t defaultHeight = 600;
+		std::vector<std::string> altEnterSwitchables;
 
 		template<typename Func>
 		void ForEachMember(Func&& func) {
@@ -24,6 +25,7 @@ namespace PameECS::Configs {
 			func.operator()<"windowName">(windowName);
 			func.operator()<"defaultWidth">(defaultWidth);
 			func.operator()<"defaultHeight">(defaultHeight);
+			func.operator()<"altEnterSwitchables">(altEnterSwitchables);
 		}
 	};
 }

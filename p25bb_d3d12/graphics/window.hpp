@@ -18,6 +18,7 @@ namespace PameECS::Graphics {
 			NoWidth = 1 << 2,
 			NoHeight = 1 << 3,
 			NoWindowStyle = 1 << 4,
+			NoAltEnterSwitchables = 1 << 5,
 			// ウィンドウプロシージャの関数ポインタを取得する意味がないので取得させない
 		};
 
@@ -36,6 +37,8 @@ namespace PameECS::Graphics {
 			// 値を入れるならDestroyWindow()を使用せずにthis->Destroy()を使うか、WM_CLOSEでPostQuitMessage(0)を呼ぶこと
 			// 値を入れなければDestroyWindow()が二回呼ばれてしまって、Windowsのバグとかで変な挙動をする可能性もあるから、何かしらのプロシージャを入れるのを推奨
 			std::optional<WNDPROC> windowProcedure;
+			// Alt+Enterを押したときに切り替えるウィンドウスタイル
+			std::optional<std::vector<DWORD>> altEnterSwitchables;
 		};
 
 		Window(const Properties& properties, std::shared_ptr<spdlog::logger>& logger);
@@ -70,6 +73,9 @@ namespace PameECS::Graphics {
 			if (!(flags & NoWindowStyle)) {
 				result.windowStyle = m_properties.windowStyle;
 			}
+			if (!(flags & NoAltEnterSwitchables)) {
+				result.altEnterSwitchables = m_properties.altEnterSwitchables;
+			}
 			return result;
 		}
 
@@ -81,6 +87,7 @@ namespace PameECS::Graphics {
 		}
 
 		void Destroy() noexcept; // DestroyWindow()のラッパー的なやつ
+		void OnAltEnterPressed(); // Alt+Enterが押されたときに呼ぶ
 	private:
 		void m_setDefaultProperties(const Properties& properties);
 		void m_create();

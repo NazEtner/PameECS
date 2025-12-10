@@ -14,7 +14,7 @@ WindowSettingAdaptor::WindowSettingAdaptor() {
 
 Window::Properties WindowSettingAdaptor::CreateWindowProperty(const Configs::WindowConfig& config) {
 	Window::Properties ret;
-
+	m_config = config;
 	{
 		auto settingValueIt = config.windowStyles.find(m_setting.windowStyle);
 		if (settingValueIt != config.windowStyles.end()) {
@@ -66,7 +66,7 @@ Window::Properties WindowSettingAdaptor::CreateWindowProperty(const Configs::Win
 	ret.className = config.className;
 	ret.windowName = config.windowName;
 
-	m_config = config;
+	ret.altEnterSwitchables = m_convertStyleNamesToStyles(config.altEnterSwitchables);
 
 	m_save();
 
@@ -102,6 +102,13 @@ void WindowSettingAdaptor::SetHeight(const uint32_t height) {
 	m_setting.height = height;
 	m_save();
 
+	assert(m_window);
+	m_window->SetProperties(properties);
+}
+
+void WindowSettingAdaptor::SetAltEnterSwitchables(const std::vector<std::string>& switchables) {
+	Window::Properties properties;
+	properties.altEnterSwitchables = m_convertStyleNamesToStyles(switchables);
 	assert(m_window);
 	m_window->SetProperties(properties);
 }

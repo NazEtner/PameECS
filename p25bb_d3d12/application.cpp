@@ -38,6 +38,14 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			return 0;
 		}
 		break;
+	case WM_SYSKEYDOWN:
+		if (wParam == VK_RETURN) {
+			if (window) {
+				window->OnAltEnterPressed();
+				return 0;
+			}
+		}
+		break;
 	default:
 		break;
 	}

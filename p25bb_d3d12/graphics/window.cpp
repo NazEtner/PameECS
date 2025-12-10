@@ -65,6 +65,38 @@ void Window::Destroy() noexcept {
 	}
 }
 
+void Window::OnAltEnterPressed() {
+	assert(m_properties.windowStyle.has_value());
+	if (!m_window_handle) {
+		throw Exceptions::WindowError("Window handle is null.");
+	}
+	if (!m_properties.altEnterSwitchables || m_properties.altEnterSwitchables->empty()) {
+		return;
+	}
+	auto currentStyle = m_properties.windowStyle.value();
+	auto it = std::find(
+		m_properties.altEnterSwitchables->begin(),
+		m_properties.altEnterSwitchables->end(),
+		currentStyle
+	);
+	DWORD newStyle;
+	if (it != m_properties.altEnterSwitchables->end()) {
+		it++;
+		if (it == m_properties.altEnterSwitchables->end()) {
+			newStyle = m_properties.altEnterSwitchables->front();
+		}
+		else {
+			newStyle = *it;
+		}
+	}
+	else {
+		newStyle = m_properties.altEnterSwitchables->front();
+	}
+	Properties property;
+	property.windowStyle = newStyle;
+	SetProperties(property);
+}
+
 void Window::SetProperties(const Properties& property) {
 	assert(m_properties.windowStyle.has_value());
 
@@ -121,6 +153,10 @@ void Window::SetProperties(const Properties& property) {
 		SetWindowText(m_window_handle, property.windowName.value().c_str());
 		m_properties.windowName = property.windowName;
 	}
+
+	if (property.altEnterSwitchables.has_value()) {
+		m_properties.altEnterSwitchables = property.altEnterSwitchables;
+	}
 }
 
 void Window::m_setDefaultProperties(const Properties& properties) {
@@ -130,6 +166,7 @@ void Window::m_setDefaultProperties(const Properties& properties) {
 	m_properties.height = properties.height.value_or(600);
 	m_properties.windowStyle = properties.windowStyle.value_or(WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 	m_properties.windowProcedure = properties.windowProcedure.value_or(DefWindowProc);
+	m_properties.altEnterSwitchables = properties.altEnterSwitchables.value_or({});
 }
 
 void Window::m_create() {
