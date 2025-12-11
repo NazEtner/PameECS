@@ -70,6 +70,9 @@
     <Filter Include="ヘッダー ファイル\configs">
       <UniqueIdentifier>{afd5649f-af41-489e-be24-ad594a6d4c6f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\ecs">
+      <UniqueIdentifier>{e3d8e799-b784-40bb-91d2-9219058ed8ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -247,6 +250,21 @@
     </ClInclude>
     <ClInclude Include="graphics\window_setting_adaptor.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\types.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\invalid_component_type.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\component_binary_storage.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\component_storage_interface.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\component_storage.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
