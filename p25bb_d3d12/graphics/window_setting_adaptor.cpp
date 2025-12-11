@@ -30,36 +30,9 @@ Window::Properties WindowSettingAdaptor::CreateWindowProperty(const Configs::Win
 		}
 	}
 
-	bool sizeIgnore = config.sizeIgnores.contains(m_setting.windowStyle);
-
-	if (!sizeIgnore) {
-		if (m_setting.width == 0xFFFFFFFF) {
-			ret.width = config.defaultWidth;
-		}
-		else {
-			ret.width = m_setting.width;
-		}
-
-		if (m_setting.height == 0xFFFFFFFF) {
-			ret.height = config.defaultHeight;
-		}
-		else {
-			ret.height = m_setting.height;
-		}
-	}
-	else {
-		HMONITOR hMonitor = MonitorFromWindow(GetDesktopWindow(), MONITOR_DEFAULTTOPRIMARY);
-		MONITORINFO mi = {};
-		mi.cbSize = sizeof(MONITORINFO);
-		if (GetMonitorInfo(hMonitor, &mi)) {
-			ret.width = mi.rcMonitor.right - mi.rcMonitor.left;
-			ret.height = mi.rcMonitor.bottom - mi.rcMonitor.top;
-		}
-		else {
-			ret.width = GetSystemMetrics(SM_CXSCREEN);
-			ret.height = GetSystemMetrics(SM_CYSCREEN);
-		}
-	}
+	auto [calculatedWidth, calculatedHeight] = m_calculateWindowSize(m_setting.windowStyle, m_setting);
+	ret.width = calculatedWidth;
+	ret.height = calculatedHeight;
 	m_setting.width = ret.width.value();
 	m_setting.height = ret.height.value();
 
@@ -79,6 +52,11 @@ void WindowSettingAdaptor::SetStyle(const std::string& style) {
 	if (it != m_config.windowStyles.end()) {
 		properties.windowStyle = it->second;
 		m_setting.windowStyle = style;
+		auto [calculatedWidth, calculatedHeight] = m_calculateWindowSize(style, m_setting);
+		properties.width = calculatedWidth;
+		properties.height = calculatedHeight;
+		m_setting.width = calculatedWidth;
+		m_setting.height = calculatedHeight;
 		m_save();
 	}
 
@@ -111,4 +89,40 @@ void WindowSettingAdaptor::SetAltEnterSwitchables(const std::vector<std::string>
 	properties.altEnterSwitchables = m_convertStyleNamesToStyles(switchables);
 	assert(m_window);
 	m_window->SetProperties(properties);
+}
+
+std::pair<uint32_t, uint32_t> WindowSettingAdaptor::m_calculateWindowSize(const std::string& style, const WindowSetting& setting) const {
+	uint32_t width = 0;
+	uint32_t height = 0;
+
+	auto it = m_config.sizeIgnores.find(style);
+	if (it == m_config.sizeIgnores.end()) {
+		if (setting.width != 0xFFFFFFFF) {
+			width = setting.width;
+		}
+		else {
+			width = m_config.defaultWidth;
+		}
+		if (setting.height != 0xFFFFFFFF) {
+			height = setting.height;
+		}
+		else {
+			height = m_config.defaultHeight;
+		}
+	}
+	else {
+		HMONITOR hMonitor = MonitorFromWindow(GetDesktopWindow(), MONITOR_DEFAULTTOPRIMARY);
+		MONITORINFO mi = {};
+		mi.cbSize = sizeof(MONITORINFO);
+		if (GetMonitorInfo(hMonitor, &mi)) {
+			width = mi.rcMonitor.right - mi.rcMonitor.left;
+			height = mi.rcMonitor.bottom - mi.rcMonitor.top;
+		}
+		else {
+			width = GetSystemMetrics(SM_CXSCREEN);
+			height = GetSystemMetrics(SM_CYSCREEN);
+		}
+	}
+
+	return { width, height };
 }

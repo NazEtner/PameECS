@@ -106,7 +106,8 @@ void Window::SetProperties(const Properties& property) {
 
 	if (property.windowStyle.has_value()) {
 		auto style = property.windowStyle.value();
-		if (SetWindowLongPtr(m_window_handle, GWL_STYLE, static_cast<LONG_PTR>(style)) == 0) {
+		SetLastError(0);
+		if (SetWindowLongPtr(m_window_handle, GWL_STYLE, static_cast<LONG_PTR>(style)) == 0 && GetLastError() != 0) {
 			std::string message = std::string("Failed to set window style : ") + Helpers::Errors::Windows::GetLastErrorMessage();
 			throw Exceptions::WindowError(message.c_str());
 		}

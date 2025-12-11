@@ -101,8 +101,16 @@ std::future<std::array<uint8_t, ArchiveLoader::m_chunk_size>> ArchiveLoader::m_g
 }
 
 void ArchiveLoader::m_fileMap(const std::filesystem::path& path) {
-	m_file_map = boost::interprocess::file_mapping(path.c_str(), boost::interprocess::read_only);
-	m_file_view = boost::interprocess::mapped_region(m_file_map, boost::interprocess::read_only);
+	try {
+		m_file_map = boost::interprocess::file_mapping(path.c_str(), boost::interprocess::read_only);
+		m_file_view = boost::interprocess::mapped_region(m_file_map, boost::interprocess::read_only);
+	}
+	catch (const std::exception& e) {
+		throw Exceptions::FileError(std::format("Failed to map archive file: {}", e.what()));
+	}
+	catch (...) {
+		throw Exceptions::FileError("Failed to map archive file: Unknown error.");
+	}
 }
 
 void ArchiveLoader::m_loadAndVerifyHeader() {

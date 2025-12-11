@@ -43,6 +43,7 @@ namespace PameECS::Graphics {
 				throw Exceptions::FileError(std::string("Failed to save setting file : ") + e.what());
 			}
 		}
+
 		std::vector<DWORD> m_convertStyleNamesToStyles(const std::vector<std::string>& styleNames) {
 			std::vector<DWORD> styles;
 			for (const auto& styleName : styleNames) {
@@ -53,6 +54,8 @@ namespace PameECS::Graphics {
 			}
 			return styles;
 		}
+
+		std::pair<uint32_t, uint32_t> m_calculateWindowSize(const std::string& style, const WindowSetting& setting) const;
 		// ファイルシステムにはFile::File<1, 0>ではなく、fstreamを使う
 		const std::filesystem::path m_setting_file_path = "window_setting.json";
 		WindowSetting m_setting;
