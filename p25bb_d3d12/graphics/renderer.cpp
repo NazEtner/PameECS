@@ -141,7 +141,10 @@ bool Renderer::Present() {
 	}
 	m_allocator_to_sync.clear();
 
-	if (FAILED(m_swap_chain->Present(static_cast<uint32_t>(m_vertical_sync_enabled), 0))) {
+	uint32_t presentFlags = 0;
+	presentFlags |= DXGI_PRESENT_ALLOW_TEARING & ~(0x0 - static_cast<uint32_t>(m_vertical_sync_enabled));
+
+	if (FAILED(m_swap_chain->Present(static_cast<uint32_t>(m_vertical_sync_enabled), presentFlags))) {
 		return false;
 	}
 
@@ -408,7 +411,7 @@ HRESULT Renderer::m_createSwapChain() noexcept {
 		swapChainDesc.SampleDesc.Quality = 0;
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
+		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
 
 		HRESULT hr = m_dxgi_factory->CreateSwapChainForHwnd(
 			m_command_queue.Get(),
