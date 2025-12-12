@@ -119,6 +119,7 @@ namespace PameECS::Graphics {
 			Helpers::Errors::Windows::HandleHRESULTError<Exceptions::RendererError>(result, message);
 		}
 
+		void m_waitForGPU(uint32_t frameIndex) noexcept;
 		void m_waitForGPU() noexcept;
 
 		std::shared_ptr<spdlog::logger> m_logger;
@@ -141,6 +142,17 @@ namespace PameECS::Graphics {
 		std::vector<std::future<RendererTypes::RenderCommand>> m_command_futures;
 		std::vector<ID3D12CommandList*> m_command_lists;
 		// End of D3D12 Objects
+
+		const uint32_t m_back_buffers_count = 3;
+		std::vector<uint64_t> m_fence_values;
+		uint32_t m_current_frame_index = 0;
+
+		struct CommandAllocatorEntry {
+			Microsoft::WRL::ComPtr<ID3D12CommandAllocator> allocator;
+			uint64_t fenceValue;
+		};
+		std::queue<CommandAllocatorEntry> m_pending_allocators;
+		std::vector<Microsoft::WRL::ComPtr<ID3D12CommandAllocator>> m_allocator_to_sync;
 
 		std::shared_ptr<CommandListPool> m_command_list_pool;
 

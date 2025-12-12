@@ -28,6 +28,18 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::Render() {
+	m_waitForGPU(m_current_frame_index);
+	const uint64_t completedFenceValue = m_fence->GetCompletedValue();
+	while (!m_pending_allocators.empty()) {
+		auto& entry = m_pending_allocators.front();
+		if (entry.fenceValue <= completedFenceValue) {
+			m_command_list_pool->ReturnCommandAllocator(std::move(entry.allocator));
+			m_pending_allocators.pop();
+		}
+		else {
+			break;
+		}
+	}
 	try {
 		auto clearCommandAllocator = m_command_list_pool->GetCommandAllocator();
 		auto clearCommandList = m_command_list_pool->GetCommandList(clearCommandAllocator.Get());
@@ -66,7 +78,8 @@ bool Renderer::Render() {
 
 		auto emplaceAndReturnCommand = [this](Microsoft::WRL::ComPtr<ID3D12CommandAllocator>& allocator, Microsoft::WRL::ComPtr<ID3D12GraphicsCommandList2>& commandList) -> void {
 			m_command_lists.emplace_back(commandList.Get());
-			m_command_list_pool->ReturnCommandAllocator(allocator);
+			// m_command_list_pool->ReturnCommandAllocator(allocator);
+			m_allocator_to_sync.emplace_back(std::move(allocator));
 			m_command_list_pool->ReturnCommandList(commandList);
 		};
 
@@ -107,13 +120,32 @@ bool Renderer::Present() {
 
 	m_command_queue->ExecuteCommandLists(static_cast<UINT>(m_command_lists.size()), m_command_lists.data());
 
-	m_waitForGPU();
+	// m_waitForGPU();
 
 	m_command_lists.clear();
+
+	const uint64_t currentFenceValue = ++m_fence_value;
+
+	m_fence_values[m_current_frame_index] = currentFenceValue;
+
+	m_handleError(
+		m_command_queue->Signal(
+			m_fence.Get(),
+			currentFenceValue
+		),
+		"Failed to signal command queue fence."
+	);
+
+	for (auto& allocator : m_allocator_to_sync) {
+		m_pending_allocators.push({ std::move(allocator), currentFenceValue });
+	}
+	m_allocator_to_sync.clear();
 
 	if (FAILED(m_swap_chain->Present(static_cast<uint32_t>(m_vertical_sync_enabled), 0))) {
 		return false;
 	}
+
+	m_current_frame_index = m_swap_chain->GetCurrentBackBufferIndex();
 
 	m_is_device_removed_on_previous_frame = false;
 
@@ -232,6 +264,8 @@ void Renderer::m_initD3D12(uint32_t flags) {
 
 	m_handleError(m_createSwapChain(), "Failed to create swap chain.");
 	m_handleError(m_createRTVHeap(), "Failed to create RTV heap and RTV handles");
+
+	m_fence_values.resize(m_back_buffers.size(), 0u);
 }
 
 void Renderer::m_release(uint32_t flags) {
@@ -258,16 +292,36 @@ void Renderer::m_release(uint32_t flags) {
 	m_rtv_heap = nullptr;
 }
 
+void Renderer::m_waitForGPU(uint32_t frameIndex) noexcept {
+	if (!m_command_queue) return;
+	if (!m_fence) return;
+	if (!m_fence_event) return;
+	if (frameIndex >= m_fence_values.size()) return;
+
+	const uint64_t waitForFenceValue = m_fence_values[frameIndex];
+	if (waitForFenceValue == 0) return;
+
+	if (m_fence->GetCompletedValue() < waitForFenceValue) {
+		m_handleError(m_fence->SetEventOnCompletion(waitForFenceValue, m_fence_event), "Failed to set waiting event.");
+		WaitForSingleObject(m_fence_event, INFINITE);
+	}
+}
+
 void Renderer::m_waitForGPU() noexcept {
 	if (!m_command_queue) return;
 	if (!m_fence) return;
 	if (!m_fence_event) return;
 
-	const uint64_t currentFenceValue = m_fence_value++;
-	m_handleError(m_command_queue->Signal(m_fence.Get(), currentFenceValue), "Cannot to wait for GPU.");
-
-	if (m_fence->GetCompletedValue() < currentFenceValue) {
-		m_handleError(m_fence->SetEventOnCompletion(currentFenceValue, m_fence_event), "Failed to set waiting event.");
+	const uint64_t waitForFenceValue = ++m_fence_value;
+	m_handleError(
+		m_command_queue->Signal(
+			m_fence.Get(),
+			waitForFenceValue
+		),
+		"Failed to signal command queue fence."
+	);
+	if (m_fence->GetCompletedValue() < waitForFenceValue) {
+		m_handleError(m_fence->SetEventOnCompletion(waitForFenceValue, m_fence_event), "Failed to set waiting event.");
 		WaitForSingleObject(m_fence_event, INFINITE);
 	}
 }
@@ -345,7 +399,7 @@ HRESULT Renderer::m_createSwapChain() noexcept {
 		DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
 		auto windowProperties = m_window->GetProperties(Window::NoClassName | Window::NoWindowName | Window::NoWindowStyle);
 		assert(windowProperties.width.has_value() && windowProperties.height.has_value());
-		swapChainDesc.BufferCount = 2;
+		swapChainDesc.BufferCount = m_back_buffers_count;
 		swapChainDesc.Width = windowProperties.width.value();
 		swapChainDesc.Height = windowProperties.height.value();
 		swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -386,7 +440,7 @@ HRESULT Renderer::m_createRTVHeap() noexcept {
 	m_rtv_handles.clear();
 	using Microsoft::WRL::ComPtr;
 
-	const UINT backBufferCount = 2;
+	const UINT backBufferCount = m_back_buffers_count;
 
 	D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
 	rtvHeapDesc.NumDescriptors = backBufferCount;
