@@ -6,7 +6,6 @@ namespace PameECS::ECS {
 	class ComponentStorage : public IComponentStorage {
 	public:
 		ComponentStorage() : IComponentStorage() {
-			static_assert(std::is_trivially_copyable_v<T>, "Component type must be trivially copyable.");
 			m_binary_storage = ComponentBinaryStorage(sizeof(T));
 		}
 		virtual ~ComponentStorage() = default;

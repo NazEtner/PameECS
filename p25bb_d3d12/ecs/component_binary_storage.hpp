@@ -30,7 +30,7 @@ namespace PameECS::ECS {
 			size_t currentCapacity = m_storage.size() / m_component_size;
 			size_t newCapacity = currentCapacity == 0 ? 1 : currentCapacity * 2;
 			m_storage.resize(newCapacity * m_component_size);
-			m_generations.resize(newCapacity);
+			m_generations.resize(newCapacity, 0xFFFFFFFF'FFFFFFFF);
 		}
 		size_t m_component_size;
 		std::vector<std::byte> m_storage;
