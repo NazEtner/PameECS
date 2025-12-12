@@ -141,8 +141,11 @@ bool Renderer::Present() {
 	}
 	m_allocator_to_sync.clear();
 
+	// vsync ON -> 0x00000000, vsync OFF -> 0xFFFFFFFF
+	uint32_t vsyncMask = ~(0x0 - static_cast<uint32_t>(m_vertical_sync_enabled));
+
 	uint32_t presentFlags = 0;
-	presentFlags |= DXGI_PRESENT_ALLOW_TEARING & ~(0x0 - static_cast<uint32_t>(m_vertical_sync_enabled));
+	presentFlags |= DXGI_PRESENT_ALLOW_TEARING & vsyncMask;
 
 	if (FAILED(m_swap_chain->Present(static_cast<uint32_t>(m_vertical_sync_enabled), presentFlags))) {
 		return false;
