@@ -8,8 +8,8 @@ Renderer::Renderer(
 	std::shared_ptr<spdlog::logger> logger,
 	std::shared_ptr<PameECS::Graphics::Window> window,
 	std::shared_ptr<BS::thread_pool<0U>> threadPool,
-	bool useDebugLayer, bool useAdvancedDebug) :
-	IRenderer(), m_logger(std::move(logger)), m_window(std::move(window)), m_thread_pool(std::move(threadPool)) {
+	bool useDebugLayer, bool useAdvancedDebug, bool protectedContent) :
+	IRenderer(), m_logger(std::move(logger)), m_window(std::move(window)), m_thread_pool(std::move(threadPool)), m_protected_content(protectedContent) {
 	if (!m_logger) throw PameECS::Exceptions::InvalidArgument("Logger is null.");
 	if (!m_window) throw PameECS::Exceptions::InvalidArgument("Window is null.");
 	if (!m_thread_pool) throw PameECS::Exceptions::InvalidArgument("Thread pool is null.");
@@ -415,6 +415,9 @@ HRESULT Renderer::m_createSwapChain() noexcept {
 		swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
 		swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
 		swapChainDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH | DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
+		if (m_protected_content) {
+			swapChainDesc.Flags |= DXGI_SWAP_CHAIN_FLAG_DISPLAY_ONLY;
+		}
 
 		HRESULT hr = m_dxgi_factory->CreateSwapChainForHwnd(
 			m_command_queue.Get(),

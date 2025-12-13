@@ -1,4 +1,5 @@
 {
     "useDebugLayer": true,
-    "useAdvancedDebug": false
+    "useAdvancedDebug": false,
+    "protectedContent": false
 }

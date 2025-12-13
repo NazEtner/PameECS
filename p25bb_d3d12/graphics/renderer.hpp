@@ -26,7 +26,7 @@ namespace PameECS::Graphics {
 			std::shared_ptr<spdlog::logger> logger,
 			std::shared_ptr<PameECS::Graphics::Window> window,
 			std::shared_ptr<BS::thread_pool<0U>> threadPool,
-			bool useDebugLayer, bool useAdvancedDebug);
+			bool useDebugLayer, bool useAdvancedDebug, bool protectedContent = false);
 
 		virtual ~Renderer();
 
@@ -72,6 +72,7 @@ namespace PameECS::Graphics {
 		bool IsDeviceRemovedOnPreviousFrame() const { return m_is_device_removed_on_previous_frame; }
 		D3D12_VIEWPORT GetViewport() const { return m_viewport; }
 		D3D12_RECT GetScissorRect() const { return m_scissor_rect; }
+		void SetProtectedContent(bool enabled) noexcept { m_protected_content = enabled; }
 	private:
 		// Initialize functions
 		[[nodiscard]]
@@ -165,6 +166,7 @@ namespace PameECS::Graphics {
 		uint32_t m_reset_flags = 0;
 		bool m_is_device_removed_on_previous_frame = false;
 		bool m_reset = false;
+		bool m_protected_content = false;
 
 		HANDLE m_fence_event = nullptr;
 		uint64_t m_fence_value = 0;

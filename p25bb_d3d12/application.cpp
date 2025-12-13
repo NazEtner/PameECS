@@ -182,7 +182,8 @@ void Application::m_initializeRenderer() {
 		m_logger,
 		m_window,
 		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::RendererThreadPoolName>(),
-		rendererConfig.useDebugLayer, rendererConfig.useAdvancedDebug
+		rendererConfig.useDebugLayer, rendererConfig.useAdvancedDebug,
+		rendererConfig.protectedContent
 	);
 }
 
