@@ -464,6 +464,7 @@
     <ClCompile Include="application.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="ecs\ecs_host.cpp" />
     <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
     <ClCompile Include="file\file_implementation.cpp" />
@@ -487,6 +488,8 @@
     <ClInclude Include="ecs\component_storage.hpp" />
     <ClInclude Include="ecs\component_storage_interface.hpp" />
     <ClInclude Include="ecs\component_binary_storage.hpp" />
+    <ClInclude Include="ecs\concepts.hpp" />
+    <ClInclude Include="ecs\ecs_host.hpp" />
     <ClInclude Include="ecs\types.hpp" />
     <ClInclude Include="exceptions\compress_error.hpp" />
     <ClInclude Include="exceptions\file_error.hpp" />

@@ -73,6 +73,9 @@
     <Filter Include="ヘッダー ファイル\ecs">
       <UniqueIdentifier>{e3d8e799-b784-40bb-91d2-9219058ed8ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\ecs">
+      <UniqueIdentifier>{36c54d63-55a3-4622-89bf-d227dd47f4a1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -125,6 +128,9 @@
     </ClCompile>
     <ClCompile Include="graphics\window_setting_adaptor.cpp">
       <Filter>ソース ファイル\graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="ecs\ecs_host.cpp">
+      <Filter>ソース ファイル\ecs</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -264,6 +270,12 @@
       <Filter>ヘッダー ファイル\ecs</Filter>
     </ClInclude>
     <ClInclude Include="ecs\component_storage.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\ecs_host.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\concepts.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>
     </ClInclude>
   </ItemGroup>

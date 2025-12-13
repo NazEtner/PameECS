@@ -10,6 +10,11 @@ namespace PameECS::ECS {
 		ComponentBinaryStorage& GetBinaryStorage() {
 			return m_binary_storage;
 		}
+		virtual bool IsSameLayout(const Types::ComponentLayoutElement* layoutPtr, size_t count) const = 0;
+		virtual bool IsSameNameTag(const char* typeName, size_t typeNameSize) const = 0;
+		virtual bool MaybeSafeToCast(
+			const Types::ComponentLayoutElement* layoutPtr, size_t count,
+			const char* typeName, size_t typeNameSize, size_t componentSize) const = 0;
 	protected:
 		template<typename T>
 		T* m_addComponentAs(const Types::Entity& entity) {

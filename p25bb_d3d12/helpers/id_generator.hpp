@@ -11,7 +11,7 @@
 namespace PameECS::Helpers {
 	// 静的なID生成をする場合、ID生成器はcppファイルの匿名名前空間とかに置いたりして必ずコンパイル単位を跨がないようにすること
 	// 静的なID生成をする場合、基本的に一つのインスタンスしか存在しないクラス内で使うこと
-	template<bool ThreadSafe = false, bool EnableRuntimeGenerate = false, typename UniqueTag = EmptyType, size_t UniqueId = __COUNTER__>
+	template<bool ThreadSafe = false, bool EnableRuntimeGenerate = false, typename UniqueTag = EmptyType, size_t UniqueId = 0>
 	class IdGenerator {
 	public:
 		template<TemplateTypes::StringLiteral Symbol, typename Unique1 = UniqueTag, size_t Unique2 = UniqueId>

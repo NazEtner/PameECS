@@ -24,7 +24,6 @@ namespace PameECS::File {
 		void SetArchiveLoader(std::shared_ptr<Archive::ArchiveLoader> archiveLoader);
 	private:
 		struct Impl;
-		// 警告が出るけど、無効化するのもなんか嫌なのでそのままで
-		std::shared_ptr<Impl> m_impl;
+		Impl* m_impl;
 	};
 }
