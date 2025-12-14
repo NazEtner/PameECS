@@ -16,11 +16,11 @@ namespace PameECS::Helpers::Binary {
 		if (!ptr1 || !ptr2) {
 			return false;
 		}
-		if (ptr1 == ptr2) {
-			return true;
-		}
 		if (size1 != size2) {
 			return false;
+		}
+		if (ptr1 == ptr2) {
+			return true;
 		}
 		if (size1 == 0) {
 			return true;
