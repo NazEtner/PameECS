@@ -3,12 +3,23 @@
 #include "../macros/dll.hpp"
 #include <string>
 #include <typeindex>
+#include <vector>
+#include <limits>
 
 namespace PameECS::ECS {
 	class PECS_DLL_SHARED ECSHost final {
 	public:
 		ECSHost();
 		~ECSHost();
+
+		bool NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
+			size_t idMin = std::numeric_limits<size_t>::min(),
+			size_t idMax = std::numeric_limits<size_t>::max());
+
+		bool RemoveEntity(const Types::Entity& entity);
+
+		bool AddComponent(const Types::Entity& entity, const std::string& component);
+		bool RemoveComponent(const Types::Entity& entity, const std::string& component);
 
 		template <Concepts::ComponentType T>
 		bool NewComponentStorage(const std::string& id) {
@@ -44,6 +55,5 @@ namespace PameECS::ECS {
 		std::shared_ptr<IComponentStorage> m_getComponentStorage(const std::string& id);
 		struct Impl;
 		inline static Impl* m_impl = nullptr;
-		inline static size_t m_ref_count = 0;
 	};
 }

@@ -31,11 +31,12 @@ namespace PameECS::ECS {
 			return IsSameLayout(layoutPtr, count) && IsSameNameTag(typeName, typeNameSize) && sizeof(T) == componentSize;
 		}
 
-		T* AddComponent(const Types::Entity& entity) {
-			return m_addComponentAs<T>(entity);
-		}
 		T* GetComponent(const Types::Entity& entity) {
 			return m_getComponentAs<T>(entity);
+		}
+
+		bool AddComponent(const Types::Entity& entity) override {
+			return m_addComponentAs<T>;
 		}
 	private:
 		const Types::ComponentLayoutElement* m_layout_ptr = nullptr;
