@@ -25,6 +25,8 @@ namespace PameECS::ECS {
 
 		template <Concepts::ComponentType T>
 		bool NewComponentStorage(const std::string& id) {
+			// TODO: テンプレート型のComponentStorageを削除し、レイアウトのみを保持するようにする
+			// 後、ここでの生成もやめる
 			auto storage = std::make_shared<ComponentStorage<T>>();
 			
 			return m_registerComponentStorage(id, storage);
