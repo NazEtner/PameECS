@@ -144,6 +144,9 @@
     <ClCompile Include="abi\shared_string_vector.cpp">
       <Filter>ソース ファイル\abi</Filter>
     </ClCompile>
+    <ClCompile Include="abi\check.cpp">
+      <Filter>ソース ファイル\abi</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -301,6 +304,9 @@
     </ClInclude>
     <ClInclude Include="ecs\system.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="abi\check.hpp">
+      <Filter>ヘッダー ファイル\abi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
