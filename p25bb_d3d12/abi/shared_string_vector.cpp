@@ -7,14 +7,13 @@ struct SharedStringVector::Impl {
 };
 
 SharedStringVector::SharedStringVector() {
-	m_impl = new Impl();
+	m_impl = std::make_unique<Impl>();
 }
 
 SharedStringVector::~SharedStringVector() {
 	for (auto str : m_impl->data) {
 		DestroySharedString(str);
 	}
-	delete m_impl;
 }
 
 size_t SharedStringVector::GetSize() const {

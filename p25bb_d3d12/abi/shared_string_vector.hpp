@@ -2,12 +2,20 @@
 #include "shared_string.hpp"
 #include "../macros/dll.hpp"
 #include <vector>
+#include <memory>
 
 namespace PameECS::ABI {
 	class SharedStringVector {
 	public:
 		SharedStringVector();
 		~SharedStringVector();
+
+		SharedStringVector(const SharedStringVector&) = delete;
+		SharedStringVector& operator=(const SharedStringVector&) = delete;
+
+		SharedStringVector(const SharedStringVector&&) = delete;
+		SharedStringVector& operator=(const SharedStringVector&&) = delete;
+
 		PECS_DLL_SHARED size_t GetSize() const;
 		PECS_DLL_SHARED PameECS::ABI::SharedString* GetAt(size_t index) const;
 		PECS_DLL_SHARED void PushBack(const PameECS::ABI::SharedString* str);
@@ -40,7 +48,7 @@ namespace PameECS::ABI {
 		}
 	private:
 		struct Impl;
-		Impl* m_impl;
+		std::unique_ptr<Impl> m_impl;
 	};
 }
 

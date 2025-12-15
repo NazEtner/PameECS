@@ -7,11 +7,10 @@ struct SharedString::Impl {
 };
 
 SharedString::SharedString() {
-	m_impl = new Impl();
+	m_impl = std::make_unique<Impl>();
 }
 
 SharedString::~SharedString() {
-	delete m_impl;
 }
 
 SharedString* SharedString::Copy() const {

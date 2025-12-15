@@ -13,6 +13,8 @@ namespace PameECS::ECS {
 		~ECSHost();
 		ECSHost(const ECSHost&) = delete;
 		ECSHost& operator=(const ECSHost&) = delete;
+		ECSHost(const ECSHost&&) = delete;
+		ECSHost& operator=(const ECSHost&&) = delete;
 
 		bool NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
 			size_t idMin = std::numeric_limits<size_t>::min(),

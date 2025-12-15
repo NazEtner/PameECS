@@ -147,6 +147,9 @@
     <ClCompile Include="abi\check.cpp">
       <Filter>ソース ファイル\abi</Filter>
     </ClCompile>
+    <ClCompile Include="ecs\system.cpp">
+      <Filter>ソース ファイル\ecs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -1,12 +1,19 @@
 #pragma once
 #include "../macros/dll.hpp"
 #include <string>
+#include <memory>
 
 namespace PameECS::ABI {
 	class SharedString {
 	public:
 		SharedString();
 		~SharedString();
+
+		SharedString(const SharedString&) = delete;
+		SharedString& operator=(const SharedString&) = delete;
+
+		SharedString(const SharedString&&) = delete;
+		SharedString& operator=(const SharedString&&) = delete;
 
 		PECS_DLL_SHARED SharedString* Copy() const;
 		PECS_DLL_SHARED const char* GetCStringData() const;
@@ -23,7 +30,7 @@ namespace PameECS::ABI {
 		}
 	private:
 		struct Impl;
-		Impl* m_impl;
+		std::unique_ptr<Impl> m_impl;
 	};
 }
 

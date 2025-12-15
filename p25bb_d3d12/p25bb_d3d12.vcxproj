@@ -468,6 +468,7 @@
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ecs\ecs_host.cpp" />
+    <ClCompile Include="ecs\system.cpp" />
     <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
     <ClCompile Include="file\file_implementation.cpp" />
