@@ -296,5 +296,11 @@
     <ClInclude Include="abi\shared_string_vector.hpp">
       <Filter>ヘッダー ファイル\abi</Filter>
     </ClInclude>
+    <ClInclude Include="ecs\scheduler.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="ecs\system.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
