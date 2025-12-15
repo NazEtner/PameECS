@@ -10,7 +10,7 @@
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 
 namespace PameECS::File {
-	class PECS_DLL_SHARED FileImplementation final {
+	class FileImplementation final {
 	public:
 		FileImplementation(std::shared_ptr<BS::thread_pool<0U>> threadPool);
 		~FileImplementation();

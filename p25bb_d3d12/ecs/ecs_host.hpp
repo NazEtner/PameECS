@@ -7,7 +7,7 @@
 #include <limits>
 
 namespace PameECS::ECS {
-	class PECS_DLL_SHARED ECSHost final {
+	class ECSHost final {
 	public:
 		ECSHost();
 		~ECSHost();

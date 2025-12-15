@@ -76,6 +76,12 @@
     <Filter Include="ソース ファイル\ecs">
       <UniqueIdentifier>{36c54d63-55a3-4622-89bf-d227dd47f4a1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\abi">
+      <UniqueIdentifier>{18450fde-d353-4ffe-b78b-9604730ab081}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\abi">
+      <UniqueIdentifier>{1e8a1cf8-fb79-4def-bb06-887ea13508c5}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -131,6 +137,12 @@
     </ClCompile>
     <ClCompile Include="ecs\ecs_host.cpp">
       <Filter>ソース ファイル\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="abi\shared_string.cpp">
+      <Filter>ソース ファイル\abi</Filter>
+    </ClCompile>
+    <ClCompile Include="abi\shared_string_vector.cpp">
+      <Filter>ソース ファイル\abi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -277,6 +289,12 @@
     </ClInclude>
     <ClInclude Include="ecs\concepts.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
+    <ClInclude Include="abi\shared_string.hpp">
+      <Filter>ヘッダー ファイル\abi</Filter>
+    </ClInclude>
+    <ClInclude Include="abi\shared_string_vector.hpp">
+      <Filter>ヘッダー ファイル\abi</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
