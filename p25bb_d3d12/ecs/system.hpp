@@ -32,7 +32,7 @@ namespace PameECS::ECS::System {
 	public:
 		Base() = default;
 		virtual ~Base() = default;
-		virtual void Update(Context* context) = 0;
+		virtual void Update(Context* context) noexcept = 0;
 		virtual const Dependencies& GetDependencies() const = 0;
 	};
 }
