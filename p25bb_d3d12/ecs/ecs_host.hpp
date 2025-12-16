@@ -27,17 +27,20 @@ namespace PameECS::ECS {
 
 		template <Concepts::ComponentType T>
 		bool NewComponentStorage(const std::string& id) {
-			// TODO: テンプレート型のComponentStorageを削除し、レイアウトのみを保持するようにする
-			// 後、ここでの生成もやめる
-			auto storage = std::make_shared<ComponentStorage<T>>();
+			// shared_ptrがDLL境界をまたがないようにするため
+			// 呼び出し側ABIでの作成と削除を強制する
+			auto storage = new ComponentStorage<T>();
+			auto deleter = [](IComponentStorage* ptr) -> void {
+				delete ptr;
+			};
 			
-			return m_registerComponentStorage(id, storage);
+			return m_registerComponentStorage(id, storage, deleter);
 		}
 
 		// TのGetComponentLayoutElementsやGetNameTagを工夫すればハックできそう
 		// やるとしても自己責任で
 		template <Concepts::ComponentType T>
-		std::shared_ptr<ComponentStorage<T>> GetComponentStorageAs(const std::string& id) {
+		ComponentStorage<T>* GetComponentStorageAs(const std::string& id) {
 			auto storageBase = m_getComponentStorage(id);
 			if (storageBase == nullptr) {
 				return nullptr;
@@ -54,11 +57,12 @@ namespace PameECS::ECS {
 				sizeof(T))) {
 				return nullptr;
 			}
-			return std::static_pointer_cast<ComponentStorage<T>>(storageBase);
+			return static_cast<ComponentStorage<T>>(storageBase);
 		}
 	private:
 		bool m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage);
-		std::shared_ptr<IComponentStorage> m_getComponentStorage(const std::string& id);
+		bool m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
+		IComponentStorage* m_getComponentStorage(const std::string& id);
 		struct Impl;
 		inline static Impl* m_impl = nullptr;
 	};

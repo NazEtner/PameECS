@@ -114,10 +114,15 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, std::shared_ptr<
 	return true;
 }
 
-std::shared_ptr<IComponentStorage> ECSHost::m_getComponentStorage(const std::string& id) {
+bool ECSHost::m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*)) {
+	auto sharedStorage = std::shared_ptr<IComponentStorage>(storage, deleter);
+	return m_registerComponentStorage(id, sharedStorage);
+}
+
+IComponentStorage* ECSHost::m_getComponentStorage(const std::string& id) {
 	auto index = m_impl->idGenerator.GetId(id);
 	if (index >= m_impl->componentStorages.size()) {
 		return nullptr;
 	}
-	return m_impl->componentStorages[index];
+	return m_impl->componentStorages[index].get();
 }
