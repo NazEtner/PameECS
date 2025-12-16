@@ -25,6 +25,12 @@
     <Filter Include="ソース ファイル\core">
       <UniqueIdentifier>{9ba539c5-bb86-4bdd-92c1-77b2bd43405f}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\abi">
+      <UniqueIdentifier>{8938ad18-eb2f-4baf-acaa-f470a67a1408}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\abi">
+      <UniqueIdentifier>{1dda2ecc-8530-4e57-b08b-b2f50a2d04bc}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -32,6 +38,9 @@
     </ClCompile>
     <ClCompile Include="core\core_loop.cpp">
       <Filter>ソース ファイル\core</Filter>
+    </ClCompile>
+    <ClCompile Include="..\p25bb_d3d12\abi\check.cpp">
+      <Filter>ソース ファイル\abi</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -61,6 +70,9 @@
     </ClInclude>
     <ClInclude Include="exceptions\config_load_failed.hpp">
       <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="..\p25bb_d3d12\abi\check.hpp">
+      <Filter>ヘッダー ファイル\abi</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

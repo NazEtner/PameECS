@@ -139,10 +139,12 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\p25bb_d3d12\abi\check.cpp" />
     <ClCompile Include="core\core_loop.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\p25bb_d3d12\abi\check.hpp" />
     <ClInclude Include="core\application_interface.hpp" />
     <ClInclude Include="core\core_loop.hpp" />
     <ClInclude Include="exceptions\config_load_failed.hpp" />

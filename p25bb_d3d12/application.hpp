@@ -79,6 +79,8 @@ namespace PameECS {
 		std::shared_ptr<DebugTools::DebugGUIHost> m_debug_gui_host;
 		std::shared_ptr<Graphics::WindowSettingAdaptor> m_window_setting_adaptor;
 
+		bool m_initialized = false;
+
 		const std::string m_config_archive_name = "_config.peac";
 		const std::string m_config_root = "__pameecs_configs";
 		const std::string m_platform = "windows";

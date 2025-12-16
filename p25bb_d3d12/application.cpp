@@ -63,6 +63,8 @@ void Application::Initialize() {
 	m_initializeWindow();
 	m_initializeRenderer();
 	m_initializeDebugTools();
+
+	m_initialized = true;
 }
 
 void Application::Update() {
@@ -78,6 +80,7 @@ void Application::SubmitRenderTask() {
 }
 
 void Application::Finalize() {
+	if (!m_initialized) return;
 	m_logger->info("Finalizing application...");
 
 	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>().Reset();

@@ -3,6 +3,7 @@
 #include "../exceptions/invalid_state.hpp"
 #include "../exceptions/exception_base.hpp"
 #include "../exceptions/config_load_failed.hpp"
+#include "../../p25bb_d3d12/abi/check.hpp"
 #include <boost/dll.hpp>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
@@ -95,12 +96,40 @@ void CoreLoop::m_loadApplication(std::string applicationPath) {
 		m_logger->info("Loading {}...", applicationPath);
 		m_application_library = boost::dll::shared_library(applicationPath.c_str());
 
+		m_logger->info("Application Dll {} loaded.", applicationPath);
+		m_logger->info("Checking ABI compatibility...");
+		auto getDllCompilerInfo = boost::dll::import_symbol<void(CompilerInfo*)>(m_application_library, "GetCompilerInfo");
+		CompilerInfo compilerInfo = {};
+		GetCompilerInfo(&compilerInfo);
+		CompilerInfo dllCompilerInfo = {};
+		getDllCompilerInfo(&dllCompilerInfo);
+
+		if (compilerInfo.size == dllCompilerInfo.size) {
+			const uint8_t* exeBytes = reinterpret_cast<const uint8_t*>(&compilerInfo);
+			const uint8_t* dllBytes = reinterpret_cast<const uint8_t*>(&dllCompilerInfo);
+			std::string exeHex;
+			std::string dllHex;
+			for (size_t i = 0; i < sizeof(CompilerInfo); ++i) {
+				exeHex += std::format("{:02X}", exeBytes[i]);
+				dllHex += std::format("{:02X}", dllBytes[i]);
+			}
+
+			m_logger->info("EXE: {}", exeHex);
+			m_logger->info("DLL: {}", dllHex);
+		}
+
+		if (IsSameCompilerABI(&compilerInfo, &dllCompilerInfo)) {
+			m_logger->info("OK.");
+		}
+		else {
+			m_logger->error("NG.");
+			throw Pame::Exceptions::InvalidState("Invalid compiler or ABI information.");
+		}
+
 		m_application = boost::dll::import_alias<Pame::Core::IApplication>(
 			m_application_library,
 			"application"
 		);
-
-		m_logger->info("Application Dll {} loaded.", applicationPath);
 
 		m_application->Initialize();
 		m_renderer = m_application->GetRenderer();
