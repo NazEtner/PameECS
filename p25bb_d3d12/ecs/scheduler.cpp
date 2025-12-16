@@ -7,7 +7,7 @@ using PameECS::ECS::Scheduler;
 void Scheduler::Register(System::Base* system) {
 	if (!system) return;
 	if (m_systems_raw_vector.size() <= m_next_system_index) {
-		Helper::Container::ResizePow2(m_systems_raw_vector, m_next_system_index + 1, nullptr);
+		Helpers::Container::ResizePow2(m_systems_raw_vector, m_next_system_index + 1, nullptr);
 	}
 	else if (m_systems_raw_vector[m_next_system_index] == system) {
 		return;

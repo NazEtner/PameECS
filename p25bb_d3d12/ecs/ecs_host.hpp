@@ -28,6 +28,7 @@ namespace PameECS::ECS {
 		bool AddComponent(const Types::Entity& entity, const std::string& component);
 		bool RemoveComponent(const Types::Entity& entity, const std::string& component);
 
+		// 内部用のAPI
 		void LockAll();
 		void UnlockAll();
 		void Unlock(const std::unordered_set<size_t>& ids);

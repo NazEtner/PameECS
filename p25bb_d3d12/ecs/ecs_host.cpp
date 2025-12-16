@@ -1,5 +1,6 @@
 #include "ecs_host.hpp"
 #include "../helpers/id_generator.hpp"
+#include "../helpers/container.hpp"
 
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
@@ -28,12 +29,7 @@ struct ECSHost::Impl {
 private:
 	template<typename T>
 	void m_resize(size_t id, std::vector<T>& vec) {
-		auto size = vec.size();
-		size = size == 0 ? 1 : size;
-		while (size <= id) {
-			size *= 2;
-		}
-		vec.resize(size, T());
+		Helpers::Container::ResizePow2(vec, id, T());
 	}
 };
 

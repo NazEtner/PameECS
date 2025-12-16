@@ -1,6 +1,6 @@
 #pragma once
 
-namespace PameECS::Helper::Container {
+namespace PameECS::Helpers::Container {
 	template<typename T, typename U>
 	void ResizePow2(T& container, size_t minSize, U init = U()) {
 		auto size = container.size();
