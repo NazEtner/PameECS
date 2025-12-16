@@ -5,6 +5,7 @@
 #include <typeindex>
 #include <vector>
 #include <limits>
+#include <unordered_set>
 
 namespace PameECS::ECS {
 	class ECSHost final {
@@ -16,6 +17,8 @@ namespace PameECS::ECS {
 		ECSHost(const ECSHost&&) = delete;
 		ECSHost& operator=(const ECSHost&&) = delete;
 
+		size_t GetComponentStorageId(const std::string& component);
+
 		bool NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
 			size_t idMin = std::numeric_limits<size_t>::min(),
 			size_t idMax = std::numeric_limits<size_t>::max());
@@ -24,6 +27,10 @@ namespace PameECS::ECS {
 
 		bool AddComponent(const Types::Entity& entity, const std::string& component);
 		bool RemoveComponent(const Types::Entity& entity, const std::string& component);
+
+		void LockAll();
+		void UnlockAll();
+		void Unlock(const std::unordered_set<size_t>& ids);
 
 		template <Concepts::ComponentType T>
 		bool NewComponentStorage(const std::string& id) {

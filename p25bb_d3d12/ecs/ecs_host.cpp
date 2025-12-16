@@ -13,6 +13,8 @@ struct ECSHost::Impl {
 	std::vector<uint64_t> entityGenerations;
 	std::vector<bool> entityAliveFlags;
 	size_t lastEntityId = 0;
+	bool locked = false;
+	std::unordered_set<size_t> unlocked;
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -52,6 +54,26 @@ ECSHost::~ECSHost() {
 		delete m_impl;
 		m_impl = nullptr;
 	}
+}
+
+void ECSHost::LockAll() {
+	m_impl->unlocked.clear();
+	m_impl->locked = true;
+}
+
+void ECSHost::UnlockAll() {
+	m_impl->unlocked.clear();
+	m_impl->locked = false;
+}
+
+void ECSHost::Unlock(const std::unordered_set<size_t>& ids) {
+	for (const auto& id : ids) {
+		m_impl->unlocked.insert(id);
+	}
+}
+
+size_t ECSHost::GetComponentStorageId(const std::string& name) {
+	return m_impl->idGenerator.GetId(name);
 }
 
 bool ECSHost::NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
@@ -121,6 +143,7 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, IComponentStorag
 
 IComponentStorage* ECSHost::m_getComponentStorage(const std::string& id) {
 	auto index = m_impl->idGenerator.GetId(id);
+	if (m_impl->locked && !m_impl->unlocked.contains(index)) return nullptr;
 	if (index >= m_impl->componentStorages.size()) {
 		return nullptr;
 	}
