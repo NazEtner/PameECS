@@ -150,6 +150,9 @@
     <ClCompile Include="ecs\system.cpp">
       <Filter>ソース ファイル\ecs</Filter>
     </ClCompile>
+    <ClCompile Include="ecs\scheduler.cpp">
+      <Filter>ソース ファイル\ecs</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -310,6 +313,9 @@
     </ClInclude>
     <ClInclude Include="abi\check.hpp">
       <Filter>ヘッダー ファイル\abi</Filter>
+    </ClInclude>
+    <ClInclude Include="helpers\container.hpp">
+      <Filter>ヘッダー ファイル\helpers</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

@@ -468,6 +468,7 @@
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ecs\ecs_host.cpp" />
+    <ClCompile Include="ecs\scheduler.cpp" />
     <ClCompile Include="ecs\system.cpp" />
     <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
@@ -521,6 +522,7 @@
     <ClInclude Include="graphics\window_setting_adaptor.hpp" />
     <ClInclude Include="helpers\binary.hpp" />
     <ClInclude Include="helpers\compress.hpp" />
+    <ClInclude Include="helpers\container.hpp" />
     <ClInclude Include="helpers\crc.hpp" />
     <ClInclude Include="helpers\empty_type.hpp" />
     <ClInclude Include="helpers\errors\windows.hpp" />
