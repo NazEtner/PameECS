@@ -39,6 +39,12 @@ extern "C" PECS_DLL_EXPORT_ONLY void GetCompilerInfo(CompilerInfo* infoOut) {
 #else
 	infoOut->cppExceptions = 0;
 #endif
+
+#if defined(__cplusplus)
+	infoOut->cpp = _MSVC_LANG;
+#else
+	infoOut->cpp = 0;
+#endif
 	return;
 	// end of MSVC
 #elif defined(__GNUC__)
@@ -68,6 +74,12 @@ extern "C" PECS_DLL_EXPORT_ONLY void GetCompilerInfo(CompilerInfo* infoOut) {
 #else
 	infoOut->cppExceptions = 0;
 #endif
+
+#if defined(__cplusplus)
+	infoOut->cpp = __cplusplus;
+#else
+	infoOut->cpp = 0;
+#endif
 	return;
 	// end of GCC
 #endif
@@ -79,6 +91,7 @@ extern "C" PECS_DLL_EXPORT_ONLY void GetCompilerInfo(CompilerInfo* infoOut) {
 	infoOut->is64Bit = false;
 	infoOut->iteratorDebugLevel = 0;
 	infoOut->cppExceptions = 0;
+	infoOut->cpp;
 }
 
 extern "C" PECS_DLL_EXPORT_ONLY bool IsSameCompilerABI(const CompilerInfo* infoA, const CompilerInfo* infoB) {

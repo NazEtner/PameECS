@@ -25,7 +25,8 @@ extern "C" {
 		uint8_t padding;
 		uint32_t iteratorDebugLevel;
 		uint32_t cppExceptions;
-		uint32_t reserved[2];
+		uint32_t cpp;
+		uint32_t reserved[1];
 	};
 
 	// ロードしたいDLLと、自身の両方で存在できるようにするためにEXPORT_ONLY
