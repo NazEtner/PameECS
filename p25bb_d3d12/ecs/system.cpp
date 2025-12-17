@@ -15,7 +15,11 @@ Dependencies::Dependencies(const size_t* write, const size_t writeSize, const si
 	: Dependencies(std::vector<size_t>(write, write + writeSize), std::vector<size_t>(read, read + readSize)) {}
 
 Dependencies::Dependencies(const std::vector<size_t>& write, const std::vector<size_t>& read) {
-	m_impl = std::make_unique<Impl>(write, read);
+	m_impl = new Impl(write, read);
+}
+
+Dependencies::~Dependencies() {
+	delete m_impl;
 }
 
 const std::vector<size_t>& Dependencies::GetWriteDependencies() const {
