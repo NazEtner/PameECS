@@ -13,8 +13,8 @@ namespace PameECS::ABI {
 		SharedStringVector(const SharedStringVector&) = delete;
 		SharedStringVector& operator=(const SharedStringVector&) = delete;
 
-		SharedStringVector(const SharedStringVector&&) = delete;
-		SharedStringVector& operator=(const SharedStringVector&&) = delete;
+		SharedStringVector(SharedStringVector&&) = delete;
+		SharedStringVector& operator=(SharedStringVector&&) = delete;
 
 		PECS_DLL_SHARED size_t GetSize() const;
 		PECS_DLL_SHARED PameECS::ABI::SharedString* GetAt(size_t index) const;

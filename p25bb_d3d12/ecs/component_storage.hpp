@@ -36,7 +36,7 @@ namespace PameECS::ECS {
 		}
 
 		bool AddComponent(const Types::Entity& entity) override {
-			return m_addComponentAs<T>;
+			return m_addComponentAs<T>(entity);
 		}
 	private:
 		const Types::ComponentLayoutElement* m_layout_ptr = nullptr;

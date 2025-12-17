@@ -12,8 +12,8 @@ namespace PameECS::ABI {
 		SharedString(const SharedString&) = delete;
 		SharedString& operator=(const SharedString&) = delete;
 
-		SharedString(const SharedString&&) = delete;
-		SharedString& operator=(const SharedString&&) = delete;
+		SharedString(SharedString&&) = delete;
+		SharedString& operator=(SharedString&&) = delete;
 
 		PECS_DLL_SHARED SharedString* Copy() const;
 		PECS_DLL_SHARED const char* GetCStringData() const;
