@@ -1,4 +1,5 @@
 #include "ecs_host.hpp"
+#include "scheduler.hpp"
 #include "../helpers/id_generator.hpp"
 #include "../helpers/container.hpp"
 
@@ -6,7 +7,9 @@ using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
 
 struct ECSHost::Impl {
-	size_t refCount = 0;
+	Impl(std::shared_ptr<BS::thread_pool<0U>> threadPool) : scheduler(threadPool) {
+
+	}
 	struct Tag {};
 	Helpers::IdGenerator<true, true, Tag, 0> idGenerator;
 
@@ -15,6 +18,7 @@ struct ECSHost::Impl {
 	std::vector<bool> entityAliveFlags;
 	size_t lastEntityId = 0;
 	bool locked = false;
+	Scheduler scheduler;
 	std::unordered_set<size_t> unlocked;
 
 	void ResizeComponents(size_t minSize) {
@@ -33,23 +37,17 @@ private:
 	}
 };
 
-ECSHost::ECSHost() {
+ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool) {
 	if (m_impl == nullptr) {
-		m_impl = new Impl();
+		m_impl = new Impl(threadPool);
 	}
-	m_impl->refCount++;
 }
 
 ECSHost::~ECSHost() {
-	if (m_impl->refCount > 0) {
-		m_impl->refCount--;
-	}
-	if (m_impl->refCount == 0) {
-		// 本当はunique_ptrの方が良いけど、Pimplだと生ポインタの方が自然だというのと、
-		// __declspec(dllexport)での警告が出るのでその回避のため
-		delete m_impl;
-		m_impl = nullptr;
-	}
+	// 本当はunique_ptrの方が良いけど、Pimplだと生ポインタの方が自然だというのと、
+	// __declspec(dllexport)での警告が出るのでその回避のため
+	delete m_impl;
+	m_impl = nullptr;
 }
 
 void ECSHost::LockAll() {
@@ -66,6 +64,12 @@ void ECSHost::Unlock(const std::unordered_set<size_t>& ids) {
 	for (const auto& id : ids) {
 		m_impl->unlocked.insert(id);
 	}
+}
+
+void ECSHost::Update() {
+	System::Context context = {};
+	context.ecsHost = this;
+	m_impl->scheduler.Schedule(&context);
 }
 
 size_t ECSHost::GetComponentStorageId(const std::string& name) {

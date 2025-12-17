@@ -20,8 +20,9 @@ void Scheduler::Register(System::Base* system) {
 
 void Scheduler::Schedule(System::Context* context) {
 	m_commit();
-	m_makePhases();
+
 	if (!context || !context->ecsHost) return;
+	m_makePhases(context->ecsHost);
 
 	context->ecsHost->LockAll();
 
@@ -59,19 +60,19 @@ void Scheduler::m_commit() {
 	m_next_system_index = 0;
 }
 
-void Scheduler::m_makePhases() {
+void Scheduler::m_makePhases(const ECSHost* ecsHost) {
 	if (!m_phases_dirty) return;
 	m_phases.clear();
 	PhaseInfo nextPhase;
 	for (size_t i = 0; i < m_last_committed; ++i) {
 		auto system = m_systems_raw_vector[i];
-		if (m_checkConflict(system, nextPhase.write, nextPhase.read)) {
+		if (m_checkConflict(ecsHost, system, nextPhase.write, nextPhase.read)) {
 			m_phases.emplace_back(std::move(nextPhase));
 			nextPhase = {};
 		}
 
 		nextPhase.systems.emplace_back(system);
-		m_updateDependenciesSet(system, nextPhase.write, nextPhase.read);
+		m_updateDependenciesSet(ecsHost, system, nextPhase.write, nextPhase.read);
 	}
 
 	if (!nextPhase.systems.empty()) {
@@ -81,10 +82,12 @@ void Scheduler::m_makePhases() {
 	m_phases_dirty = false;
 }
 
-bool Scheduler::m_checkConflict(const System::Base* system,
+bool Scheduler::m_checkConflict(
+	const ECSHost* ecsHost,
+	const System::Base* system,
 	const std::unordered_set<size_t>& writeSet, const std::unordered_set<size_t>& readSet) {
 	if (!system) return false;
-	const auto& dependencies = system->GetDependencies();
+	const auto& dependencies = system->GetDependencies(ecsHost);
 	for (const auto& write : dependencies.GetWriteDependencies()) {
 		if (writeSet.contains(write)) return true;
 		if (readSet.contains(write)) return true;
@@ -96,9 +99,13 @@ bool Scheduler::m_checkConflict(const System::Base* system,
 	return false;
 }
 
-void Scheduler::m_updateDependenciesSet(const System::Base* system, std::unordered_set<size_t>& writeSet, std::unordered_set<size_t>& readSet) {
+void Scheduler::m_updateDependenciesSet(
+	const ECSHost* ecsHost,
+	const System::Base* system,
+	std::unordered_set<size_t>& writeSet,
+	std::unordered_set<size_t>& readSet) {
 	if (!system) return;
-	const auto& dependencies = system->GetDependencies();
+	const auto& dependencies = system->GetDependencies(ecsHost);
 	for (const auto& write : dependencies.GetWriteDependencies()) {
 		writeSet.insert(write);
 	}

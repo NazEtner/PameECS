@@ -6,11 +6,12 @@
 #include <vector>
 #include <limits>
 #include <unordered_set>
+#include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 
 namespace PameECS::ECS {
 	class ECSHost final {
 	public:
-		ECSHost();
+		ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool);
 		~ECSHost();
 		ECSHost(const ECSHost&) = delete;
 		ECSHost& operator=(const ECSHost&) = delete;
@@ -32,6 +33,8 @@ namespace PameECS::ECS {
 		void LockAll();
 		void UnlockAll();
 		void Unlock(const std::unordered_set<size_t>& ids);
+
+		void Update();
 
 		template <Concepts::ComponentType T>
 		bool NewComponentStorage(const std::string& id) {
@@ -72,6 +75,6 @@ namespace PameECS::ECS {
 		bool m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
 		IComponentStorage* m_getComponentStorage(const std::string& id);
 		struct Impl;
-		inline static Impl* m_impl = nullptr;
+		Impl* m_impl = nullptr;
 	};
 }
