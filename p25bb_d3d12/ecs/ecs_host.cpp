@@ -15,7 +15,16 @@ struct ECSHost::Impl {
 
 	std::vector<std::shared_ptr<IComponentStorage>> componentStorages;
 	std::vector<uint64_t> entityGenerations;
-	std::vector<bool> entityAliveFlags;
+	// Copyはできるだけ安全にポインタを扱えるようにするためのもの
+	std::vector<uint64_t> entityGenerationsCopy;
+	bool isEntityGenerationsDirty = true;
+	// boolに(から)キャストすべき
+	// .data()が安全に使えないのでその回避のためにuint8_t
+	std::vector<uint8_t> entityAliveFlags;
+	std::vector<uint8_t> entityAliveFlagsCopy;
+	bool isAliveFlagsDirty = true;
+	// entityAliveFlags.size() <= lastEntityId
+	// && entityGenerations.size() == entityAliveFlags.size()なはず
 	size_t lastEntityId = 0;
 	bool locked = false;
 	Scheduler scheduler;
@@ -28,13 +37,15 @@ struct ECSHost::Impl {
 	}
 
 	void ResizeEntities(size_t minSize) {
-		m_resize(minSize, entityGenerations);
+		isAliveFlagsDirty = true;
+		isEntityGenerationsDirty = true;
+		m_resize(minSize, entityGenerations, std::numeric_limits<uint64_t>::max());
 		m_resize(minSize, entityAliveFlags);
 	}
 private:
 	template<typename T>
-	void m_resize(size_t id, std::vector<T>& vec) {
-		Helpers::Container::ResizePow2(vec, id, T());
+	void m_resize(size_t id, std::vector<T>& vec, T init = T()) {
+		Helpers::Container::ResizePow2(vec, id, init);
 	}
 };
 
@@ -76,10 +87,12 @@ void ECSHost::Update() {
 
 	System::Context context = {};
 	context.ecsHost = this;
+	GetEntityAliveFlags(context.entityAliveFlags, context.entityAliveFlagsCount);
+	GetEntityGenerations(context.entityGenerations, context.entityGenerationsCount);
 	m_impl->scheduler.Schedule(&context);
 }
 
-size_t ECSHost::GetComponentStorageId(const char* name) {
+size_t ECSHost::GetComponentStorageId(const char* name) const {
 	return m_impl->idGenerator.GetId(name);
 }
 
@@ -90,10 +103,12 @@ bool ECSHost::NewEntity(Types::Entity& entity, const char** components, const si
 }
 
 bool ECSHost::RemoveEntity(const Types::Entity& entity) {
+	if (m_impl->locked) return false;
 	auto id = entity.id;
 	if (id >= m_impl->entityAliveFlags.size() || !m_impl->entityAliveFlags[id]) {
 		return false;
 	}
+	m_impl->isAliveFlagsDirty = true;
 	m_impl->entityAliveFlags[id] = false;
 	return true;
 }
@@ -130,17 +145,21 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, IComponentStorag
 	return m_registerComponentStorage(id, sharedStorage);
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const std::string_view& id) {
+IComponentStorage* ECSHost::m_getComponentStorage(const std::string_view& id) const {
 	auto index = m_impl->idGenerator.GetId(id.data());
-	if (m_impl->locked && !m_impl->unlocked.contains(index)) return nullptr;
-	if (index >= m_impl->componentStorages.size()) {
-		return nullptr;
-	}
-	return m_impl->componentStorages[index].get();
+	return m_getComponentStorage(index);
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const char* id) {
+IComponentStorage* ECSHost::m_getComponentStorage(const char* id) const {
 	return m_getComponentStorage(std::string_view(id));
+}
+
+IComponentStorage* ECSHost::m_getComponentStorage(const size_t id) const {
+	if (m_impl->locked && !m_impl->unlocked.contains(id)) return nullptr;
+	if (id >= m_impl->componentStorages.size()) {
+		return nullptr;
+	}
+	return m_impl->componentStorages[id].get();
 }
 
 size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*)) {
@@ -154,12 +173,15 @@ size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*))
 
 bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& components,
 	size_t idMin, size_t idMax) {
+	if (m_impl->locked) return false;
 	auto id = idMin;
 	while (id <= idMax) {
 		m_impl->ResizeEntities(id + 1);
 		if (!m_impl->entityAliveFlags[id]) {
 			entity.id = id;
+			m_impl->isEntityGenerationsDirty = true;
 			entity.generation = ++m_impl->entityGenerations[id];
+			m_impl->isAliveFlagsDirty = true;
 			m_impl->entityAliveFlags[id] = true;
 			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
 			// コンポーネントの追加
@@ -174,4 +196,24 @@ bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& c
 		id++;
 	}
 	return false;
+}
+
+void ECSHost::GetEntityAliveFlags(const uint8_t*& flags, size_t& count) {
+	if (m_impl->isAliveFlagsDirty) {
+		// ほぼゼロコストは多分無理がある
+		m_impl->entityAliveFlagsCopy = m_impl->entityAliveFlags;
+		m_impl->isAliveFlagsDirty = false;
+	}
+	flags = m_impl->entityAliveFlagsCopy.data();
+	count = m_impl->lastEntityId + 1;
+}
+
+void ECSHost::GetEntityGenerations(const uint64_t*& generations, size_t& count) {
+	if (m_impl->isEntityGenerationsDirty) {
+		m_impl->entityGenerationsCopy = m_impl->entityGenerations;
+		m_impl->isEntityGenerationsDirty = false;
+	}
+
+	generations = m_impl->entityGenerationsCopy.data();
+	count = m_impl->lastEntityId + 1;
 }

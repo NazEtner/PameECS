@@ -2,7 +2,11 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <span>
+#include <limits>
+#include <cassert>
 #include "../abi/shared_string_vector.hpp"
+#include "types.hpp"
 
 namespace PameECS::ECS {
 	class ECSHost;
@@ -11,6 +15,10 @@ namespace PameECS::ECS {
 namespace PameECS::ECS::System {
 	struct Context {
 		ECSHost* ecsHost;
+		const uint8_t* entityAliveFlags;
+		size_t entityAliveFlagsCount;
+		const uint64_t* entityGenerations;
+		size_t entityGenerationsCount;
 	};
 
 	class Dependencies {
@@ -34,7 +42,21 @@ namespace PameECS::ECS::System {
 	public:
 		Base() = default;
 		virtual ~Base() = default;
-		virtual void Update(Context* context) noexcept = 0;
+		void Update(const Context* context) noexcept {
+			for (size_t i = 0; i < context->entityAliveFlagsCount; ++i) {
+				if (!context->entityAliveFlags[i]) continue;
+				assert(context->entityGenerationsCount > i);
+				if (context->entityGenerationsCount <= i) [[unlikely]] continue;
+				Types::Entity entity = {
+					.id = i,
+					.generation = context->entityGenerations[i]
+				};
+
+				m_entityUpdate(context, entity);
+			}
+		}
 		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) const = 0;
+	protected:
+		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
 	};
 }

@@ -20,10 +20,10 @@ namespace PameECS::ECS {
 		ECSHost(ECSHost&&) = delete;
 		ECSHost& operator=(ECSHost&&) = delete;
 
-		size_t GetComponentStorageId(const std::string& component) {
+		size_t GetComponentStorageId(const std::string& component) const {
 			return GetComponentStorageId(component.c_str());
 		}
-		PECS_DLL_SHARED size_t GetComponentStorageId(const char* component);
+		PECS_DLL_SHARED size_t GetComponentStorageId(const char* component) const;
 
 		bool NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
 			size_t idMin = 0, // 実際のEntity::idはサイズの都合上uint64_tだけど、実質的にはインデックスなのでsize_tにしている
@@ -93,9 +93,9 @@ namespace PameECS::ECS {
 		// TのGetComponentLayoutElementsやGetNameTagを工夫すればハックできそう
 		// やるとしても自己責任で
 		template <Concepts::ComponentType T>
-		ComponentStorage<T>* GetComponentStorageAs(const std::string& id) {
-			auto storageBase = m_getComponentStorage(id);
-			if (storageBase == nullptr) {
+		ComponentStorage<T>* GetComponentStorageAs(const size_t index) const {
+			auto storageBase = m_getComponentStorage(index);
+			if (storageBase == nullptr) [[unlikely]] {
 				return nullptr;
 			}
 			Types::ComponentLayoutElement* layoutPtr = nullptr;
@@ -107,16 +107,26 @@ namespace PameECS::ECS {
 			if (!storageBase->MaybeSafeToCast(
 				layoutPtr, layoutCount,
 				typeName, typeNameSize,
-				sizeof(T))) {
+				sizeof(T))) [[unlikely]] {
 				return nullptr;
 			}
-			return static_cast<ComponentStorage<T>>(storageBase);
+			return static_cast<ComponentStorage<T>*>(storageBase);
 		}
+
+		template <Concepts::ComponentType T>
+		ComponentStorage<T>* GetComponentStorageAs(const std::string& id) const {
+			auto index = GetComponentStorageId(id);
+			return GetComponentStorageAs<T>(index);
+		}
+
+		PECS_DLL_SHARED void GetEntityAliveFlags(const uint8_t*& flags, size_t& count);
+		PECS_DLL_SHARED void GetEntityGenerations(const uint64_t*& generations, size_t& count);
 	private:
 		bool m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage);
 		PECS_DLL_SHARED bool m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
-		IComponentStorage* m_getComponentStorage(const std::string_view& id);
-		IComponentStorage* m_getComponentStorage(const char* id);
+		IComponentStorage* m_getComponentStorage(const std::string_view& id) const;
+		IComponentStorage* m_getComponentStorage(const char* id) const;
+		IComponentStorage* m_getComponentStorage(const size_t id) const;
 		PECS_DLL_SHARED size_t m_addSystem(System::Base* system, void(*deleter)(System::Base*));
 		bool m_newEntity(Types::Entity& entity, const std::span<const char*>& components, size_t idMin, size_t idMax);
 		struct Impl;
