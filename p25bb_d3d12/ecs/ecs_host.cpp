@@ -20,6 +20,7 @@ struct ECSHost::Impl {
 	bool locked = false;
 	Scheduler scheduler;
 	std::unordered_set<size_t> unlocked;
+	std::vector<std::shared_ptr<System::Base>> systems;
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -45,7 +46,7 @@ ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool) {
 
 ECSHost::~ECSHost() {
 	// 本当はunique_ptrの方が良いけど、Pimplだと生ポインタの方が自然だというのと、
-	// __declspec(dllexport)での警告が出るのでその回避のため
+	// 外部DLLで使うときにサイズが変わるのを防ぐため(外部DLLが32bitだったら意味がないけど、それは起動チェックで弾かれるはず)
 	delete m_impl;
 	m_impl = nullptr;
 }
@@ -67,6 +68,12 @@ void ECSHost::Unlock(const std::unordered_set<size_t>& ids) {
 }
 
 void ECSHost::Update() {
+	for (const auto& system : m_impl->systems) {
+		if (!system) continue;
+		// Registerは「次に実行するSchedule()」で使うSystemを登録するもの
+		m_impl->scheduler.Register(system.get());
+	}
+
 	System::Context context = {};
 	context.ecsHost = this;
 	m_impl->scheduler.Schedule(&context);
@@ -148,4 +155,13 @@ IComponentStorage* ECSHost::m_getComponentStorage(const std::string& id) {
 		return nullptr;
 	}
 	return m_impl->componentStorages[index].get();
+}
+
+size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*)) {
+	if (!system) return 0xFFFF'FFFF'FFFF'FFFF;
+	auto ret = m_impl->systems.size();
+	auto uniqueSystem = std::shared_ptr<System::Base>(system, deleter);
+	m_impl->systems.emplace_back(std::move(uniqueSystem));
+
+	return ret;
 }

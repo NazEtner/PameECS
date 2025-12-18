@@ -1,6 +1,7 @@
 #include "component_storage.hpp"
 #include "../helpers/id_generator.hpp"
 #include "../macros/dll.hpp"
+#include "system.hpp"
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -48,6 +49,23 @@ namespace PameECS::ECS {
 			return m_registerComponentStorage(id, storage, deleter);
 		}
 
+		// Systemを追加する
+		// return : 追加したシステムのインデックス
+		// 失敗した場合、0xFFFF'FFFF'FFFF'FFFFを返す
+		// 一度追加したSystemは、どうやっても削除することはできない
+		template<typename T>
+			requires std::derived_from<T, System::Base>
+		size_t AddSystem() {
+			auto system = new T();
+			auto deleter = [](System::Base* system) -> void {
+				delete system;
+			};
+
+			if (!system) return 0xFFFF'FFFF'FFFF'FFFF;
+
+			m_addSystem(system, deleter);
+		}
+
 		// TのGetComponentLayoutElementsやGetNameTagを工夫すればハックできそう
 		// やるとしても自己責任で
 		template <Concepts::ComponentType T>
@@ -74,6 +92,7 @@ namespace PameECS::ECS {
 		bool m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage);
 		bool m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
 		IComponentStorage* m_getComponentStorage(const std::string& id);
+		size_t m_addSystem(System::Base* system, void(*deleter)(System::Base*));
 		struct Impl;
 		Impl* m_impl = nullptr;
 	};
