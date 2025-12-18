@@ -8,8 +8,9 @@ Renderer::Renderer(
 	std::shared_ptr<spdlog::logger> logger,
 	std::shared_ptr<PameECS::Graphics::Window> window,
 	std::shared_ptr<BS::thread_pool<0U>> threadPool,
-	bool useDebugLayer, bool useAdvancedDebug, bool protectedContent) :
-	IRenderer(), m_logger(std::move(logger)), m_window(std::move(window)), m_thread_pool(std::move(threadPool)), m_protected_content(protectedContent) {
+	bool useDebugLayer, bool useAdvancedDebug, bool protectedContent, bool vSync) :
+	IRenderer(), m_logger(std::move(logger)), m_window(std::move(window)), m_thread_pool(std::move(threadPool)),
+	m_protected_content(protectedContent), m_vertical_sync_enabled(vSync) {
 	if (!m_logger) throw PameECS::Exceptions::InvalidArgument("Logger is null.");
 	if (!m_window) throw PameECS::Exceptions::InvalidArgument("Window is null.");
 	if (!m_thread_pool) throw PameECS::Exceptions::InvalidArgument("Thread pool is null.");

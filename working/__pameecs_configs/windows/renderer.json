@@ -1,5 +1,6 @@
 {
     "useDebugLayer": true,
     "useAdvancedDebug": false,
-    "protectedContent": false
+    "protectedContent": false,
+    "vSync": false
 }

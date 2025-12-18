@@ -26,7 +26,7 @@ namespace PameECS::Graphics {
 			std::shared_ptr<spdlog::logger> logger,
 			std::shared_ptr<PameECS::Graphics::Window> window,
 			std::shared_ptr<BS::thread_pool<0U>> threadPool,
-			bool useDebugLayer, bool useAdvancedDebug, bool protectedContent = false);
+			bool useDebugLayer, bool useAdvancedDebug, bool protectedContent = false, bool vSync = true);
 
 		virtual ~Renderer();
 
