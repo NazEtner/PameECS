@@ -79,32 +79,14 @@ void ECSHost::Update() {
 	m_impl->scheduler.Schedule(&context);
 }
 
-size_t ECSHost::GetComponentStorageId(const std::string& name) {
+size_t ECSHost::GetComponentStorageId(const char* name) {
 	return m_impl->idGenerator.GetId(name);
 }
 
-bool ECSHost::NewEntity(Types::Entity& entity, const std::vector<std::string>& components,
-	size_t idMin, size_t idMax) {
-	auto id = idMin;
-	while (id <= idMax) {
-		m_impl->ResizeEntities(id + 1);
-		if (!m_impl->entityAliveFlags[id]) {
-			entity.id = id;
-			entity.generation = ++m_impl->entityGenerations[id];
-			m_impl->entityAliveFlags[id] = true;
-			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
-			// コンポーネントの追加
-			for (const auto& compId : components) {
-				auto storage = m_getComponentStorage(compId);
-				[[maybe_unused]]
-				bool added = storage && storage->AddComponent(entity);
-				// 失敗しても無視する
-			}
-			return true;
-		}
-		id++;
-	}
-	return false;
+bool ECSHost::NewEntity(Types::Entity& entity, const char** components, const size_t elementCount,
+	size_t idMin,
+	size_t idMax) {
+	return m_newEntity(entity, std::span<const char*>{components, elementCount}, idMin, idMax);
 }
 
 bool ECSHost::RemoveEntity(const Types::Entity& entity) {
@@ -116,7 +98,7 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 	return true;
 }
 
-bool ECSHost::AddComponent(const Types::Entity& entity, const std::string& component) {
+bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
 	auto storage = m_getComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
@@ -124,7 +106,7 @@ bool ECSHost::AddComponent(const Types::Entity& entity, const std::string& compo
 	return storage->AddComponent(entity);
 }
 
-bool ECSHost::RemoveComponent(const Types::Entity& entity, const std::string& component) {
+bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component) {
 	auto storage = m_getComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
@@ -148,8 +130,8 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, IComponentStorag
 	return m_registerComponentStorage(id, sharedStorage);
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const std::string& id) {
-	auto index = m_impl->idGenerator.GetId(id);
+IComponentStorage* ECSHost::m_getComponentStorage(const std::string_view& id) {
+	auto index = m_impl->idGenerator.GetId(id.data());
 	if (m_impl->locked && !m_impl->unlocked.contains(index)) return nullptr;
 	if (index >= m_impl->componentStorages.size()) {
 		return nullptr;
@@ -157,11 +139,39 @@ IComponentStorage* ECSHost::m_getComponentStorage(const std::string& id) {
 	return m_impl->componentStorages[index].get();
 }
 
+IComponentStorage* ECSHost::m_getComponentStorage(const char* id) {
+	return m_getComponentStorage(std::string_view(id));
+}
+
 size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*)) {
-	if (!system) return 0xFFFF'FFFF'FFFF'FFFF;
+	if (!system) return std::numeric_limits<size_t>::max();
 	auto ret = m_impl->systems.size();
 	auto uniqueSystem = std::shared_ptr<System::Base>(system, deleter);
 	m_impl->systems.emplace_back(std::move(uniqueSystem));
 
 	return ret;
+}
+
+bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& components,
+	size_t idMin, size_t idMax) {
+	auto id = idMin;
+	while (id <= idMax) {
+		m_impl->ResizeEntities(id + 1);
+		if (!m_impl->entityAliveFlags[id]) {
+			entity.id = id;
+			entity.generation = ++m_impl->entityGenerations[id];
+			m_impl->entityAliveFlags[id] = true;
+			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
+			// コンポーネントの追加
+			for (const auto& compId : components) {
+				auto storage = m_getComponentStorage(compId);
+				[[maybe_unused]]
+				bool added = storage && storage->AddComponent(entity);
+				// 失敗しても無視する
+			}
+			return true;
+		}
+		id++;
+	}
+	return false;
 }
