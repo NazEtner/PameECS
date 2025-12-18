@@ -9,7 +9,7 @@
 - アーカイブファイルの実装 <完了！>
 - アーカイブされたコンフィグファイルの読み込み <完了！>
 - ファイルシステムの実装 <完了！>
-- ECSの実装
+- ECSの実装 <完了！>
 - 入力システムの実装
 - オーディオシステムの実装
 - ECS->Rendererのインターフェイスを実装
@@ -31,7 +31,7 @@
 - Implement archive file system <Completed!>
 - Load configuration files from archives <Completed!>
 - Implement file system <Completed!>
-- Implement ECS
+- Implement ECS <Completed!>
 - Implement input system
 - Implement audio system
 - Implement ECS->Renderer interface
