@@ -314,7 +314,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)libraries;$(SolutionDir)PameECS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /D_ITERATOR_DEBUG_LEVEL=2 /source-charset:utf-8 /execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /DNOMINMAX /D_ITERATOR_DEBUG_LEVEL=2 /source-charset:utf-8 /execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -334,7 +334,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)libraries;$(SolutionDir)PameECS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /D_ITERATOR_DEBUG_LEVEL=2 /source-charset:utf-8 /execution-charset:utf-8 /DPAMEECS_NO_DEBUG_GUI %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /DNOMINMAX /D_ITERATOR_DEBUG_LEVEL=2 /source-charset:utf-8 /execution-charset:utf-8 /DPAMEECS_NO_DEBUG_GUI %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -356,7 +356,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)libraries;$(SolutionDir)PameECS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /D_ITERATOR_DEBUG_LEVEL=0 /source-charset:utf-8 /execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /DNOMINMAX /D_ITERATOR_DEBUG_LEVEL=0 /source-charset:utf-8 /execution-charset:utf-8 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -444,7 +444,7 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <AdditionalIncludeDirectories>$(SolutionDir)libraries;$(SolutionDir)PameECS;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /D_ITERATOR_DEBUG_LEVEL=0 /source-charset:utf-8 /execution-charset:utf-8 /DPAMEECS_NO_DEBUG_GUI %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions>/bigobj /D_WIN32_WINNT=0x0A00 /DBS_THREAD_POOL_NATIVE_EXTENSIONS /DNOMINMAX /D_ITERATOR_DEBUG_LEVEL=0 /source-charset:utf-8 /execution-charset:utf-8 /DPAMEECS_NO_DEBUG_GUI %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -477,6 +477,7 @@
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
     <ClCompile Include="graphics\window_setting_adaptor.cpp" />
+    <ClCompile Include="input\keyboard.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -528,10 +529,12 @@
     <ClInclude Include="helpers\errors\windows.hpp" />
     <ClInclude Include="helpers\id_generator.hpp" />
     <ClInclude Include="helpers\path.hpp" />
+    <ClInclude Include="input\keyboard.hpp" />
     <ClInclude Include="json\json_object.hpp" />
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />
     <ClInclude Include="macros\dll.hpp" />
+    <ClInclude Include="services\services.hpp" />
     <ClInclude Include="template_types\string_literal.hpp" />
     <ClInclude Include="thread\dummy_lock.hpp" />
     <ClInclude Include="thread\thread_pool_table.hpp" />

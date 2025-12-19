@@ -82,6 +82,15 @@
     <Filter Include="ソース ファイル\abi">
       <UniqueIdentifier>{1e8a1cf8-fb79-4def-bb06-887ea13508c5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\services">
+      <UniqueIdentifier>{dd97d8fe-2010-4528-b401-6c62b2b75807}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\input">
+      <UniqueIdentifier>{72694d16-82f1-4572-bec3-9d335c0be68a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\input">
+      <UniqueIdentifier>{ff5267ab-66f3-4460-b118-192fd81168e6}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -152,6 +161,9 @@
     </ClCompile>
     <ClCompile Include="ecs\scheduler.cpp">
       <Filter>ソース ファイル\ecs</Filter>
+    </ClCompile>
+    <ClCompile Include="input\keyboard.cpp">
+      <Filter>ソース ファイル\input</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -316,6 +328,12 @@
     </ClInclude>
     <ClInclude Include="helpers\container.hpp">
       <Filter>ヘッダー ファイル\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="services\services.hpp">
+      <Filter>ヘッダー ファイル\services</Filter>
+    </ClInclude>
+    <ClInclude Include="input\keyboard.hpp">
+      <Filter>ヘッダー ファイル\input</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
