@@ -23,6 +23,7 @@ namespace PameECS::DebugTools {
 			std::pair<float, float> position,
 			std::pair<float, float> size,
 			bool canBeClosed = true);
+		ImGuiContext* GetContext() { return m_context; }
 	private:
 		void m_initialize();
 		void m_finalize();
@@ -42,6 +43,6 @@ namespace PameECS::DebugTools {
 		std::shared_ptr<PameECS::Graphics::Renderer> m_renderer;
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_srv_heap;
 
-		ImGuiContext* context = nullptr;
+		ImGuiContext* m_context = nullptr;
 	};
 }

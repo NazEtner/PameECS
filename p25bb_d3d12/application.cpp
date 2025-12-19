@@ -63,13 +63,13 @@ void Application::Initialize() {
 	m_initializeWindow();
 	m_initializeRenderer();
 	m_initializeDebugTools();
+	m_initializeECS();
 
 	m_initialized = true;
 }
 
 void Application::Update() {
-	// ECSの更新はデバッグGUIより前
-	// m_ecs_host->Update(); // まだ実装がないので
+	m_ecs_host->Update();
 	m_debug_gui_host->Update();
 }
 
@@ -89,6 +89,7 @@ void Application::Finalize() {
 	m_window.reset();
 	m_window_setting_adaptor.reset();
 	m_debug_gui_host.reset();
+	m_ecs_host.reset();
 
 	m_logger->info("Application finalized.");
 }
@@ -192,6 +193,17 @@ void Application::m_initializeRenderer() {
 
 void Application::m_initializeDebugTools() {
 	m_debug_gui_host = std::make_shared<DebugTools::DebugGUIHost>(m_window, m_renderer);
+}
+
+void Application::m_initializeECS() {
+	m_thread_pool_table->Allocate<Constants::StringLiterals::ESCScheduleThreadPoolName>();
+
+	m_ecs_host = std::make_shared<ECS::ECSHost>(
+		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ESCScheduleThreadPoolName>()
+	);
+	if (m_debug_gui_host) {
+		m_ecs_host->OpenDebugWindow(m_debug_gui_host);
+	}
 }
 
 PameECS::Configs::AssetsConfig Application::m_loadAssetsConfig() {

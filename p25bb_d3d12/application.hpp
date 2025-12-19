@@ -17,6 +17,7 @@
 #include "configs/renderer_config.hpp"
 #include "configs/window_config.hpp"
 #include "graphics/window_setting_adaptor.hpp"
+#include "ecs/ecs_host.hpp"
 
 namespace PameECS {
 	class Application : public Pame::Core::IApplication {
@@ -52,6 +53,7 @@ namespace PameECS {
 		void m_initializeWindow();
 		void m_initializeRenderer();
 		void m_initializeDebugTools();
+		void m_initializeECS();
 
 		std::string m_configDirectoryPath() {
 			return m_config_root + "/" + m_platform + "/";
@@ -78,6 +80,7 @@ namespace PameECS {
 			m_thread_pool_table;
 		std::shared_ptr<DebugTools::DebugGUIHost> m_debug_gui_host;
 		std::shared_ptr<Graphics::WindowSettingAdaptor> m_window_setting_adaptor;
+		std::shared_ptr<ECS::ECSHost> m_ecs_host;
 
 		bool m_initialized = false;
 

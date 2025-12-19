@@ -117,7 +117,7 @@ void DebugGUIHost::AddWindow(
 
 void DebugGUIHost::m_initialize() {
 	IMGUI_CHECKVERSION();
-	context = ImGui::CreateContext();
+	m_context = ImGui::CreateContext();
 	ImGuiIO& io = ImGui::GetIO();
 	io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 
@@ -139,9 +139,9 @@ void DebugGUIHost::m_initialize() {
 void DebugGUIHost::m_finalize() {
 	ImGui_ImplDX12_Shutdown();
 	ImGui_ImplWin32_Shutdown();
-	if (context) {
-		ImGui::DestroyContext(context);
-		context = nullptr;
+	if (m_context) {
+		ImGui::DestroyContext(m_context);
+		m_context = nullptr;
 	}
 	m_srv_heap.Reset();
 }

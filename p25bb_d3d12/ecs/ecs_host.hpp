@@ -1,6 +1,7 @@
 #include "component_storage.hpp"
 #include "../helpers/id_generator.hpp"
 #include "../macros/dll.hpp"
+#include "../debug_tools/debug_gui_host.hpp"
 #include "system.hpp"
 #include <string>
 #include <typeindex>
@@ -19,6 +20,8 @@ namespace PameECS::ECS {
 		ECSHost& operator=(const ECSHost&) = delete;
 		ECSHost(ECSHost&&) = delete;
 		ECSHost& operator=(ECSHost&&) = delete;
+
+		void OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI);
 
 		size_t GetComponentStorageId(const std::string& component) const {
 			return GetComponentStorageId(component.c_str());

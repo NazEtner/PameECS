@@ -6,16 +6,16 @@ using PameECS::ECS::Scheduler;
 
 void Scheduler::Register(System::Base* system) {
 	if (!system) return;
-	if (m_systems_raw_vector.size() <= m_next_system_index) {
-		Helpers::Container::ResizePow2(m_systems_raw_vector, m_next_system_index + 1, nullptr);
+	auto index = m_next_system_index++;
+	if (m_systems_raw_vector.size() <= index) {
+		Helpers::Container::ResizePow2(m_systems_raw_vector, index + 1, nullptr);
 	}
-	else if (m_systems_raw_vector[m_next_system_index] == system) {
+	else if (m_systems_raw_vector[index] == system) {
 		return;
 	}
 
 	m_phases_dirty = true;
-	m_systems_raw_vector[m_next_system_index] = system;
-	m_next_system_index++;
+	m_systems_raw_vector[index] = system;
 }
 
 void Scheduler::Schedule(System::Context* context) {

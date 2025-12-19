@@ -62,6 +62,54 @@ ECSHost::~ECSHost() {
 	m_impl = nullptr;
 }
 
+void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI) {
+	debugGUI->AddWindow(
+		"ECSHost",
+		[this]() -> void {
+			if (ImGui::CollapsingHeader("ECS Information")) {
+				ImGui::Text("Component storages: %llu", m_impl->componentStorages.size());
+				ImGui::Text("Entity generations: (%llu, %p)", m_impl->entityGenerations.size(), m_impl->entityGenerations.data());
+				ImGui::Text("Entity alive flags: (%llu, %p)", m_impl->entityAliveFlags.size(), m_impl->entityAliveFlags.data());
+				if (ImGui::TreeNode("Entities")) {
+					static bool hideInactive = true;
+					ImGui::Checkbox("Hide inactive", &hideInactive);
+					size_t maxIndex = std::min(m_impl->entityGenerations.size(), m_impl->entityAliveFlags.size());
+					if (hideInactive) {
+						maxIndex = std::min(m_impl->lastEntityId + 1, maxIndex);
+					}
+					for (size_t i = 0; i < maxIndex; ++i) {
+						if (hideInactive && !m_impl->entityAliveFlags[i]) continue;
+						if (ImGui::TreeNode(std::format("{} (Generation: {:x})", i, m_impl->entityGenerations[i]).c_str())) {
+							if (m_impl->entityAliveFlags[i]) {
+								if (ImGui::Button(std::format("Remove##{}", i).c_str())) {
+									Types::Entity entity = { i, m_impl->entityGenerations[i] };
+									RemoveEntity(entity);
+								}
+							}
+
+							ImGui::TreePop();
+						}
+					}
+
+					ImGui::TreePop();
+				}
+				ImGui::Text("Last entity id    : %llu", m_impl->lastEntityId);
+				ImGui::Text("Locked            : %s", m_impl->locked ? "true" : "false");
+				ImGui::Text("Systems           : %llu", m_impl->systems.size());
+			}
+			if (ImGui::CollapsingHeader("ECS Control")) {
+				if (ImGui::Button("Add test entity")) {
+					Types::Entity entity = {};
+					NewEntity(entity, {});
+				}
+			}
+		},
+		{ 0.f, 0.f },
+		{ 480.f, 560.f },
+		false
+	);
+}
+
 void ECSHost::LockAll() {
 	m_impl->unlocked.clear();
 	m_impl->locked = true;
@@ -106,6 +154,9 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 	if (m_impl->locked) return false;
 	auto id = entity.id;
 	if (id >= m_impl->entityAliveFlags.size() || !m_impl->entityAliveFlags[id]) {
+		return false;
+	}
+	if (entity.generation != m_impl->entityGenerations[id]) {
 		return false;
 	}
 	m_impl->isAliveFlagsDirty = true;
@@ -205,7 +256,7 @@ void ECSHost::GetEntityAliveFlags(const uint8_t*& flags, size_t& count) {
 		m_impl->isAliveFlagsDirty = false;
 	}
 	flags = m_impl->entityAliveFlagsCopy.data();
-	count = m_impl->lastEntityId + 1;
+	count = std::min(m_impl->lastEntityId + 1, m_impl->entityAliveFlagsCopy.size());
 }
 
 void ECSHost::GetEntityGenerations(const uint64_t*& generations, size_t& count) {
@@ -215,5 +266,5 @@ void ECSHost::GetEntityGenerations(const uint64_t*& generations, size_t& count) 
 	}
 
 	generations = m_impl->entityGenerationsCopy.data();
-	count = m_impl->lastEntityId + 1;
+	count = std::min(m_impl->lastEntityId + 1, m_impl->entityGenerationsCopy.size());
 }
