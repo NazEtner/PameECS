@@ -329,5 +329,8 @@
     <ClInclude Include="input\mouse.hpp">
       <Filter>ヘッダー ファイル\input</Filter>
     </ClInclude>
+    <ClInclude Include="configs\script_config.hpp">
+      <Filter>ヘッダー ファイル\configs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

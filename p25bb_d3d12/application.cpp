@@ -233,3 +233,11 @@ PameECS::Configs::WindowConfig Application::m_loadWindowConfig() {
 	ret.Deserialize(json);
 	return ret;
 }
+
+PameECS::Configs::ScriptConfig Application::m_loadScriptConfig() {
+	auto json = m_getConfigJson(m_script_config_filename);
+
+	Configs::ScriptConfig ret;
+	ret.Deserialize(json);
+	return ret;
+}

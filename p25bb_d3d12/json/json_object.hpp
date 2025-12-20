@@ -33,4 +33,14 @@ namespace PameECS::JSON {
 			);
 		}
 	};
+
+	template <typename T>
+	void to_json(nlohmann::json& j, const JSONObject<T>& p) {
+		j = p.Serialize();
+	}
+
+	template <typename T>
+	void from_json(const nlohmann::json& j, JSONObject<T>& obj) {
+		obj.Deserialize(j);
+	}
 }

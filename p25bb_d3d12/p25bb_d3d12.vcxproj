@@ -486,6 +486,7 @@
     <ClInclude Include="application.hpp" />
     <ClInclude Include="configs\assets_config.hpp" />
     <ClInclude Include="configs\renderer_config.hpp" />
+    <ClInclude Include="configs\script_config.hpp" />
     <ClInclude Include="configs\window_config.hpp" />
     <ClInclude Include="constants\file_implement_ids.hpp" />
     <ClInclude Include="constants\string_literals.hpp" />

@@ -16,6 +16,7 @@
 #include "configs/assets_config.hpp"
 #include "configs/renderer_config.hpp"
 #include "configs/window_config.hpp"
+#include "configs/script_config.hpp"
 #include "graphics/window_setting_adaptor.hpp"
 #include "ecs/ecs_host.hpp"
 
@@ -71,6 +72,7 @@ namespace PameECS {
 		Configs::AssetsConfig m_loadAssetsConfig();
 		Configs::RendererConfig m_loadRendererConfig();
 		Configs::WindowConfig m_loadWindowConfig();
+		Configs::ScriptConfig m_loadScriptConfig();
 
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::shared_ptr<Graphics::Window> m_window;
@@ -90,6 +92,7 @@ namespace PameECS {
 		const std::string m_asset_config_filename = "assets.json";
 		const std::string m_renderer_config_filename = "renderer.json";
 		const std::string m_window_config_filename = "window.json";
+		const std::string m_script_config_filename = "script.json";
 	};
 
 	Application application;
