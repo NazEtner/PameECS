@@ -46,6 +46,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		break;
+	case WM_MOUSEWHEEL:
+		if (window) {
+			window->OnMouseDelta(GET_WHEEL_DELTA_WPARAM(wParam));
+		}
 	default:
 		break;
 	}

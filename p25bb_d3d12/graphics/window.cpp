@@ -97,6 +97,14 @@ void Window::OnAltEnterPressed() {
 	SetProperties(property);
 }
 
+void Window::SetMouseDeltaCallback(std::function<void(int)>&& callback) {
+	mouseDeltaCallback = std::move(callback);
+}
+
+void Window::OnMouseDelta(int delta) {
+	mouseDeltaCallback(delta);
+}
+
 void Window::SetProperties(const Properties& property) {
 	assert(m_properties.windowStyle.has_value());
 

@@ -12,9 +12,9 @@ struct Keyboard::Impl {
 };
 
 Keyboard::Keyboard(HWND windowHandle) {
-	assert(windowHandle);
-
 	m_impl = std::make_unique<Impl>();
+
+	assert(windowHandle);
 
 	m_impl->windowHandle = windowHandle;
 }

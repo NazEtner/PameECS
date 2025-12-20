@@ -478,6 +478,7 @@
     <ClCompile Include="graphics\window.cpp" />
     <ClCompile Include="graphics\window_setting_adaptor.cpp" />
     <ClCompile Include="input\keyboard.cpp" />
+    <ClCompile Include="input\mouse.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -530,6 +531,7 @@
     <ClInclude Include="helpers\id_generator.hpp" />
     <ClInclude Include="helpers\path.hpp" />
     <ClInclude Include="input\keyboard.hpp" />
+    <ClInclude Include="input\mouse.hpp" />
     <ClInclude Include="json\json_object.hpp" />
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />

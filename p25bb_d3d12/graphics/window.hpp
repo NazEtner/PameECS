@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <variant>
 #include <spdlog/spdlog.h>
+#include <functional>
 
 #include "../helpers/errors/windows.hpp"
 
@@ -88,6 +89,8 @@ namespace PameECS::Graphics {
 
 		void Destroy() noexcept; // DestroyWindow()のラッパー的なやつ
 		void OnAltEnterPressed(); // Alt+Enterが押されたときに呼ぶ
+		void SetMouseDeltaCallback(std::function<void(int)>&& callback);
+		void OnMouseDelta(int delta);
 	private:
 		void m_setDefaultProperties(const Properties& properties);
 		void m_create();
@@ -103,5 +106,6 @@ namespace PameECS::Graphics {
 		HWND m_window_handle = nullptr;
 		Properties m_properties;
 		std::shared_ptr<spdlog::logger> m_logger;
+		std::function<void(int)> mouseDeltaCallback = [](int) -> void {};
 	};
 }

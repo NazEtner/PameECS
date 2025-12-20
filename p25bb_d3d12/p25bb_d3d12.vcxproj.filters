@@ -165,6 +165,9 @@
     <ClCompile Include="input\keyboard.cpp">
       <Filter>ソース ファイル\input</Filter>
     </ClCompile>
+    <ClCompile Include="input\mouse.cpp">
+      <Filter>ソース ファイル\input</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -333,6 +336,9 @@
       <Filter>ヘッダー ファイル\services</Filter>
     </ClInclude>
     <ClInclude Include="input\keyboard.hpp">
+      <Filter>ヘッダー ファイル\input</Filter>
+    </ClInclude>
+    <ClInclude Include="input\mouse.hpp">
       <Filter>ヘッダー ファイル\input</Filter>
     </ClInclude>
   </ItemGroup>
