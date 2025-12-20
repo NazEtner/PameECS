@@ -1,6 +1,7 @@
 #pragma once
 #include "../macros/dll.hpp"
 #include <memory>
+#include <string>
 #include <windows.h>
 
 namespace PameECS::Input {
@@ -31,13 +32,32 @@ namespace PameECS::Input {
 
 		PECS_DLL_SHARED bool IsMouseInWindow() const;
 
+		void AddRect(
+			const std::string& name,
+			float left, float top,
+			float width, float height
+		) {
+			AddRect(name.c_str(), left, top, width, height);
+		}
+
 		PECS_DLL_SHARED void AddRect(
 			const char* name,
 			float left, float top,
 			float width, float height);
 
+		void RemoveRect(const std::string& name) {
+			RemoveRect(name.c_str());
+		}
 		PECS_DLL_SHARED void RemoveRect(const char* name);
 
+		bool GetHoveredRectName(std::string& name) const {
+			if (auto hovered = GetHoveredRectName(); hovered) {
+				name = hovered;
+				return true;
+			}
+
+			return false;
+		}
 		PECS_DLL_SHARED const char* GetHoveredRectName() const;
 
 		void OnMouseDelta(int delta);

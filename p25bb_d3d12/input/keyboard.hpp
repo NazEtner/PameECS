@@ -13,9 +13,11 @@ namespace PameECS::Input {
 
 		void Update();
 		// 引数はWindows APIのVK_から始まるキーコードに対応する
-		PECS_DLL_SHARED bool IsKeyDown(uint32_t keyCode);
-		PECS_DLL_SHARED bool WasKeyPressed(uint32_t keyCode);
-		PECS_DLL_SHARED bool WasKeyReleased(uint32_t keyCode);
+		PECS_DLL_SHARED bool IsKeyDown(uint32_t keyCode) const;
+		PECS_DLL_SHARED bool WasKeyPressed(uint32_t keyCode) const;
+		PECS_DLL_SHARED bool WasKeyReleased(uint32_t keyCode) const;
+
+		PECS_DLL_SHARED bool IsAnyKeyDown() const;
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

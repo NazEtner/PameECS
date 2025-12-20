@@ -147,12 +147,6 @@
     <ClCompile Include="ecs\ecs_host.cpp">
       <Filter>ソース ファイル\ecs</Filter>
     </ClCompile>
-    <ClCompile Include="abi\shared_string.cpp">
-      <Filter>ソース ファイル\abi</Filter>
-    </ClCompile>
-    <ClCompile Include="abi\shared_string_vector.cpp">
-      <Filter>ソース ファイル\abi</Filter>
-    </ClCompile>
     <ClCompile Include="abi\check.cpp">
       <Filter>ソース ファイル\abi</Filter>
     </ClCompile>
@@ -313,12 +307,6 @@
     </ClInclude>
     <ClInclude Include="ecs\concepts.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>
-    </ClInclude>
-    <ClInclude Include="abi\shared_string.hpp">
-      <Filter>ヘッダー ファイル\abi</Filter>
-    </ClInclude>
-    <ClInclude Include="abi\shared_string_vector.hpp">
-      <Filter>ヘッダー ファイル\abi</Filter>
     </ClInclude>
     <ClInclude Include="ecs\scheduler.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>

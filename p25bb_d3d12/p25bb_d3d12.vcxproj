@@ -462,8 +462,6 @@
     <ClCompile Include="..\libraries\imgui\imgui_tables.cpp" />
     <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="abi\check.cpp" />
-    <ClCompile Include="abi\shared_string.cpp" />
-    <ClCompile Include="abi\shared_string_vector.cpp" />
     <ClCompile Include="application.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -485,8 +483,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="abi\check.hpp" />
-    <ClInclude Include="abi\shared_string.hpp" />
-    <ClInclude Include="abi\shared_string_vector.hpp" />
     <ClInclude Include="application.hpp" />
     <ClInclude Include="configs\assets_config.hpp" />
     <ClInclude Include="configs\renderer_config.hpp" />

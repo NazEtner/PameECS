@@ -126,7 +126,7 @@ namespace PameECS::ECS {
 		PECS_DLL_SHARED void GetEntityGenerations(const uint64_t*& generations, size_t& count);
 	private:
 		bool m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage);
-		PECS_DLL_SHARED bool m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
+		PECS_DLL_SHARED bool m_registerComponentStorage(const char* id, IComponentStorage* storage, void(*deleter)(IComponentStorage*));
 		IComponentStorage* m_getComponentStorage(const std::string_view& id) const;
 		IComponentStorage* m_getComponentStorage(const char* id) const;
 		IComponentStorage* m_getComponentStorage(const size_t id) const;

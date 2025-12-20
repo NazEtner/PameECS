@@ -191,7 +191,7 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, std::shared_ptr<
 	return true;
 }
 
-bool ECSHost::m_registerComponentStorage(const std::string& id, IComponentStorage* storage, void(*deleter)(IComponentStorage*)) {
+bool ECSHost::m_registerComponentStorage(const char* id, IComponentStorage* storage, void(*deleter)(IComponentStorage*)) {
 	auto sharedStorage = std::shared_ptr<IComponentStorage>(storage, deleter);
 	return m_registerComponentStorage(id, sharedStorage);
 }

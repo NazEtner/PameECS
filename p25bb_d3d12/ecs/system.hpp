@@ -5,7 +5,7 @@
 #include <span>
 #include <limits>
 #include <cassert>
-#include "../abi/shared_string_vector.hpp"
+#include "../macros/dll.hpp"
 #include "types.hpp"
 
 namespace PameECS::ECS {
