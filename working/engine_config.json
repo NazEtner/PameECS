@@ -1,5 +1,5 @@
 {
     "system":{
-        "applicationDll": "../x64/Release/p25bb_d3d12.dll"
+        "applicationDll": "../x64/Debug/p25bb_d3d12.dll"
     }
 }
