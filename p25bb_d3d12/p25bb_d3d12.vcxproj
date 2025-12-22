@@ -527,6 +527,7 @@
     <ClInclude Include="helpers\errors\windows.hpp" />
     <ClInclude Include="helpers\id_generator.hpp" />
     <ClInclude Include="helpers\path.hpp" />
+    <ClInclude Include="input\gamepad.hpp" />
     <ClInclude Include="input\keyboard.hpp" />
     <ClInclude Include="input\mouse.hpp" />
     <ClInclude Include="json\json_object.hpp" />

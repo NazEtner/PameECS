@@ -332,5 +332,8 @@
     <ClInclude Include="configs\script_config.hpp">
       <Filter>ヘッダー ファイル\configs</Filter>
     </ClInclude>
+    <ClInclude Include="input\gamepad.hpp">
+      <Filter>ヘッダー ファイル\input</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
