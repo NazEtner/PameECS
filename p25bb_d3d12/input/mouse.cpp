@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include <stack>
+#include <mutex>
 
 using PameECS::Input::Mouse;
 
@@ -34,6 +35,7 @@ struct Mouse::Impl {
 	std::stack<size_t> inactiveRectIndex;
 	std::string hoveredNameCache;
 	bool isAnyRectHovered = false;
+	std::mutex mutex;
 };
 
 Mouse::Mouse(HWND windowHandle) {
@@ -178,6 +180,7 @@ bool Mouse::IsMouseInWindow() const {
 void Mouse::AddRect(const char* name,
 	float left, float top,
 	float width, float height) {
+	std::lock_guard lock(m_impl->mutex);
 	Impl::Rect rect = {
 		.left = left, .top = top, .right = left + width, .bottom = top - height,
 		.z = m_impl->nextZ++,
@@ -198,8 +201,11 @@ void Mouse::AddRect(const char* name,
 void Mouse::RemoveRect(const char* name) {
 	if (!name) [[unlikely]] return;
 
+	std::lock_guard lock(m_impl->mutex);
+
 	size_t index = 0;
 	for (auto& rect : m_impl->rects) {
+		// rect.name != nameになる方が多いはずなのでunlikely
 		if (rect.isActive && rect.name == name) [[unlikely]] {
 			rect.isActive = false;
 			m_impl->inactiveRectIndex.push(index);
@@ -211,6 +217,13 @@ void Mouse::RemoveRect(const char* name) {
 		}
 		++index;
 	}
+}
+
+void Mouse::ClearRect() {
+	std::lock_guard lock(m_impl->mutex);
+	m_impl->rects.clear();
+	m_impl->isAnyRectHovered = false;
+	m_impl->hoveredNameCache.clear();
 }
 
 const char* Mouse::GetHoveredRectName() const {

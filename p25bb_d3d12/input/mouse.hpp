@@ -12,6 +12,8 @@ namespace PameECS::Input {
 		Mouse(const Mouse&) = delete;
 		Mouse& operator=(const Mouse&) = delete;
 
+		// 他の書き込みがあるAPIとUpdateは同時には呼ばれないはず
+		// 同時に呼ばれてたらバグ
 		void Update();
 
 		PECS_DLL_SHARED bool IsLeftButtonDown() const;
@@ -49,6 +51,8 @@ namespace PameECS::Input {
 			RemoveRect(name.c_str());
 		}
 		PECS_DLL_SHARED void RemoveRect(const char* name);
+
+		PECS_DLL_SHARED void ClearRect();
 
 		bool GetHoveredRectName(std::string& name) const {
 			if (auto hovered = GetHoveredRectName(); hovered) {

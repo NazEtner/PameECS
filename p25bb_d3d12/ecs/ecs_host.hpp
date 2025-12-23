@@ -11,6 +11,7 @@
 #include <unordered_set>
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 #include <span>
+#include <memory>
 
 namespace PameECS::ECS {
 	class ECSHost final {
@@ -84,7 +85,7 @@ namespace PameECS::ECS {
 		template<typename T>
 			requires std::derived_from<T, System::Base>
 		size_t AddSystem() {
-			auto system = new T();
+			auto system = new (std::nothrow) T();
 			auto deleter = [](System::Base* system) -> void {
 				delete system;
 			};
@@ -136,6 +137,6 @@ namespace PameECS::ECS {
 		PECS_DLL_SHARED size_t m_addSystem(System::Base* system, void(*deleter)(System::Base*));
 		bool m_newEntity(Types::Entity& entity, const std::span<const char*>& components, size_t idMin, size_t idMax);
 		struct Impl;
-		Impl* m_impl = nullptr;
+		std::unique_ptr<Impl> m_impl = nullptr;
 	};
 }

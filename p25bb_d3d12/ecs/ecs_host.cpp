@@ -2,6 +2,7 @@
 #include "scheduler.hpp"
 #include "../helpers/id_generator.hpp"
 #include "../helpers/container.hpp"
+#include <mutex>
 
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
@@ -31,6 +32,7 @@ struct ECSHost::Impl {
 	std::unordered_set<size_t> unlocked;
 	std::vector<std::shared_ptr<System::Base>> systems;
 	std::vector<SyncTask> syncTasks;
+	std::mutex mutex;
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -51,17 +53,10 @@ private:
 };
 
 ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool) {
-	if (m_impl == nullptr) {
-		m_impl = new Impl(threadPool);
-	}
+	m_impl = std::make_unique<Impl>(threadPool);
 }
 
-ECSHost::~ECSHost() {
-	// 本当はunique_ptrの方が良いけど、Pimplだと生ポインタの方が自然だというのと、
-	// 外部DLLで使うときにサイズが変わるのを防ぐため(外部DLLが32bitだったら意味がないけど、それは起動チェックで弾かれるはず)
-	delete m_impl;
-	m_impl = nullptr;
-}
+ECSHost::~ECSHost() {}
 
 void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI) {
 	debugGUI->AddWindow(
@@ -140,6 +135,7 @@ void ECSHost::Update() {
 	GetEntityGenerations(context.entityGenerations, context.entityGenerationsCount);
 	m_impl->scheduler.Schedule(&context);
 
+	assert(!m_impl->locked);
 	for (auto& tasks : m_impl->syncTasks) {
 		tasks.Execute(&context);
 	}
@@ -170,6 +166,7 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 }
 
 bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
+	if (m_impl->locked) return false;
 	auto storage = m_getComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
@@ -178,6 +175,7 @@ bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
 }
 
 bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component) {
+	if (m_impl->locked) return false;
 	auto storage = m_getComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
@@ -187,6 +185,7 @@ bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component
 }
 
 bool ECSHost::m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage) {
+	if (m_impl->locked) return false;
 	auto index = m_impl->idGenerator.GetId(id);
 	m_impl->ResizeComponents(index + 1);
 	if (m_impl->componentStorages[index] != nullptr) {
@@ -219,6 +218,7 @@ IComponentStorage* ECSHost::m_getComponentStorage(const size_t id) const {
 }
 
 size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*)) {
+	if (m_impl->locked) return false;
 	if (!system) return std::numeric_limits<size_t>::max();
 	auto ret = m_impl->systems.size();
 	auto uniqueSystem = std::shared_ptr<System::Base>(system, deleter);
@@ -255,6 +255,7 @@ bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& c
 }
 
 void ECSHost::AddSyncTask(const SyncTask& task) {
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	m_impl->syncTasks.push_back(task);
 }
 
