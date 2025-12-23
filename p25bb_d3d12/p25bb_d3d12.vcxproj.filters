@@ -335,5 +335,8 @@
     <ClInclude Include="input\gamepad.hpp">
       <Filter>ヘッダー ファイル\input</Filter>
     </ClInclude>
+    <ClInclude Include="ecs\sync_task.hpp">
+      <Filter>ヘッダー ファイル\ecs</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

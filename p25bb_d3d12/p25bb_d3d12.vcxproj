@@ -492,6 +492,7 @@
     <ClInclude Include="constants\string_literals.hpp" />
     <ClInclude Include="constants\thread_pool_table_ids.hpp" />
     <ClInclude Include="debug_tools\debug_gui_host.hpp" />
+    <ClInclude Include="ecs\sync_task.hpp" />
     <ClInclude Include="ecs\component_storage.hpp" />
     <ClInclude Include="ecs\component_storage_interface.hpp" />
     <ClInclude Include="ecs\component_binary_storage.hpp" />

@@ -25,7 +25,7 @@ namespace PameECS::ECS::System {
 	public:
 		PECS_DLL_SHARED Dependencies(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
 		Dependencies(const std::vector<size_t>& write, const std::vector<size_t>& read);
-		~Dependencies();
+		PECS_DLL_SHARED ~Dependencies();
 		Dependencies(const Dependencies&) = delete;
 		Dependencies& operator=(const Dependencies&) = delete;
 		Dependencies(Dependencies&&) = delete;

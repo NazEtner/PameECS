@@ -30,6 +30,7 @@ struct ECSHost::Impl {
 	Scheduler scheduler;
 	std::unordered_set<size_t> unlocked;
 	std::vector<std::shared_ptr<System::Base>> systems;
+	std::vector<SyncTask> syncTasks;
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -138,6 +139,10 @@ void ECSHost::Update() {
 	GetEntityAliveFlags(context.entityAliveFlags, context.entityAliveFlagsCount);
 	GetEntityGenerations(context.entityGenerations, context.entityGenerationsCount);
 	m_impl->scheduler.Schedule(&context);
+
+	for (auto& tasks : m_impl->syncTasks) {
+		tasks.Execute(&context);
+	}
 }
 
 size_t ECSHost::GetComponentStorageId(const char* name) const {
@@ -247,6 +252,10 @@ bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& c
 		id++;
 	}
 	return false;
+}
+
+void ECSHost::AddSyncTask(const SyncTask& task) {
+	m_impl->syncTasks.push_back(task);
 }
 
 void ECSHost::GetEntityAliveFlags(const uint8_t*& flags, size_t& count) {

@@ -3,6 +3,7 @@
 #include "../macros/dll.hpp"
 #include "../debug_tools/debug_gui_host.hpp"
 #include "system.hpp"
+#include "sync_task.hpp"
 #include <string>
 #include <typeindex>
 #include <vector>
@@ -121,6 +122,8 @@ namespace PameECS::ECS {
 			auto index = GetComponentStorageId(id);
 			return GetComponentStorageAs<T>(index);
 		}
+
+		PECS_DLL_SHARED void AddSyncTask(const SyncTask& task);
 
 		PECS_DLL_SHARED void GetEntityAliveFlags(const uint8_t*& flags, size_t& count);
 		PECS_DLL_SHARED void GetEntityGenerations(const uint64_t*& generations, size_t& count);
