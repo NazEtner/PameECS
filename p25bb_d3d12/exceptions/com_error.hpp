@@ -1,0 +1,11 @@
+#pragma once
+#include <exceptions/exception_of.hpp>
+
+namespace PameECS::Exceptions {
+	class ComErrorTag {
+	public:
+		static constexpr const char* typeName = "CompressError";
+	};
+
+	using ComError = Pame::Exceptions::ExceptionOf<ComErrorTag>;
+}

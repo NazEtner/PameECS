@@ -341,5 +341,8 @@
     <ClInclude Include="ecs\sync_task.hpp">
       <Filter>ヘッダー ファイル\ecs</Filter>
     </ClInclude>
+    <ClInclude Include="exceptions\com_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

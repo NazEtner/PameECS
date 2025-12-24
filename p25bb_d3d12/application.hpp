@@ -47,6 +47,8 @@ namespace PameECS {
 	private:
 		// 初期化用の関数
 		// 実行順に並べる
+		void m_initializeCom();
+		void m_initializeProcessDpi();
 		void m_initializeLogger();
 		void m_logInfo();
 		void m_initializeThreadPoolTable();
@@ -55,6 +57,8 @@ namespace PameECS {
 		void m_initializeRenderer();
 		void m_initializeDebugTools();
 		void m_initializeECS();
+
+		void m_finalizeCom();
 
 		std::string m_configDirectoryPath() {
 			return m_config_root + "/" + m_platform + "/";
@@ -85,6 +89,7 @@ namespace PameECS {
 		std::shared_ptr<ECS::ECSHost> m_ecs_host;
 
 		bool m_initialized = false;
+		bool m_is_com_initialized = false;
 
 		const std::string m_config_archive_name = "_config.peac";
 		const std::string m_config_root = "__pameecs_configs";

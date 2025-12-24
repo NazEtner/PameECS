@@ -3,10 +3,12 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/basic_file_sink.h>
 #include <imgui/imgui_impl_win32.h>
+#include <shellscalingapi.h>
 
 #include "macros/debug.hpp"
 #include "helpers/id_generator.hpp"
 #include "template_types/string_literal.hpp"
+#include "exceptions/com_error.hpp"
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -60,6 +62,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 using PameECS::Application;
 
 void Application::Initialize() {
+	m_initializeCom();
+	m_initializeProcessDpi();
 	m_initializeLogger();
 	m_logInfo();
 	m_initializeThreadPoolTable();
@@ -94,8 +98,20 @@ void Application::Finalize() {
 	m_window_setting_adaptor.reset();
 	m_debug_gui_host.reset();
 	m_ecs_host.reset();
+	m_finalizeCom();
 
 	m_logger->info("Application finalized.");
+}
+
+void Application::m_initializeCom() {
+	if (FAILED(CoInitializeEx(NULL, COINIT_MULTITHREADED))) {
+		throw Exceptions::ComError("Failed to initialize COM library.");
+	}
+	m_is_com_initialized = true;
+}
+
+void Application::m_initializeProcessDpi() {
+	SetProcessDpiAwareness(PROCESS_PER_MONITOR_DPI_AWARE);
 }
 
 void Application::m_initializeLogger() {
@@ -207,6 +223,12 @@ void Application::m_initializeECS() {
 	);
 	if (m_debug_gui_host) {
 		m_ecs_host->OpenDebugWindow(m_debug_gui_host);
+	}
+}
+
+void Application::m_finalizeCom() {
+	if (m_is_com_initialized) {
+		CoUninitialize();
 	}
 }
 

@@ -503,6 +503,7 @@
     <ClInclude Include="ecs\system.hpp" />
     <ClInclude Include="ecs\types.hpp" />
     <ClInclude Include="exceptions\compress_error.hpp" />
+    <ClInclude Include="exceptions\com_error.hpp" />
     <ClInclude Include="exceptions\file_error.hpp" />
     <ClInclude Include="exceptions\invalid_argument.hpp" />
     <ClInclude Include="exceptions\invalid_component_type.hpp" />
