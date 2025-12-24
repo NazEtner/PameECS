@@ -475,6 +475,7 @@
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
     <ClCompile Include="graphics\window_setting_adaptor.cpp" />
+    <ClCompile Include="input\gamepad.cpp" />
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
   </ItemGroup>
