@@ -7,6 +7,43 @@
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
 
+extern "C" {
+	PECS_DLL_SHARED size_t __stdcall ECSGetComponentStorageId(const PameECS::ECS::ECSHost* ecsHost, const char* component) {
+		return ecsHost->GetComponentStorageId(component);
+	}
+	PECS_DLL_SHARED bool __stdcall ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
+		PameECS::ECS::Types::Entity& entity, const char** components, const size_t elementCount,
+		size_t idMin,
+		size_t idMax) {
+		return ecsHost->NewEntity(
+			entity, components, elementCount, idMin, idMax
+		);
+	}
+	PECS_DLL_SHARED bool __stdcall ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity) {
+		return ecsHost->RemoveEntity(
+			entity
+		);
+	}
+	PECS_DLL_SHARED bool __stdcall ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
+		return ecsHost->AddComponent(entity, component);
+	}
+	PECS_DLL_SHARED bool __stdcall ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
+		return ecsHost->RemoveComponent(entity, component);
+	}
+	PECS_DLL_SHARED void __stdcall ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task) {
+		ecsHost->AddSyncTask(task);
+	}
+	PECS_DLL_SHARED bool __stdcall ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*)) {
+		return ecsHost->RegisterComponentStorage(id, storage, deleter);
+	}
+	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* __stdcall ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id) {
+		return ecsHost->GetComponentStorage(id);
+	}
+	PECS_DLL_SHARED size_t __stdcall ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*)) {
+		return ecsHost->AddSystem(system, deleter);
+	}
+}
+
 struct ECSHost::Impl {
 	Impl(std::shared_ptr<BS::thread_pool<0U>> threadPool) : scheduler(threadPool) {
 
@@ -167,7 +204,7 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 
 bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
 	if (m_impl->locked) return false;
-	auto storage = m_getComponentStorage(component);
+	auto storage = GetComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
 	}
@@ -176,7 +213,7 @@ bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
 
 bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component) {
 	if (m_impl->locked) return false;
-	auto storage = m_getComponentStorage(component);
+	auto storage = GetComponentStorage(component);
 	if (storage == nullptr) {
 		return false;
 	}
@@ -184,7 +221,7 @@ bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component
 	return storage->AddComponent(dummyEntity);
 }
 
-bool ECSHost::m_registerComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage) {
+bool ECSHost::RegisterComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage) {
 	if (m_impl->locked) return false;
 	auto index = m_impl->idGenerator.GetId(id);
 	m_impl->ResizeComponents(index + 1);
@@ -195,21 +232,21 @@ bool ECSHost::m_registerComponentStorage(const std::string& id, std::shared_ptr<
 	return true;
 }
 
-bool ECSHost::m_registerComponentStorage(const char* id, IComponentStorage* storage, void(*deleter)(IComponentStorage*)) {
+bool ECSHost::RegisterComponentStorage(const char* id, IComponentStorage* storage, void(*deleter)(IComponentStorage*)) {
 	auto sharedStorage = std::shared_ptr<IComponentStorage>(storage, deleter);
-	return m_registerComponentStorage(id, sharedStorage);
+	return RegisterComponentStorage(id, sharedStorage);
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const std::string_view& id) const {
+IComponentStorage* ECSHost::GetComponentStorage(const std::string_view& id) const {
 	auto index = m_impl->idGenerator.GetId(id.data());
-	return m_getComponentStorage(index);
+	return GetComponentStorage(index);
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const char* id) const {
-	return m_getComponentStorage(std::string_view(id));
+IComponentStorage* ECSHost::GetComponentStorage(const char* id) const {
+	return GetComponentStorage(std::string_view(id));
 }
 
-IComponentStorage* ECSHost::m_getComponentStorage(const size_t id) const {
+IComponentStorage* ECSHost::GetComponentStorage(const size_t id) const {
 	if (m_impl->locked && !m_impl->unlocked.contains(id)) return nullptr;
 	if (id >= m_impl->componentStorages.size()) {
 		return nullptr;
@@ -217,7 +254,7 @@ IComponentStorage* ECSHost::m_getComponentStorage(const size_t id) const {
 	return m_impl->componentStorages[id].get();
 }
 
-size_t ECSHost::m_addSystem(System::Base* system, void(*deleter)(System::Base*)) {
+size_t ECSHost::AddSystem(System::Base* system, void(*deleter)(System::Base*)) {
 	if (m_impl->locked) return false;
 	if (!system) return std::numeric_limits<size_t>::max();
 	auto ret = m_impl->systems.size();
@@ -242,7 +279,7 @@ bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& c
 			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
 			// コンポーネントの追加
 			for (const auto& compId : components) {
-				auto storage = m_getComponentStorage(compId);
+				auto storage = GetComponentStorage(compId);
 				[[maybe_unused]]
 				bool added = storage && storage->AddComponent(entity);
 				// 失敗しても無視する

@@ -23,9 +23,9 @@ namespace PameECS::ECS::System {
 
 	class Dependencies {
 	public:
-		PECS_DLL_SHARED Dependencies(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
+		Dependencies(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
 		Dependencies(const std::vector<size_t>& write, const std::vector<size_t>& read);
-		PECS_DLL_SHARED ~Dependencies();
+		~Dependencies();
 		Dependencies(const Dependencies&) = delete;
 		Dependencies& operator=(const Dependencies&) = delete;
 		Dependencies(Dependencies&&) = delete;
@@ -35,7 +35,7 @@ namespace PameECS::ECS::System {
 		const std::vector<size_t>& GetReadDependencies() const;
 	private:
 		struct Impl;
-		Impl* m_impl;
+		std::unique_ptr<Impl> m_impl;
 	};
 
 	class Base {
@@ -59,4 +59,9 @@ namespace PameECS::ECS::System {
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
 	};
+}
+
+extern "C" {
+	PECS_DLL_SHARED PameECS::ECS::System::Dependencies* __stdcall ECSSDependenciesConstruct(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
+	PECS_DLL_SHARED void __stdcall ECSSDependenciesDestruct(PameECS::ECS::System::Dependencies* dependencies);
 }

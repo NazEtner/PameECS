@@ -5,6 +5,42 @@
 #include <windows.h>
 
 namespace PameECS::Input {
+	class Mouse;
+}
+
+extern "C" {
+	PECS_DLL_SHARED bool __stdcall InputMouseIsLeftButtonDown(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseIsRightButtonDown(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseIsMiddleButtonDown(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED bool __stdcall InputMouseWasLeftButtonPressed(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseWasRightButtonPressed(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseWasMiddleButtonPressed(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED bool __stdcall InputMouseWasLeftButtonReleased(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseWasRightButtonReleased(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED bool __stdcall InputMouseWasMiddleButtonReleased(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED int __stdcall InputMouseGetWheelDelta(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED float __stdcall InputMouseGetCursorPositionX(const PameECS::Input::Mouse* mouse);
+	PECS_DLL_SHARED float __stdcall InputMouseGetCursorPositionY(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED bool __stdcall InputMouseIsMouseInWindow(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED void __stdcall InputMouseAddRect(
+		PameECS::Input::Mouse* mouse,
+		const char* name,
+		float left, float top,
+		float width, float height);
+
+	PECS_DLL_SHARED void __stdcall InputMouseRemoveRect(PameECS::Input::Mouse* mouse, const char* name);
+
+	PECS_DLL_SHARED void __stdcall InputMouseClearRect(PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED const char* __stdcall InputMouseGetHoveredRectName(const PameECS::Input::Mouse* mouse);
+}
+
+namespace PameECS::Input {
 	class Mouse {
 	public:
 		Mouse(HWND windowHandle);
@@ -16,53 +52,53 @@ namespace PameECS::Input {
 		// 同時に呼ばれてたらバグ
 		void Update();
 
-		PECS_DLL_SHARED bool IsLeftButtonDown() const;
-		PECS_DLL_SHARED bool IsRightButtonDown() const;
-		PECS_DLL_SHARED bool IsMiddleButtonDown() const;
+		bool IsLeftButtonDown() const;
+		bool IsRightButtonDown() const;
+		bool IsMiddleButtonDown() const;
 
-		PECS_DLL_SHARED bool WasLeftButtonPressed() const;
-		PECS_DLL_SHARED bool WasRightButtonPressed() const;
-		PECS_DLL_SHARED bool WasMiddleButtonPressed() const;
+		bool WasLeftButtonPressed() const;
+		bool WasRightButtonPressed() const;
+		bool WasMiddleButtonPressed() const;
 
-		PECS_DLL_SHARED bool WasLeftButtonReleased() const;
-		PECS_DLL_SHARED bool WasRightButtonReleased() const;
-		PECS_DLL_SHARED bool WasMiddleButtonReleased() const;
+		bool WasLeftButtonReleased() const;
+		bool WasRightButtonReleased() const;
+		bool WasMiddleButtonReleased() const;
 
-		PECS_DLL_SHARED int GetWheelDelta() const;
-		PECS_DLL_SHARED float GetCursorPositionX() const;
-		PECS_DLL_SHARED float GetCursorPositionY() const;
+		int GetWheelDelta() const;
+		float GetCursorPositionX() const;
+		float GetCursorPositionY() const;
 
-		PECS_DLL_SHARED bool IsMouseInWindow() const;
+		bool IsMouseInWindow() const;
 
 		void AddRect(
 			const std::string& name,
 			float left, float top,
 			float width, float height
 		) {
-			AddRect(name.c_str(), left, top, width, height);
+			InputMouseAddRect(this, name.c_str(), left, top, width, height);
 		}
 
-		PECS_DLL_SHARED void AddRect(
+		void AddRect(
 			const char* name,
 			float left, float top,
 			float width, float height);
 
 		void RemoveRect(const std::string& name) {
-			RemoveRect(name.c_str());
+			InputMouseRemoveRect(this, name.c_str());
 		}
-		PECS_DLL_SHARED void RemoveRect(const char* name);
+		void RemoveRect(const char* name);
 
-		PECS_DLL_SHARED void ClearRect();
+		void ClearRect();
 
 		bool GetHoveredRectName(std::string& name) const {
-			if (auto hovered = GetHoveredRectName(); hovered) {
+			if (auto hovered = InputMouseGetHoveredRectName(this); hovered) {
 				name = hovered;
 				return true;
 			}
 
 			return false;
 		}
-		PECS_DLL_SHARED const char* GetHoveredRectName() const;
+		const char* GetHoveredRectName() const;
 
 		void OnMouseDelta(int delta);
 	private:

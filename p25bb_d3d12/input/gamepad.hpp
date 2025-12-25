@@ -8,6 +8,41 @@
 #include "../macros/dll.hpp"
 
 namespace PameECS::Input {
+	class Gamepad;
+}
+
+extern "C" {
+	PECS_DLL_SHARED bool InputGamepadIsButtonDown(const PameECS::Input::Gamepad* gamepad, uint16_t button);
+	PECS_DLL_SHARED bool InputGamepadWasButtonPressed(const PameECS::Input::Gamepad* gamepad, uint16_t button);
+	PECS_DLL_SHARED bool InputGamepadWasButtonReleased(const PameECS::Input::Gamepad* gamepad, uint16_t button);
+
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbX(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbY(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbX(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbY(const PameECS::Input::Gamepad* gamepad);
+
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevLeftThumbX(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevLeftThumbY(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevRightThumbX(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevRightThumbY(const PameECS::Input::Gamepad* gamepad);
+
+	PECS_DLL_SHARED uint8_t InputGamepadGetLeftTrigger(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED uint8_t InputGamepadGetRightTrigger(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED uint8_t InputGamepadGetPrevLeftTrigger(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED uint8_t InputGamepadGetPrevRightTrigger(const PameECS::Input::Gamepad* gamepad);
+
+	PECS_DLL_SHARED void InputGamepadSetLeftThumbDeadZone(PameECS::Input::Gamepad* gamepad, int16_t deadZone);
+	PECS_DLL_SHARED void InputGamepadSetRightThumbDeadZone(PameECS::Input::Gamepad* gamepad, int16_t deadZone);
+	PECS_DLL_SHARED void InputGamepadSetTriggerThreshold(PameECS::Input::Gamepad* gamepad, uint8_t threshold);
+
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbDeadZone(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbDeadZone(const PameECS::Input::Gamepad* gamepad);
+	PECS_DLL_SHARED uint8_t InputGamepadGetTriggerThreshold(const PameECS::Input::Gamepad* gamepad);
+
+	PECS_DLL_SHARED bool InputGamepadIsConnected(const PameECS::Input::Gamepad* gamepad);
+}
+
+namespace PameECS::Input {
 	class Gamepad {
 	public:
 		Gamepad(std::shared_ptr<spdlog::logger> logger,
@@ -19,91 +54,91 @@ namespace PameECS::Input {
 
 		void Update();
 
-		PECS_DLL_SHARED bool IsButtonDown(uint16_t button) const noexcept;
-		PECS_DLL_SHARED bool WasButtonPressed(uint16_t button) const noexcept;
-		PECS_DLL_SHARED bool WasButtonReleased(uint16_t button) const noexcept;
+		bool IsButtonDown(uint16_t button) const noexcept;
+		bool WasButtonPressed(uint16_t button) const noexcept;
+		bool WasButtonReleased(uint16_t button) const noexcept;
 
-		PECS_DLL_SHARED int16_t GetLeftThumbX() const noexcept;
+		int16_t GetLeftThumbX() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedLeftThumbX() const noexcept {
-			return m_normalize<T>(GetLeftThumbX(), GetLeftThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetLeftThumbX(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetLeftThumbY() const noexcept;
+		int16_t GetLeftThumbY() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedLeftThumbY() const noexcept {
-			return m_normalize<T>(GetLeftThumbY(), GetLeftThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetLeftThumbY(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetRightThumbX() const noexcept;
+		int16_t GetRightThumbX() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedRightThumbX() const noexcept {
-			return m_normalize<T>(GetRightThumbX(), GetRightThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetRightThumbX(this), InputGamepadGetRightThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetRightThumbY() const noexcept;
+		int16_t GetRightThumbY() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedRightThumbY() const noexcept {
-			return m_normalize<T>(GetRightThumbY(), GetRightThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetRightThumbY(this), InputGamepadGetRightThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetPrevLeftThumbX() const noexcept;
+		int16_t GetPrevLeftThumbX() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedPrevLeftThumbX() const noexcept {
-			return m_normalize<T>(GetPrevLeftThumbX(), GetLeftThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetPrevLeftThumbX(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetPrevLeftThumbY() const noexcept;
+		int16_t GetPrevLeftThumbY() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedPrevLeftThumbY() const noexcept {
-			return m_normalize<T>(GetPrevLeftThumbY(), GetLeftThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetPrevLeftThumbY(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetPrevRightThumbX() const noexcept;		
+		int16_t GetPrevRightThumbX() const noexcept;		
 		template <std::floating_point T>
 		T GetNormalizedPrevRightThumbX() const noexcept {
-			return m_normalize<T>(GetPrevRightThumbX(), GetRightThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetPrevRightThumbX(this), InputGamepadGetRightThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED int16_t GetPrevRightThumbY() const noexcept;
+		int16_t GetPrevRightThumbY() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedPrevRightThumbY() const noexcept {
-			return m_normalize<T>(GetPrevRightThumbY(), GetRightThumbDeadZone());
+			return m_normalize<T>(InputGamepadGetPrevRightThumbY(this), InputGamepadGetRightThumbDeadZone(this));
 		}
 
-		PECS_DLL_SHARED uint8_t GetLeftTrigger() const noexcept;
+		uint8_t GetLeftTrigger() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedLeftTrigger() const noexcept {
-			return m_normalize<T>(GetLeftTrigger(), GetTriggerThreshold());
+			return m_normalize<T>(InputGamepadGetLeftTrigger(this), InputGamepadGetTriggerThreshold(this));
 		}
 
-		PECS_DLL_SHARED uint8_t GetRightTrigger() const noexcept;
+		uint8_t GetRightTrigger() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedRightTrigger() const noexcept {
-			return m_normalize<T>(GetRightTrigger(), GetTriggerThreshold());
+			return m_normalize<T>(InputGamepadGetRightTrigger(this), InputGamepadGetTriggerThreshold(this));
 		}
 
-		PECS_DLL_SHARED uint8_t GetPrevLeftTrigger() const noexcept;
+		uint8_t GetPrevLeftTrigger() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedPrevLeftTrigger() const noexcept {
-			return m_normalize<T>(GetPrevLeftTrigger(), GetTriggerThreshold());
+			return m_normalize<T>(InputGamepadGetPrevLeftTrigger(this), InputGamepadGetTriggerThreshold(this));
 		}
 
-		PECS_DLL_SHARED uint8_t GetPrevRightTrigger() const noexcept;
+		uint8_t GetPrevRightTrigger() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedPrevRightTrigger() const noexcept {
-			return m_normalize<T>(GetPrevRightTrigger(), GetTriggerThreshold());
+			return m_normalize<T>(InputGamepadGetPrevRightTrigger(this), InputGamepadGetTriggerThreshold(this));
 		}
 
-		PECS_DLL_SHARED void SetLeftThumbDeadZone(int16_t deadZone) noexcept;
-		PECS_DLL_SHARED void SetRightThumbDeadZone(int16_t deadZone) noexcept;
-		PECS_DLL_SHARED void SetTriggerThreshold(uint8_t threshold) noexcept;
+		void SetLeftThumbDeadZone(int16_t deadZone) noexcept;
+		void SetRightThumbDeadZone(int16_t deadZone) noexcept;
+		void SetTriggerThreshold(uint8_t threshold) noexcept;
 
-		PECS_DLL_SHARED int16_t GetLeftThumbDeadZone() const noexcept;
-		PECS_DLL_SHARED int16_t GetRightThumbDeadZone() const noexcept;
-		PECS_DLL_SHARED uint8_t GetTriggerThreshold() const noexcept;
+		int16_t GetLeftThumbDeadZone() const noexcept;
+		int16_t GetRightThumbDeadZone() const noexcept;
+		uint8_t GetTriggerThreshold() const noexcept;
 
-		PECS_DLL_SHARED bool IsConnected() const noexcept;
+		bool IsConnected() const noexcept;
 	private:
 		template <std::floating_point To, std::integral From>
 		To m_normalize(From from, From min = 0, From max = std::numeric_limits<From>::max()) const noexcept {

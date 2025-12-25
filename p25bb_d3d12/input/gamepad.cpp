@@ -5,6 +5,81 @@
 
 using PameECS::Input::Gamepad;
 
+extern "C" {
+	PECS_DLL_SHARED bool InputGamepadIsButtonDown(const Gamepad* gamepad, uint16_t button) {
+		return gamepad->IsButtonDown(button);
+	}
+	PECS_DLL_SHARED bool InputGamepadWasButtonPressed(const Gamepad* gamepad, uint16_t button) {
+		return gamepad->WasButtonPressed(button);
+	}
+	PECS_DLL_SHARED bool InputGamepadWasButtonReleased(const Gamepad* gamepad, uint16_t button) {
+		return gamepad->WasButtonReleased(button);
+	}
+
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbX(const Gamepad* gamepad) {
+		return gamepad->GetLeftThumbX();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbY(const Gamepad* gamepad) {
+		return gamepad->GetLeftThumbY();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbX(const Gamepad* gamepad) {
+		return gamepad->GetRightThumbX();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbY(const Gamepad* gamepad) {
+		return gamepad->GetRightThumbY();
+	}
+
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevLeftThumbX(const Gamepad* gamepad) {
+		return gamepad->GetPrevLeftThumbX();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevLeftThumbY(const Gamepad* gamepad) {
+		return gamepad->GetPrevLeftThumbY();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevRightThumbX(const Gamepad* gamepad) {
+		return gamepad->GetPrevRightThumbX();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetPrevRightThumbY(const Gamepad* gamepad) {
+		return gamepad->GetPrevRightThumbY();
+	}
+
+	PECS_DLL_SHARED uint8_t InputGamepadGetLeftTrigger(const Gamepad* gamepad) {
+		return gamepad->GetLeftTrigger();
+	}
+	PECS_DLL_SHARED uint8_t InputGamepadGetRightTrigger(const Gamepad* gamepad) {
+		return gamepad->GetRightTrigger();
+	}
+	PECS_DLL_SHARED uint8_t InputGamepadGetPrevLeftTrigger(const Gamepad* gamepad) {
+		return gamepad->GetPrevLeftTrigger();
+	}
+	PECS_DLL_SHARED uint8_t InputGamepadGetPrevRightTrigger(const Gamepad* gamepad) {
+		return gamepad->GetPrevRightTrigger();
+	}
+
+	PECS_DLL_SHARED void InputGamepadSetLeftThumbDeadZone(Gamepad* gamepad, int16_t deadZone) {
+		gamepad->SetLeftThumbDeadZone(deadZone);
+	}
+	PECS_DLL_SHARED void InputGamepadSetRightThumbDeadZone(Gamepad* gamepad, int16_t deadZone) {
+		gamepad->SetRightThumbDeadZone(deadZone);
+	}
+	PECS_DLL_SHARED void InputGamepadSetTriggerThreshold(Gamepad* gamepad, uint8_t threshold) {
+		gamepad->SetTriggerThreshold(threshold);
+	}
+
+	PECS_DLL_SHARED int16_t InputGamepadGetLeftThumbDeadZone(const Gamepad* gamepad) {
+		return gamepad->GetLeftThumbDeadZone();
+	}
+	PECS_DLL_SHARED int16_t InputGamepadGetRightThumbDeadZone(const Gamepad* gamepad) {
+		return gamepad->GetRightThumbDeadZone();
+	}
+	PECS_DLL_SHARED uint8_t InputGamepadGetTriggerThreshold(const Gamepad* gamepad) {
+		return gamepad->GetTriggerThreshold();
+	}
+
+	PECS_DLL_SHARED bool InputGamepadIsConnected(const Gamepad* gamepad) {
+		return gamepad->IsConnected();
+	}
+}
+
 struct Gamepad::Impl {
 	XINPUT_STATE inputState = {};
 	XINPUT_STATE prevInputState = {};

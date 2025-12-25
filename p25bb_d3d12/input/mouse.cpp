@@ -9,6 +9,72 @@
 
 using PameECS::Input::Mouse;
 
+extern "C" {
+	PECS_DLL_SHARED bool __stdcall InputMouseIsLeftButtonDown(const PameECS::Input::Mouse* mouse) {
+		return mouse->IsLeftButtonDown();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseIsRightButtonDown(const PameECS::Input::Mouse* mouse) {
+		return mouse->IsRightButtonDown();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseIsMiddleButtonDown(const PameECS::Input::Mouse* mouse) {
+		return mouse->IsMiddleButtonDown();
+	}
+
+	PECS_DLL_SHARED bool __stdcall InputMouseWasLeftButtonPressed(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasLeftButtonPressed();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseWasRightButtonPressed(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasRightButtonPressed();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseWasMiddleButtonPressed(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasMiddleButtonPressed();
+	}
+
+	PECS_DLL_SHARED bool __stdcall InputMouseWasLeftButtonReleased(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasLeftButtonReleased();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseWasRightButtonReleased(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasRightButtonReleased();
+	}
+	PECS_DLL_SHARED bool __stdcall InputMouseWasMiddleButtonReleased(const PameECS::Input::Mouse* mouse) {
+		return mouse->WasMiddleButtonReleased();
+	}
+
+	PECS_DLL_SHARED int __stdcall InputMouseGetWheelDelta(const PameECS::Input::Mouse* mouse) {
+		return mouse->GetWheelDelta();
+	}
+	PECS_DLL_SHARED float __stdcall InputMouseGetCursorPositionX(const PameECS::Input::Mouse* mouse) {
+		return mouse->GetCursorPositionX();
+	}
+	PECS_DLL_SHARED float __stdcall InputMouseGetCursorPositionY(const PameECS::Input::Mouse* mouse) {
+		return mouse->GetCursorPositionY();
+	}
+
+	PECS_DLL_SHARED bool __stdcall InputMouseIsMouseInWindow(const PameECS::Input::Mouse* mouse) {
+		return mouse->IsMouseInWindow();
+	}
+
+	PECS_DLL_SHARED void __stdcall InputMouseAddRect(
+		PameECS::Input::Mouse* mouse,
+		const char* name,
+		float left, float top,
+		float width, float height) {
+		mouse->AddRect(name, left, top, width, height);
+	}
+
+	PECS_DLL_SHARED void __stdcall InputMouseRemoveRect(PameECS::Input::Mouse* mouse, const char* name) {
+		mouse->RemoveRect(name);
+	}
+
+	PECS_DLL_SHARED void __stdcall InputMouseClearRect(PameECS::Input::Mouse* mouse) {
+		mouse->ClearRect();
+	}
+
+	PECS_DLL_SHARED const char* __stdcall InputMouseGetHoveredRectName(const PameECS::Input::Mouse* mouse) {
+		return mouse->GetHoveredRectName();
+	}
+}
+
 struct Mouse::Impl {
 	HWND windowHandle = nullptr;
 	enum class Buttons : size_t {

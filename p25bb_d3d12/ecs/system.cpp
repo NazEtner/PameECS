@@ -15,11 +15,10 @@ Dependencies::Dependencies(const size_t* write, const size_t writeSize, const si
 	: Dependencies(std::vector<size_t>(write, write + writeSize), std::vector<size_t>(read, read + readSize)) {}
 
 Dependencies::Dependencies(const std::vector<size_t>& write, const std::vector<size_t>& read) {
-	m_impl = new Impl(write, read);
+	m_impl = std::make_unique<Impl>(write, read);
 }
 
 Dependencies::~Dependencies() {
-	delete m_impl;
 }
 
 const std::vector<size_t>& Dependencies::GetWriteDependencies() const {
@@ -28,4 +27,13 @@ const std::vector<size_t>& Dependencies::GetWriteDependencies() const {
 
 const std::vector<size_t>& Dependencies::GetReadDependencies() const {
 	return m_impl->readDependencies;
+}
+
+extern "C" {
+	PECS_DLL_SHARED PameECS::ECS::System::Dependencies* __stdcall ECSSDependenciesConstruct(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize) {
+		return new Dependencies(write, writeSize, read, readSize);
+	}
+	PECS_DLL_SHARED void __stdcall ECSSDependenciesDestruct(PameECS::ECS::System::Dependencies* dependencies) {
+		delete dependencies;
+	}
 }
