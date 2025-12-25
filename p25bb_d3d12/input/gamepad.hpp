@@ -10,7 +10,9 @@
 namespace PameECS::Input {
 	class Gamepad {
 	public:
-		Gamepad(std::shared_ptr<spdlog::logger> logger);
+		Gamepad(std::shared_ptr<spdlog::logger> logger,
+			int id = -1 // Auto: id < 0 or 3 < id
+		);
 		~Gamepad();
 		Gamepad(const Gamepad&) = delete;
 		Gamepad& operator=(const Gamepad&) = delete;
@@ -23,73 +25,73 @@ namespace PameECS::Input {
 
 		PECS_DLL_SHARED int16_t GetLeftThumbX() const noexcept;
 		template <std::floating_point T>
-		T GetLeftThumbX() const noexcept {
+		T GetNormalizedLeftThumbX() const noexcept {
 			return m_normalize<T>(GetLeftThumbX(), GetLeftThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetLeftThumbY() const noexcept;
 		template <std::floating_point T>
-		T GetLeftThumbY() const noexcept {
+		T GetNormalizedLeftThumbY() const noexcept {
 			return m_normalize<T>(GetLeftThumbY(), GetLeftThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetRightThumbX() const noexcept;
 		template <std::floating_point T>
-		T GetRightThumbX() const noexcept {
+		T GetNormalizedRightThumbX() const noexcept {
 			return m_normalize<T>(GetRightThumbX(), GetRightThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetRightThumbY() const noexcept;
 		template <std::floating_point T>
-		T GetRightThumbY() const noexcept {
+		T GetNormalizedRightThumbY() const noexcept {
 			return m_normalize<T>(GetRightThumbY(), GetRightThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetPrevLeftThumbX() const noexcept;
 		template <std::floating_point T>
-		T GetPrevLeftThumbX() const noexcept {
+		T GetNormalizedPrevLeftThumbX() const noexcept {
 			return m_normalize<T>(GetPrevLeftThumbX(), GetLeftThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetPrevLeftThumbY() const noexcept;
 		template <std::floating_point T>
-		T GetPrevLeftThumbY() const noexcept {
+		T GetNormalizedPrevLeftThumbY() const noexcept {
 			return m_normalize<T>(GetPrevLeftThumbY(), GetLeftThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetPrevRightThumbX() const noexcept;		
 		template <std::floating_point T>
-		T GetPrevRightThumbX() const noexcept {
+		T GetNormalizedPrevRightThumbX() const noexcept {
 			return m_normalize<T>(GetPrevRightThumbX(), GetRightThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED int16_t GetPrevRightThumbY() const noexcept;
 		template <std::floating_point T>
-		T GetPrevRightThumbY() const noexcept {
+		T GetNormalizedPrevRightThumbY() const noexcept {
 			return m_normalize<T>(GetPrevRightThumbY(), GetRightThumbDeadZone());
 		}
 
 		PECS_DLL_SHARED uint8_t GetLeftTrigger() const noexcept;
 		template <std::floating_point T>
-		T GetLeftTrigger() const noexcept {
+		T GetNormalizedLeftTrigger() const noexcept {
 			return m_normalize<T>(GetLeftTrigger(), GetTriggerThreshold());
 		}
 
 		PECS_DLL_SHARED uint8_t GetRightTrigger() const noexcept;
 		template <std::floating_point T>
-		T GetRightTrigger() const noexcept {
+		T GetNormalizedRightTrigger() const noexcept {
 			return m_normalize<T>(GetRightTrigger(), GetTriggerThreshold());
 		}
 
 		PECS_DLL_SHARED uint8_t GetPrevLeftTrigger() const noexcept;
 		template <std::floating_point T>
-		T GetPrevLeftTrigger() const noexcept {
+		T GetNormalizedPrevLeftTrigger() const noexcept {
 			return m_normalize<T>(GetPrevLeftTrigger(), GetTriggerThreshold());
 		}
 
 		PECS_DLL_SHARED uint8_t GetPrevRightTrigger() const noexcept;
 		template <std::floating_point T>
-		T GetPrevRightTrigger() const noexcept {
+		T GetNormalizedPrevRightTrigger() const noexcept {
 			return m_normalize<T>(GetPrevRightTrigger(), GetTriggerThreshold());
 		}
 

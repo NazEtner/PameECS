@@ -9,8 +9,11 @@ struct Gamepad::Impl {
 	XINPUT_STATE inputState = {};
 	XINPUT_STATE prevInputState = {};
 	int userIndex = -1;
+	bool autoIndexEnabled = true;
 	const int maxIndex = 4;
 	std::shared_ptr<spdlog::logger> logger = nullptr;
+	int32_t byNextPolling = 0;
+	const int32_t pollingInterval = 30;
 
 	struct Deadzone {
 		short leftThumb = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
@@ -19,10 +22,14 @@ struct Gamepad::Impl {
 	} deadZones;
 };
 
-Gamepad::Gamepad(std::shared_ptr<spdlog::logger> logger) {
+Gamepad::Gamepad(std::shared_ptr<spdlog::logger> logger, int id) {
 	assert(logger);
 	m_impl = std::make_unique<Impl>();
 	m_impl->logger = logger;
+	if (0 <= id && id < m_impl->maxIndex) {
+		m_impl->autoIndexEnabled = false;
+		m_impl->userIndex = id;
+	}
 }
 
 Gamepad::~Gamepad() {
@@ -31,45 +38,39 @@ Gamepad::~Gamepad() {
 
 void Gamepad::Update() {
 	m_impl->prevInputState = m_impl->inputState;
-	memset(&m_impl->inputState, 0, sizeof(XINPUT_STATE));
-	if (!IsConnected()) {
-		for (int i = 0; i < m_impl->maxIndex; ++i) {
-			if (XInputGetState(i, &m_impl->inputState) == ERROR_SUCCESS) {
-				m_impl->userIndex = i;
-				break;
+	m_impl->inputState = {};
+	XINPUT_STATE currentState = {};
+	bool isSucceeded = false;
+	if (m_impl->autoIndexEnabled) {
+		if (!IsConnected() && m_impl->byNextPolling <= 0) {
+			m_impl->byNextPolling = m_impl->pollingInterval;
+			for (int i = 0; i < m_impl->maxIndex; ++i) {
+				if (XInputGetState(i, &currentState) == ERROR_SUCCESS) {
+					m_impl->userIndex = i;
+					isSucceeded = true;
+					break;
+				}
+			}
+		}
+		else {
+			if (XInputGetState(m_impl->userIndex, &currentState) != ERROR_SUCCESS) {
+				m_impl->logger->info("Gamepad is removed");
+				m_impl->userIndex = -1;
+			}
+			else {
+				isSucceeded = true;
 			}
 		}
 	}
 	else {
-		if (XInputGetState(m_impl->userIndex, &m_impl->inputState) != ERROR_SUCCESS) {
-			m_impl->logger->info("Gamepad is removed");
-			m_impl->userIndex = -1;
+		if (XInputGetState(m_impl->userIndex, &currentState) == ERROR_SUCCESS) {
+			isSucceeded = true;
 		}
 	}
+	if (isSucceeded) m_impl->inputState = currentState;
 
-	if (m_impl->inputState.Gamepad.sThumbLX < m_impl->deadZones.leftThumb
-		&& m_impl->inputState.Gamepad.sThumbLX > -m_impl->deadZones.leftThumb) {
-		m_impl->inputState.Gamepad.sThumbLX = 0;
-	}
-	if (m_impl->inputState.Gamepad.sThumbLY < m_impl->deadZones.leftThumb
-		&& m_impl->inputState.Gamepad.sThumbLY > -m_impl->deadZones.leftThumb) {
-		m_impl->inputState.Gamepad.sThumbLY = 0;
-	}
-
-	if (m_impl->inputState.Gamepad.sThumbRX < m_impl->deadZones.rightThumb
-		&& m_impl->inputState.Gamepad.sThumbRX > -m_impl->deadZones.rightThumb) {
-		m_impl->inputState.Gamepad.sThumbRX = 0;
-	}
-	if (m_impl->inputState.Gamepad.sThumbRY < m_impl->deadZones.rightThumb
-		&& m_impl->inputState.Gamepad.sThumbRY > -m_impl->deadZones.rightThumb) {
-		m_impl->inputState.Gamepad.sThumbRY = 0;
-	}
-
-	if (m_impl->inputState.Gamepad.bLeftTrigger <= m_impl->deadZones.trigger) {
-		m_impl->inputState.Gamepad.bLeftTrigger = 0;
-	}
-	if (m_impl->inputState.Gamepad.bRightTrigger <= m_impl->deadZones.trigger) {
-		m_impl->inputState.Gamepad.bRightTrigger = 0;
+	if (m_impl->byNextPolling > 0) {
+		--m_impl->byNextPolling;
 	}
 }
 
@@ -167,5 +168,5 @@ uint8_t Gamepad::GetTriggerThreshold() const noexcept {
 }
 
 bool Gamepad::IsConnected() const noexcept {
-	return m_impl->userIndex >= 0 && m_impl->userIndex < 4;
+	return m_impl->userIndex >= 0 && m_impl->userIndex < m_impl->maxIndex;
 }
