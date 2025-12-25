@@ -10,7 +10,7 @@
 - アーカイブされたコンフィグファイルの読み込み <完了！>
 - ファイルシステムの実装 <完了！>
 - ECSの実装 <完了！>
-- 入力システムの実装
+- 入力システムの実装 <完了！>
 - オーディオシステムの実装
 - ECS->Rendererのインターフェイスを実装
 - ビルトインComponent, System
@@ -32,7 +32,7 @@
 - Load configuration files from archives <Completed!>
 - Implement file system <Completed!>
 - Implement ECS <Completed!>
-- Implement input system
+- Implement input system <Completed!>
 - Implement audio system
 - Implement ECS->Renderer interface
 - Built-in Components and Systems
