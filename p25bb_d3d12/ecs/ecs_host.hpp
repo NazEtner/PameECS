@@ -139,7 +139,7 @@ namespace PameECS::ECS {
 
 		template <Concepts::ComponentType T>
 		ComponentStorage<T>* GetComponentStorageAs(const std::string& id) const {
-			auto index = GetComponentStorageId(this, id);
+			auto index = GetComponentStorageId(id);
 			return GetComponentStorageAs<T>(index);
 		}
 
