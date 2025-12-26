@@ -13,8 +13,8 @@ namespace PameECS::ECS {
 		void Execute(System::Context* context) noexcept {
 #if defined(_DEBUG)
 			assert(m_sync_task);
-#elif
-			if (!m_sync_Task) return;
+#else
+			if (!m_sync_task) return;
 #endif
 			m_sync_task(context);
 		}
