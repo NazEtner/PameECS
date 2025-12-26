@@ -62,6 +62,6 @@ namespace PameECS::ECS::System {
 }
 
 extern "C" {
-	PECS_DLL_SHARED PameECS::ECS::System::Dependencies* __stdcall ECSSDependenciesConstruct(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
-	PECS_DLL_SHARED void __stdcall ECSSDependenciesDestruct(PameECS::ECS::System::Dependencies* dependencies);
+	PECS_DLL_SHARED PameECS::ECS::System::Dependencies* ECSSDependenciesConstruct(const size_t* write, const size_t writeSize, const size_t* read, const size_t readSize);
+	PECS_DLL_SHARED void ECSSDependenciesDestruct(PameECS::ECS::System::Dependencies* dependencies);
 }

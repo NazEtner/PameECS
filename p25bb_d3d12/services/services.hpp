@@ -1,4 +1,5 @@
 #pragma once
+#include "input_service.hpp"
 
 namespace PameECS::Services {
 	// サービスを一つのクラスから取得するためのインターフェイス
@@ -11,5 +12,7 @@ namespace PameECS::Services {
 		Services(Services&&) = delete;
 		Services& operator=(Services&&) = delete;
 	private:
+		struct Impl;
+		std::unique_ptr<Impl> m_impl;
 	};
 }

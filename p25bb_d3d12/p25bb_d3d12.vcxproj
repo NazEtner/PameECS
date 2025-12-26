@@ -478,6 +478,7 @@
     <ClCompile Include="input\gamepad.cpp" />
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
+    <ClCompile Include="services\input_service.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -537,6 +538,7 @@
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />
     <ClInclude Include="macros\dll.hpp" />
+    <ClInclude Include="services\input_service.hpp" />
     <ClInclude Include="services\services.hpp" />
     <ClInclude Include="template_types\string_literal.hpp" />
     <ClInclude Include="thread\dummy_lock.hpp" />

@@ -8,10 +8,10 @@ using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
 
 extern "C" {
-	PECS_DLL_SHARED size_t __stdcall ECSGetComponentStorageId(const PameECS::ECS::ECSHost* ecsHost, const char* component) {
+	PECS_DLL_SHARED size_t ECSGetComponentStorageId(const PameECS::ECS::ECSHost* ecsHost, const char* component) {
 		return ecsHost->GetComponentStorageId(component);
 	}
-	PECS_DLL_SHARED bool __stdcall ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
+	PECS_DLL_SHARED bool ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
 		PameECS::ECS::Types::Entity& entity, const char** components, const size_t elementCount,
 		size_t idMin,
 		size_t idMax) {
@@ -19,27 +19,27 @@ extern "C" {
 			entity, components, elementCount, idMin, idMax
 		);
 	}
-	PECS_DLL_SHARED bool __stdcall ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity) {
+	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity) {
 		return ecsHost->RemoveEntity(
 			entity
 		);
 	}
-	PECS_DLL_SHARED bool __stdcall ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
+	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
 		return ecsHost->AddComponent(entity, component);
 	}
-	PECS_DLL_SHARED bool __stdcall ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
 		return ecsHost->RemoveComponent(entity, component);
 	}
-	PECS_DLL_SHARED void __stdcall ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task) {
+	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task) {
 		ecsHost->AddSyncTask(task);
 	}
-	PECS_DLL_SHARED bool __stdcall ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*)) {
+	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*)) {
 		return ecsHost->RegisterComponentStorage(id, storage, deleter);
 	}
-	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* __stdcall ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id) {
+	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id) {
 		return ecsHost->GetComponentStorage(id);
 	}
-	PECS_DLL_SHARED size_t __stdcall ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*)) {
+	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*)) {
 		return ecsHost->AddSystem(system, deleter);
 	}
 }

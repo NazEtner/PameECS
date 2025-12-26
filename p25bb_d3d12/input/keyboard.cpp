@@ -6,17 +6,17 @@
 using PameECS::Input::Keyboard;
 
 extern "C" {
-	PECS_DLL_SHARED bool __stdcall InputKeyboardIsKeyDown(const Keyboard* keyboard, uint32_t keyCode) {
+	PECS_DLL_SHARED bool InputKeyboardIsKeyDown(const Keyboard* keyboard, uint32_t keyCode) {
 		return keyboard->IsKeyDown(keyCode);
 	}
-	PECS_DLL_SHARED bool __stdcall InputKeyboardWasKeyPressed(const Keyboard* keyboard, uint32_t keyCode) {
+	PECS_DLL_SHARED bool InputKeyboardWasKeyPressed(const Keyboard* keyboard, uint32_t keyCode) {
 		return keyboard->WasKeyPressed(keyCode);
 	}
-	PECS_DLL_SHARED bool __stdcall InputKeyboardWasKeyReleased(const Keyboard* keyboard, uint32_t keyCode) {
+	PECS_DLL_SHARED bool InputKeyboardWasKeyReleased(const Keyboard* keyboard, uint32_t keyCode) {
 		return keyboard->WasKeyReleased(keyCode);
 	}
 
-	PECS_DLL_SHARED bool __stdcall InputKeyboardIsAnyKeyDown(const Keyboard* keyboard) {
+	PECS_DLL_SHARED bool InputKeyboardIsAnyKeyDown(const Keyboard* keyboard) {
 		return keyboard->IsAnyKeyDown();
 	}
 }

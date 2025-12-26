@@ -91,6 +91,9 @@
     <Filter Include="ソース ファイル\input">
       <UniqueIdentifier>{ff5267ab-66f3-4460-b118-192fd81168e6}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\services">
+      <UniqueIdentifier>{cab38583-a0a2-4815-9e26-b8d24adbca0a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -164,6 +167,9 @@
     </ClCompile>
     <ClCompile Include="input\gamepad.cpp">
       <Filter>ソース ファイル\input</Filter>
+    </ClCompile>
+    <ClCompile Include="services\input_service.cpp">
+      <Filter>ソース ファイル\services</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -343,6 +349,9 @@
     </ClInclude>
     <ClInclude Include="exceptions\com_error.hpp">
       <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="services\input_service.hpp">
+      <Filter>ヘッダー ファイル\services</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

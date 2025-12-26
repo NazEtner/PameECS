@@ -25,9 +25,9 @@ namespace PameECS::Input {
 }
 
 extern "C" {
-	PECS_DLL_SHARED bool __stdcall InputKeyboardIsKeyDown(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
-	PECS_DLL_SHARED bool __stdcall InputKeyboardWasKeyPressed(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
-	PECS_DLL_SHARED bool __stdcall InputKeyboardWasKeyReleased(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
+	PECS_DLL_SHARED bool InputKeyboardIsKeyDown(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
+	PECS_DLL_SHARED bool InputKeyboardWasKeyPressed(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
+	PECS_DLL_SHARED bool InputKeyboardWasKeyReleased(const PameECS::Input::Keyboard* keyboard, uint32_t keyCode);
 
-	PECS_DLL_SHARED bool __stdcall InputKeyboardIsAnyKeyDown(const PameECS::Input::Keyboard* keyboard);
+	PECS_DLL_SHARED bool InputKeyboardIsAnyKeyDown(const PameECS::Input::Keyboard* keyboard);
 }
