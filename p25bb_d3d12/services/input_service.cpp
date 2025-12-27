@@ -1,16 +1,16 @@
 #include "input_service.hpp"
 
 extern "C" {
-	PECS_DLL_SHARED PameECS::Input::Keyboard* __stdcall ServiceInputGetKeyboard(const PameECS::Services::InputService* inputService) {
+	PECS_DLL_SHARED PameECS::Input::Keyboard* ServiceInputGetKeyboard(const PameECS::Services::InputService* inputService) {
 		return inputService->GetKeyboard();
 	}
-	PECS_DLL_SHARED PameECS::Input::Mouse* __stdcall ServiceInputGetMouse(const PameECS::Services::InputService* inputService) {
+	PECS_DLL_SHARED PameECS::Input::Mouse* ServiceInputGetMouse(const PameECS::Services::InputService* inputService) {
 		return inputService->GetMouse();
 	}
-	PECS_DLL_SHARED PameECS::Input::Gamepad* __stdcall ServiceInputGetGamepad(const PameECS::Services::InputService* inputService, int index) {
+	PECS_DLL_SHARED PameECS::Input::Gamepad* ServiceInputGetGamepad(const PameECS::Services::InputService* inputService, int index) {
 		return inputService->GetGamepad(index);
 	}
-	PECS_DLL_SHARED PameECS::Input::Gamepad* __stdcall ServiceInputGetGamepadAutoIndex(const PameECS::Services::InputService* inputService) {
+	PECS_DLL_SHARED PameECS::Input::Gamepad* ServiceInputGetGamepadAutoIndex(const PameECS::Services::InputService* inputService) {
 		return inputService->GetGamepadAutoIndex();
 	}
 }
@@ -37,6 +37,26 @@ struct InputService::Impl {
 
 InputService::InputService(HWND windowHandle, std::shared_ptr<spdlog::logger> logger) {
 	m_impl = std::make_unique<Impl>(windowHandle, logger);
+}
+
+InputService::~InputService() {
+
+}
+
+void InputService::ShowDebug() {
+	m_impl->gamepadAutoIndex->ShowDebug();
+	for (auto& pad : m_impl->gamepads) {
+		pad->ShowDebug();
+	}
+}
+
+void InputService::Update() {
+	m_impl->keyboard->Update();
+	m_impl->mouse->Update();
+	for (auto& pad : m_impl->gamepads) {
+		pad->Update();
+	}
+	m_impl->gamepadAutoIndex->Update();
 }
 
 PameECS::Input::Keyboard* InputService::GetKeyboard() const {

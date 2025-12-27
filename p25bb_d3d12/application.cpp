@@ -71,12 +71,14 @@ void Application::Initialize() {
 	m_initializeWindow();
 	m_initializeRenderer();
 	m_initializeDebugTools();
+	m_initializeServices();
 	m_initializeECS();
 
 	m_initialized = true;
 }
 
 void Application::Update() {
+	m_services->Update();
 	m_ecs_host->Update();
 	m_debug_gui_host->Update();
 }
@@ -97,6 +99,7 @@ void Application::Finalize() {
 	m_window.reset();
 	m_window_setting_adaptor.reset();
 	m_debug_gui_host.reset();
+	m_services.reset();
 	m_ecs_host.reset();
 	m_finalizeCom();
 
@@ -213,6 +216,23 @@ void Application::m_initializeRenderer() {
 
 void Application::m_initializeDebugTools() {
 	m_debug_gui_host = std::make_shared<DebugTools::DebugGUIHost>(m_window, m_renderer);
+}
+
+void Application::m_initializeServices() {
+	assert(m_window);
+	m_services = std::make_shared<Services::Services>();
+
+	auto inputService = std::make_unique<Services::InputService>(m_window->GetWindowHandle(), m_logger);
+	m_services->SetInputService(std::move(inputService));
+
+	m_window->SetMouseDeltaCallback(
+		[services = m_services](int delta) -> void {
+			services->GetInputService()->GetMouse()->OnMouseDelta(delta);
+		}
+	);
+	if (m_debug_gui_host) {
+		m_services->OpenDebugWindow(m_debug_gui_host);
+	}
 }
 
 void Application::m_initializeECS() {

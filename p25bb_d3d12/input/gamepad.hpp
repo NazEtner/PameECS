@@ -52,6 +52,8 @@ namespace PameECS::Input {
 		Gamepad(const Gamepad&) = delete;
 		Gamepad& operator=(const Gamepad&) = delete;
 
+		void ShowDebug();
+		
 		void Update();
 
 		bool IsButtonDown(uint16_t button) const noexcept;

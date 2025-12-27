@@ -479,6 +479,7 @@
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
     <ClCompile Include="services\input_service.cpp" />
+    <ClCompile Include="services\services.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

@@ -7,6 +7,11 @@ namespace PameECS::Services {
 	class InputService {
 	public:
 		InputService(HWND windowHandle, std::shared_ptr<spdlog::logger> logger);
+		~InputService();
+
+		void ShowDebug();
+
+		void Update();
 		Input::Keyboard* GetKeyboard() const;
 		Input::Mouse* GetMouse() const;
 		// インデックス（0~3）を指定してGamepadクラスのポインタを取得する

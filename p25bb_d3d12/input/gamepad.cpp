@@ -2,6 +2,7 @@
 #include <xinput.h>
 #include <windows.h>
 #include <algorithm>
+#include <imgui/imgui.h>
 
 using PameECS::Input::Gamepad;
 
@@ -89,6 +90,7 @@ struct Gamepad::Impl {
 	std::shared_ptr<spdlog::logger> logger = nullptr;
 	int32_t byNextPolling = 0;
 	const int32_t pollingInterval = 30;
+	bool isSucceeded = false;
 
 	struct Deadzone {
 		short leftThumb = XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
@@ -111,6 +113,56 @@ Gamepad::~Gamepad() {
 
 }
 
+void Gamepad::ShowDebug() {
+	if (ImGui::TreeNode(("Gamepad " + std::to_string(m_impl->userIndex) + (m_impl->autoIndexEnabled ? " AutoIndex" : "")).c_str())) {
+		if (!IsConnected()) {
+			ImGui::Text("Disconnected.");
+			ImGui::TreePop();
+			return;
+		}
+		ImGui::Text("Connected : %d, AutoIndex = %s", m_impl->userIndex, m_impl->autoIndexEnabled ? "true" : "false");
+		std::vector<std::pair<WORD, std::string>> buttons = {
+			{XINPUT_GAMEPAD_DPAD_UP, "XINPUT_GAMEPAD_DPAD_UP"},
+			{XINPUT_GAMEPAD_DPAD_DOWN, "XINPUT_GAMEPAD_DPAD_DOWN"},
+			{XINPUT_GAMEPAD_DPAD_LEFT, "XINPUT_GAMEPAD_DPAD_LEFT"},
+			{XINPUT_GAMEPAD_DPAD_RIGHT, "XINPUT_GAMEPAD_DPAD_RIGHT"},
+			{XINPUT_GAMEPAD_START, "XINPUT_GAMEPAD_START"},
+			{XINPUT_GAMEPAD_BACK, "XINPUT_GAMEPAD_BACK"},
+			{XINPUT_GAMEPAD_LEFT_THUMB, "XINPUT_GAMEPAD_LEFT_THUMB"},
+			{XINPUT_GAMEPAD_RIGHT_THUMB, "XINPUT_GAMEPAD_RIGHT_THUMB"},
+			{XINPUT_GAMEPAD_LEFT_SHOULDER, "XINPUT_GAMEPAD_LEFT_SHOULDER"},
+			{XINPUT_GAMEPAD_RIGHT_SHOULDER, "XINPUT_GAMEPAD_RIGHT_SHOULDER"},
+			{XINPUT_GAMEPAD_A, "XINPUT_GAMEPAD_A"},
+			{XINPUT_GAMEPAD_B, "XINPUT_GAMEPAD_B"},
+			{XINPUT_GAMEPAD_X, "XINPUT_GAMEPAD_X"},
+			{XINPUT_GAMEPAD_Y, "XINPUT_GAMEPAD_Y"},
+		};
+		for (const auto& button : buttons) {
+			bool buttonDown = IsButtonDown(button.first);
+			bool buttonPressed = WasButtonPressed(button.first);
+			bool buttonReleased = WasButtonReleased(button.first);
+			ImVec4 color = { 1.0, 1.0, 1.0, 1.0 };
+			if (buttonPressed) {
+				color = { 0.0, 0.0, 1.0, 1.0 };
+			}
+			else if (buttonDown) {
+				color = { 0.0, 1.0, 0.0, 1.0 };
+			}
+			else if (buttonReleased) {
+				color = { 1.0, 0.0, 0.0, 1.0 };
+			}
+
+			ImGui::TextColored(color, button.second.c_str());
+		}
+
+		ImGui::Text("Left thumb    : %d, %d(%f, %f)", GetLeftThumbX(), GetLeftThumbY(), GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>());
+		ImGui::Text("Right thumb   : %d, %d(%f, %f)", GetRightThumbX(), GetRightThumbY(), GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>());
+		ImGui::Text("Left trigger  : %d(%f)", GetLeftTrigger(), GetNormalizedLeftTrigger<float>());
+		ImGui::Text("Right trigger : %d(%f)", GetRightTrigger(), GetNormalizedRightTrigger<float>());
+		ImGui::TreePop();
+	}
+}
+
 void Gamepad::Update() {
 	m_impl->prevInputState = m_impl->inputState;
 	m_impl->inputState = {};
@@ -129,7 +181,7 @@ void Gamepad::Update() {
 		}
 		else {
 			if (XInputGetState(m_impl->userIndex, &currentState) != ERROR_SUCCESS) {
-				m_impl->logger->info("Gamepad is removed");
+				if (m_impl->isSucceeded) m_impl->logger->info("Gamepad<AutoIndex> is removed");
 				m_impl->userIndex = -1;
 			}
 			else {
@@ -141,8 +193,12 @@ void Gamepad::Update() {
 		if (XInputGetState(m_impl->userIndex, &currentState) == ERROR_SUCCESS) {
 			isSucceeded = true;
 		}
+		else if (m_impl->isSucceeded) {
+			m_impl->logger->info("Gamepad<{}> is removed", m_impl->userIndex);
+		}
 	}
 	if (isSucceeded) m_impl->inputState = currentState;
+	m_impl->isSucceeded = isSucceeded;
 
 	if (m_impl->byNextPolling > 0) {
 		--m_impl->byNextPolling;
@@ -243,5 +299,5 @@ uint8_t Gamepad::GetTriggerThreshold() const noexcept {
 }
 
 bool Gamepad::IsConnected() const noexcept {
-	return m_impl->userIndex >= 0 && m_impl->userIndex < m_impl->maxIndex;
+	return m_impl->isSucceeded;
 }

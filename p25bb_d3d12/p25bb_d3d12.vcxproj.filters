@@ -171,6 +171,9 @@
     <ClCompile Include="services\input_service.cpp">
       <Filter>ソース ファイル\services</Filter>
     </ClCompile>
+    <ClCompile Include="services\services.cpp">
+      <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
