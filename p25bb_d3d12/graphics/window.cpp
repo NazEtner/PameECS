@@ -1,6 +1,7 @@
 #include "window.hpp"
 #include "../exceptions/window_error.hpp"
 #include "../helpers/errors/windows.hpp"
+#include <dwmapi.h>
 
 using PameECS::Graphics::Window;
 
@@ -244,4 +245,14 @@ void Window::m_create() {
 	}
 
 	SetWindowLongPtr(m_window_handle, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(this));
+
+	enum { DWMWA_USE_IMMERSIVE_DARK_MODE = 20 };
+
+	BOOL dark = TRUE;
+	DwmSetWindowAttribute(
+		m_window_handle,
+		DWMWA_USE_IMMERSIVE_DARK_MODE,
+		&dark,
+		sizeof(dark)
+	);
 }

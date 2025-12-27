@@ -154,9 +154,71 @@ void Gamepad::ShowDebug() {
 
 			ImGui::TextColored(color, button.second.c_str());
 		}
+		auto drawThumbStick = [](const char* label, float x, float y, int16_t rawX, int16_t rawY, float size = 100.0f) {
+			ImGui::Text("%s", label);
 
-		ImGui::Text("Left thumb    : %d, %d(%f, %f)", GetLeftThumbX(), GetLeftThumbY(), GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>());
-		ImGui::Text("Right thumb   : %d, %d(%f, %f)", GetRightThumbX(), GetRightThumbY(), GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>());
+			ImVec2 p = ImGui::GetCursorScreenPos();
+			ImDrawList* draw = ImGui::GetWindowDrawList();
+
+			ImVec2 center = ImVec2(p.x + size * 0.5f, p.y + size * 0.5f);
+			float radius = size * 0.45f;
+
+			// 背景
+			draw->AddRect(p, ImVec2(p.x + size, p.y + size), IM_COL32(255, 255, 255, 255));
+			draw->AddLine(
+				ImVec2(center.x, p.y),
+				ImVec2(center.x, p.y + size),
+				IM_COL32(128, 128, 128, 255)
+			);
+			draw->AddLine(
+				ImVec2(p.x, center.y),
+				ImVec2(p.x + size, center.y),
+				IM_COL32(128, 128, 128, 255)
+			);
+
+			// スティック位置
+			ImVec2 stickPos = ImVec2(
+				center.x + x * radius,
+				center.y - y * radius   // y軸反転
+			);
+
+			auto rawXNormalized = rawX >= 0 ? rawX / 32767.0f : rawX / 32768.0f;
+			auto rawYNormalized = rawY >= 0 ? rawY / 32767.0f : rawY / 32768.0f;
+
+			ImVec2 rawStickPos = ImVec2(
+				center.x + rawXNormalized * radius,
+				center.y - rawYNormalized * radius
+			);
+
+			draw->AddCircleFilled(stickPos, 5.0f, IM_COL32(255, 0, 0, 255));
+			draw->AddCircleFilled(rawStickPos, 5.0f, IM_COL32(0, 255, 0, 255));
+
+			ImGui::Dummy(ImVec2(size, size));
+		};
+
+		ImGui::Text("Left thumb    : %d, %d(%f, %f)",
+			GetLeftThumbX(), GetLeftThumbY(),
+			GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>());
+
+		ImGui::Text("Right thumb   : %d, %d(%f, %f)",
+			GetRightThumbX(), GetRightThumbY(),
+			GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>());
+
+		if (ImGui::BeginTable("Thumbs", 2, ImGuiTableFlags_SizingFixedFit)) {
+			ImGui::TableNextColumn();
+
+			drawThumbStick("Left Thumb",
+				GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>(),
+				GetLeftThumbX(), GetLeftThumbY());
+
+			ImGui::TableNextColumn();
+
+			drawThumbStick("Right Thumb",
+				GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>(),
+				GetRightThumbX(), GetRightThumbY());
+
+			ImGui::EndTable();
+		}
 		ImGui::Text("Left trigger  : %d(%f)", GetLeftTrigger(), GetNormalizedLeftTrigger<float>());
 		ImGui::Text("Right trigger : %d(%f)", GetRightTrigger(), GetNormalizedRightTrigger<float>());
 		ImGui::TreePop();
