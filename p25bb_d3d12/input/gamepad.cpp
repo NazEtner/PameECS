@@ -196,6 +196,29 @@ void Gamepad::ShowDebug() {
 			ImGui::Dummy(ImVec2(size, size));
 		};
 
+		auto drawVerticalBar = [](const char* label, float fraction, ImVec2 size, ImU32 color = IM_COL32(0, 255, 255, 255)) {
+			ImGui::BeginGroup();
+			ImGui::Text("%s", label);
+
+			// 描画位置の取得
+			ImVec2 p = ImGui::GetCursorScreenPos();
+			ImDrawList* draw = ImGui::GetWindowDrawList();
+
+			// 背景（枠）
+			draw->AddRect(p, ImVec2(p.x + size.x, p.y + size.y), IM_COL32(255, 255, 255, 255));
+
+			// 中身（下から上に伸びるように計算）
+			float height = size.y * fraction;
+			draw->AddRectFilled(
+				ImVec2(p.x, p.y + size.y - height),
+				ImVec2(p.x + size.x, p.y + size.y),
+				color
+			);
+
+			ImGui::Dummy(size);
+			ImGui::EndGroup();
+		};
+
 		ImGui::Text("Left thumb    : %d, %d(%f, %f)",
 			GetLeftThumbX(), GetLeftThumbY(),
 			GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>());
@@ -204,7 +227,10 @@ void Gamepad::ShowDebug() {
 			GetRightThumbX(), GetRightThumbY(),
 			GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>());
 
-		if (ImGui::BeginTable("Thumbs", 2, ImGuiTableFlags_SizingFixedFit)) {
+		ImGui::Text("Left trigger  : %d(%f)", GetLeftTrigger(), GetNormalizedLeftTrigger<float>());
+		ImGui::Text("Right trigger : %d(%f)", GetRightTrigger(), GetNormalizedRightTrigger<float>());
+
+		if (ImGui::BeginTable("Analog inputs", 6, ImGuiTableFlags_SizingFixedFit)) {
 			ImGui::TableNextColumn();
 
 			drawThumbStick("Left Thumb",
@@ -217,10 +243,18 @@ void Gamepad::ShowDebug() {
 				GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>(),
 				GetRightThumbX(), GetRightThumbY());
 
+			ImGui::TableNextColumn();
+			drawVerticalBar("L", GetNormalizedLeftTrigger<float>(), ImVec2(20, 100));
+			ImGui::TableNextColumn();
+			drawVerticalBar("", GetLeftTrigger() / 255.f, ImVec2(8, 100), IM_COL32(100, 100, 100, 255));
+
+			ImGui::TableNextColumn();
+			drawVerticalBar("R", GetNormalizedRightTrigger<float>(), ImVec2(20, 100));
+			ImGui::TableNextColumn();
+			drawVerticalBar("", GetRightTrigger() / 255.f, ImVec2(8, 100), IM_COL32(100, 100, 100, 255));
+
 			ImGui::EndTable();
 		}
-		ImGui::Text("Left trigger  : %d(%f)", GetLeftTrigger(), GetNormalizedLeftTrigger<float>());
-		ImGui::Text("Right trigger : %d(%f)", GetRightTrigger(), GetNormalizedRightTrigger<float>());
 		ImGui::TreePop();
 	}
 }
