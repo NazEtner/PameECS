@@ -72,6 +72,14 @@ namespace PameECS::Input {
 			return m_normalize<T>(InputGamepadGetLeftThumbY(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
+		template <std::floating_point T>
+		std::pair<T, T> GetNormalizedLeftThumb() const noexcept {
+			return m_magnitudeNormalize<T>(
+				InputGamepadGetLeftThumbX(this),
+				InputGamepadGetLeftThumbY(this),
+				InputGamepadGetLeftThumbDeadZone(this));
+		}
+
 		int16_t GetRightThumbX() const noexcept;
 		template <std::floating_point T>
 		T GetNormalizedRightThumbX() const noexcept {
@@ -82,6 +90,14 @@ namespace PameECS::Input {
 		template <std::floating_point T>
 		T GetNormalizedRightThumbY() const noexcept {
 			return m_normalize<T>(InputGamepadGetRightThumbY(this), InputGamepadGetRightThumbDeadZone(this));
+		}
+
+		template <std::floating_point T>
+		std::pair<T, T> GetNormalizedRightThumb() const noexcept {
+			return m_magnitudeNormalize<T>(
+				InputGamepadGetRightThumbX(this),
+				InputGamepadGetRightThumbY(this),
+				InputGamepadGetRightThumbDeadZone(this));
 		}
 
 		int16_t GetPrevLeftThumbX() const noexcept;
@@ -96,6 +112,14 @@ namespace PameECS::Input {
 			return m_normalize<T>(InputGamepadGetPrevLeftThumbY(this), InputGamepadGetLeftThumbDeadZone(this));
 		}
 
+		template <std::floating_point T>
+		std::pair<T, T> GetNormalizedPrevLeftThumb() const noexcept {
+			return m_magnitudeNormalize<T>(
+				InputGamepadGetPrevLeftThumbX(this),
+				InputGamepadGetPrevLeftThumbY(this),
+				InputGamepadGetLeftThumbDeadZone(this));
+		}
+
 		int16_t GetPrevRightThumbX() const noexcept;		
 		template <std::floating_point T>
 		T GetNormalizedPrevRightThumbX() const noexcept {
@@ -106,6 +130,14 @@ namespace PameECS::Input {
 		template <std::floating_point T>
 		T GetNormalizedPrevRightThumbY() const noexcept {
 			return m_normalize<T>(InputGamepadGetPrevRightThumbY(this), InputGamepadGetRightThumbDeadZone(this));
+		}
+
+		template <std::floating_point T>
+		std::pair<T, T> GetNormalizedPrevRightThumb() const noexcept {
+			return m_magnitudeNormalize<T>(
+				InputGamepadGetPrevRightThumbX(this),
+				InputGamepadGetPrevRightThumbY(this),
+				InputGamepadGetRightThumbDeadZone(this));
 		}
 
 		uint8_t GetLeftTrigger() const noexcept;
@@ -155,6 +187,16 @@ namespace PameECS::Input {
 				static_cast<To>(from - (from >= 0 ? min : -min))
 				/ (static_cast<To>(max) - static_cast<To>(min)),
 				To(-1.0), To(1.0));
+		}
+
+		template <std::floating_point To, std::integral From>
+		std::pair<To, To> m_magnitudeNormalize(From x, From y, From deadZone) const noexcept {
+			int64_t magnitude2 = static_cast<int64_t>(x * x + y * y);
+			To normalized = m_normalize<To, int64_t>(static_cast<int64_t>(std::sqrt(magnitude2)), deadZone, std::numeric_limits<From>::max());
+			To angle = static_cast<To>(std::atan2(y, x));
+			To xOut = std::cos(angle) * normalized;
+			To yOut = std::sin(angle) * normalized;
+			return { xOut, yOut };
 		}
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

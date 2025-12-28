@@ -93,8 +93,15 @@ void Window::OnAltEnterPressed() {
 	else {
 		newStyle = m_properties.altEnterSwitchables->front();
 	}
+	m_alt_enter_properties_cache[currentStyle] = GetProperties();
+	auto propertyIt = m_alt_enter_properties_cache.find(newStyle);
 	Properties property;
-	property.windowStyle = newStyle;
+	if (propertyIt != m_alt_enter_properties_cache.end()) {
+		property = propertyIt->second;
+	}
+	else {
+		property.windowStyle = newStyle;
+	}
 	SetProperties(property);
 }
 
@@ -125,7 +132,7 @@ void Window::SetProperties(const Properties& property) {
 			m_window_handle,
 			nullptr,
 			0, 0, 0, 0,
-			SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
+			SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
 		);
 		m_properties.windowStyle = style;
 	}
@@ -143,11 +150,18 @@ void Window::SetProperties(const Properties& property) {
 				throw Exceptions::WindowError(message.c_str());
 			}
 
+			auto x = rect.left;
+			auto y = rect.top;
+			auto w = rect.right - rect.left;
+			auto h = rect.bottom - rect.top;
+
+			if (y < 0) y = 0;
+
 			SetWindowPos(
 				m_window_handle,
 				nullptr,
-				rect.left, rect.top,
-				rect.right - rect.left, rect.bottom - rect.top,
+				x, y,
+				w, h,
 				SWP_NOZORDER | SWP_NOACTIVATE
 			);
 			m_properties.width = width;

@@ -44,6 +44,7 @@ InputService::~InputService() {
 }
 
 void InputService::ShowDebug() {
+	m_impl->mouse->ShowDebug();
 	m_impl->gamepadAutoIndex->ShowDebug();
 	for (auto& pad : m_impl->gamepads) {
 		pad->ShowDebug();

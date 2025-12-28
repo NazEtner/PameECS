@@ -107,5 +107,6 @@ namespace PameECS::Graphics {
 		Properties m_properties;
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::function<void(int)> mouseDeltaCallback = [](int) -> void {};
+		std::unordered_map<DWORD, Properties> m_alt_enter_properties_cache;
 	};
 }

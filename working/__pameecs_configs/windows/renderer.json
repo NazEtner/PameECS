@@ -2,5 +2,5 @@
     "useDebugLayer": true,
     "useAdvancedDebug": false,
     "protectedContent": false,
-    "vSync": false
+    "vSync": true
 }

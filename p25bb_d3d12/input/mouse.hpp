@@ -48,6 +48,8 @@ namespace PameECS::Input {
 		Mouse(const Mouse&) = delete;
 		Mouse& operator=(const Mouse&) = delete;
 
+		void ShowDebug();
+
 		// 他の書き込みがあるAPIとUpdateは同時には呼ばれないはず
 		// 同時に呼ばれてたらバグ
 		void Update();

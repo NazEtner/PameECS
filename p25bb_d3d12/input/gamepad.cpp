@@ -219,13 +219,39 @@ void Gamepad::ShowDebug() {
 			ImGui::EndGroup();
 		};
 
+		static bool magnitudeNormalize = false;
+		ImGui::Checkbox("Magnitude normalize", &magnitudeNormalize);
+		if (ImGui::IsItemHovered()) {
+			ImGui::BeginTooltip();
+			ImGui::TextUnformatted("Calculates deadzone using a radial (circular) method.");
+			ImGui::TextUnformatted("This ensures the resulting vector angle perfectly matches\n"
+				"the raw stick input, preventing 'axis-snapping'.");
+			ImGui::Spacing();
+			ImGui::TextColored(ImVec4(1.0f, 0.8f, 0.2f, 1.0f), "Notice:");
+			ImGui::TextUnformatted("Requires slightly more computation (e.g., sqrt, div) than axial methods.");
+			ImGui::EndTooltip();
+		}
+
+		std::pair<float, float> lThumb = {
+			GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>()
+		};
+
+		std::pair<float, float> rThumb = {
+			GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>()
+		};
+
+		if (magnitudeNormalize) {
+			lThumb = GetNormalizedLeftThumb<float>();
+			rThumb = GetNormalizedRightThumb<float>();
+		}
+
 		ImGui::Text("Left thumb    : %d, %d(%f, %f)",
 			GetLeftThumbX(), GetLeftThumbY(),
-			GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>());
+			lThumb.first, lThumb.second);
 
 		ImGui::Text("Right thumb   : %d, %d(%f, %f)",
 			GetRightThumbX(), GetRightThumbY(),
-			GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>());
+			rThumb.first, rThumb.second);
 
 		ImGui::Text("Left trigger  : %d(%f)", GetLeftTrigger(), GetNormalizedLeftTrigger<float>());
 		ImGui::Text("Right trigger : %d(%f)", GetRightTrigger(), GetNormalizedRightTrigger<float>());
@@ -234,13 +260,13 @@ void Gamepad::ShowDebug() {
 			ImGui::TableNextColumn();
 
 			drawThumbStick("Left Thumb",
-				GetNormalizedLeftThumbX<float>(), GetNormalizedLeftThumbY<float>(),
+				lThumb.first, lThumb.second,
 				GetLeftThumbX(), GetLeftThumbY());
 
 			ImGui::TableNextColumn();
 
 			drawThumbStick("Right Thumb",
-				GetNormalizedRightThumbX<float>(), GetNormalizedRightThumbY<float>(),
+				rThumb.first, rThumb.second,
 				GetRightThumbX(), GetRightThumbY());
 
 			ImGui::TableNextColumn();

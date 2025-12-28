@@ -6,6 +6,7 @@
 #include <vector>
 #include <stack>
 #include <mutex>
+#include <imgui/imgui.h>
 
 using PameECS::Input::Mouse;
 
@@ -114,6 +115,154 @@ Mouse::Mouse(HWND windowHandle) {
 
 Mouse::~Mouse() {
 	// nothing to do.
+}
+
+void Mouse::ShowDebug() {
+	if (ImGui::TreeNode("Mouse")) {
+		ImGui::Text("In Window: %s", IsMouseInWindow() ? "Yes" : "No");
+		ImGui::Text("Cursor Pos: (%.3f, %.2f)", GetCursorPositionX(), GetCursorPositionY());
+		ImGui::Text("Wheel Delta: %d", GetWheelDelta());
+
+		ImGui::Separator();
+
+		// ボタンの状態 (Down / Pressed / Released)
+		static const char* labels[] = { "Left", "Right", "Middle" };
+		if (ImGui::BeginTable("MouseButtons", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+			ImGui::TableSetupColumn("Button");
+			ImGui::TableSetupColumn("Down");
+			ImGui::TableSetupColumn("Pressed");
+			ImGui::TableSetupColumn("Released");
+			ImGui::TableHeadersRow();
+
+			for (int i = 0; i < 3; ++i) {
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("%s", labels[i]);
+
+				// 各状態の取得 (iをsize_tにキャストして内部関数的に扱うか、既存の公開関数を使用)
+				bool down = (i == 0) ? IsLeftButtonDown() : (i == 1) ? IsRightButtonDown() : IsMiddleButtonDown();
+				bool pressed = (i == 0) ? WasLeftButtonPressed() : (i == 1) ? WasRightButtonPressed() : WasMiddleButtonPressed();
+				bool released = (i == 0) ? WasLeftButtonReleased() : (i == 1) ? WasRightButtonReleased() : WasMiddleButtonReleased();
+
+				ImGui::TableSetColumnIndex(1);
+				if (down) ImGui::TextColored(ImVec4(0, 1, 0, 1), "YES"); else ImGui::Text("-");
+				ImGui::TableSetColumnIndex(2);
+				if (pressed) ImGui::TextColored(ImVec4(1, 1, 0, 1), "TRG"); else ImGui::Text("-");
+				ImGui::TableSetColumnIndex(3);
+				if (released) ImGui::TextColored(ImVec4(1, 0, 0, 1), "TRG"); else ImGui::Text("-");
+			}
+			ImGui::EndTable();
+		}
+
+		ImGui::Separator();
+
+		// Rects (当たり判定エリア) のリスト
+		if (ImGui::TreeNode("Registered Rects")) {
+			static bool showOverlay = false;
+			ImGui::Checkbox("Show Hitbox Overlay", &showOverlay);
+
+			if (showOverlay) {
+				ImDrawList* drawList = ImGui::GetForegroundDrawList();
+
+				RECT clientRect;
+				GetClientRect(m_impl->windowHandle, &clientRect);
+
+				auto ToScreenPixel = [&](float nx, float ny) -> ImVec2 {
+					float px = (nx + 1.0f) * 0.5f * clientRect.right;
+					float py = (1.0f - ny) * 0.5f * clientRect.bottom;
+
+					return ImVec2(px, py);
+				};
+
+				std::lock_guard lock(m_impl->mutex);
+				const char* hoveredName = GetHoveredRectName();
+
+				for (const auto& rect : m_impl->rects) {
+					if (!rect.isActive) continue;
+
+					ImVec2 pMin = ToScreenPixel(rect.left, rect.top);
+					ImVec2 pMax = ToScreenPixel(rect.right, rect.bottom);
+
+					bool isHovered = (hoveredName && rect.name == hoveredName);
+
+					// 枠線の色 (ホバー時は緑、通常は赤)
+					ImU32 color = isHovered ? IM_COL32(0, 255, 0, 200) : IM_COL32(255, 0, 0, 150);
+					float thickness = isHovered ? 3.0f : 1.0f;
+
+					// 矩形を描画
+					drawList->AddRect(pMin, pMax, color, 0.0f, 0, thickness);
+
+					// Rect名のラベルを表示
+					std::string label = rect.name + " (z:" + std::to_string(rect.z) + ")";
+					drawList->AddText(ImVec2(pMin.x + 2, pMin.y + 2), color, label.c_str());
+				}
+			}
+
+			if (ImGui::TreeNode("Create New Rect")) {
+				static char newName[64] = "DebugRect_1";
+				static float pos[2] = { 0.0f, 0.0f }; // Left, Top
+				static float size[2] = { 0.5f, 0.5f }; // Width, Height
+
+				ImGui::InputText("Name", newName, IM_ARRAYSIZE(newName));
+				ImGui::SliderFloat2("Position (L, T)", pos, -1.0f, 1.0f);
+				ImGui::SliderFloat2("Size (W, H)", size, 0.0f, 2.0f);
+
+				if (ImGui::Button("Add to Mouse System")) {
+					this->AddRect(newName, pos[0], pos[1], size[0], size[1]);
+				}
+				ImGui::TreePop();
+			}
+			if (ImGui::Button("Clear All Rects")) {
+				this->ClearRect();
+			}
+
+			std::lock_guard lock(m_impl->mutex);
+
+			const char* hoveredName = GetHoveredRectName();
+			ImGui::Text("Total Rects: %zu", m_impl->rects.size());
+			ImGui::Text("Hovered: %s", hoveredName ? hoveredName : "(None)");
+
+			if (ImGui::BeginTable("RectList", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_ScrollY, ImVec2(0, 150))) {
+				ImGui::TableSetupColumn("Name");
+				ImGui::TableSetupColumn("Bounds (L,T,R,B)");
+				ImGui::TableSetupColumn("Z");
+				ImGui::TableSetupColumn("Status");
+				ImGui::TableHeadersRow();
+
+				for (const auto& rect : m_impl->rects) {
+					ImGui::TableNextRow();
+
+					// 無効なRectは薄く表示
+					if (!rect.isActive) ImGui::PushStyleColor(ImGuiCol_Text, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
+
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("%s", rect.name.c_str());
+
+					ImGui::TableSetColumnIndex(1);
+					ImGui::Text("%.2f, %.2f, %.2f, %.2f", rect.left, rect.top, rect.right, rect.bottom);
+
+					ImGui::TableSetColumnIndex(2);
+					ImGui::Text("%llu", rect.z);
+
+					ImGui::TableSetColumnIndex(3);
+					if (rect.isActive) {
+						if (hoveredName && rect.name == hoveredName)
+							ImGui::TextColored(ImVec4(0, 1, 0, 1), "HOVER");
+						else
+							ImGui::Text("Active");
+					}
+					else {
+						ImGui::Text("Inactive");
+					}
+
+					if (!rect.isActive) ImGui::PopStyleColor();
+				}
+				ImGui::EndTable();
+			}
+			ImGui::TreePop();
+		}
+		ImGui::TreePop();
+	}
 }
 
 void Mouse::Update() {
