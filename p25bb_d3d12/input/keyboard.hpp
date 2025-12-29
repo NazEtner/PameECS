@@ -11,6 +11,8 @@ namespace PameECS::Input {
 		Keyboard(const Keyboard&) = delete;
 		Keyboard& operator=(const Keyboard&) = delete;
 
+		void ShowDebug();
+
 		void Update();
 		// 引数はWindows APIのVK_から始まるキーコードに対応する
 		bool IsKeyDown(uint32_t keyCode) const;

@@ -2,6 +2,9 @@
 #include <cassert>
 #include <array>
 #include <algorithm>
+#include <sstream>
+#include <iomanip>
+#include <imgui/imgui.h>
 
 using PameECS::Input::Keyboard;
 
@@ -38,6 +41,37 @@ Keyboard::Keyboard(HWND windowHandle) {
 
 Keyboard::~Keyboard() {
 	// nothing to do.
+}
+
+void Keyboard::ShowDebug() {
+	if (ImGui::TreeNode("Keyboard")) {
+		if (ImGui::BeginTable("Keys", 4, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
+			ImGui::TableSetupColumn("Key code");
+			ImGui::TableSetupColumn("Down");
+			ImGui::TableSetupColumn("Pressed");
+			ImGui::TableSetupColumn("Released");
+			ImGui::TableHeadersRow();
+
+			for (auto i = 0ui64; i < m_impl->keyState.size(); i++) {
+				ImGui::TableNextRow();
+				ImGui::TableSetColumnIndex(0);
+				ImGui::Text("%02x", i);
+
+				bool down = IsKeyDown(i);
+				bool pressed = WasKeyPressed(i);
+				bool released = WasKeyReleased(i);
+
+				ImGui::TableSetColumnIndex(1);
+				if (down) ImGui::TextColored(ImVec4(0, 1, 0, 1), "YES"); else ImGui::Text("-");
+				ImGui::TableSetColumnIndex(2);
+				if (pressed) ImGui::TextColored(ImVec4(1, 1, 0, 1), "TRG"); else ImGui::Text("-");
+				ImGui::TableSetColumnIndex(3);
+				if (released) ImGui::TextColored(ImVec4(1, 0, 0, 1), "TRG"); else ImGui::Text("-");
+			}
+			ImGui::EndTable();
+		}
+		ImGui::TreePop();
+	}
 }
 
 void Keyboard::Update() {
