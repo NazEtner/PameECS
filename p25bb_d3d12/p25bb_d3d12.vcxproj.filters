@@ -94,6 +94,12 @@
     <Filter Include="ソース ファイル\services">
       <UniqueIdentifier>{cab38583-a0a2-4815-9e26-b8d24adbca0a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\audio">
+      <UniqueIdentifier>{2f2e7470-f373-4ae0-9998-fe905a187eb3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\audio">
+      <UniqueIdentifier>{af2d0493-362e-439a-a773-e58d92713f98}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
