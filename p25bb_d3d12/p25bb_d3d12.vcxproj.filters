@@ -180,6 +180,12 @@
     <ClCompile Include="services\services.cpp">
       <Filter>ソース ファイル\services</Filter>
     </ClCompile>
+    <ClCompile Include="audio\player.cpp">
+      <Filter>ソース ファイル\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="lib_impl.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -361,6 +367,18 @@
     </ClInclude>
     <ClInclude Include="services\input_service.hpp">
       <Filter>ヘッダー ファイル\services</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\player.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\file_entry.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\pcm_entry.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\audio_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

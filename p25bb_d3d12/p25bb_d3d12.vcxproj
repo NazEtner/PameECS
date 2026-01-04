@@ -463,6 +463,7 @@
     <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="abi\check.cpp" />
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="audio\player.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="ecs\ecs_host.cpp" />
@@ -478,6 +479,7 @@
     <ClCompile Include="input\gamepad.cpp" />
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
+    <ClCompile Include="lib_impl.cpp" />
     <ClCompile Include="services\input_service.cpp" />
     <ClCompile Include="services\services.cpp" />
   </ItemGroup>
@@ -487,6 +489,9 @@
   <ItemGroup>
     <ClInclude Include="abi\check.hpp" />
     <ClInclude Include="application.hpp" />
+    <ClInclude Include="audio\file_entry.hpp" />
+    <ClInclude Include="audio\pcm_entry.hpp" />
+    <ClInclude Include="audio\player.hpp" />
     <ClInclude Include="configs\assets_config.hpp" />
     <ClInclude Include="configs\renderer_config.hpp" />
     <ClInclude Include="configs\script_config.hpp" />
@@ -504,6 +509,7 @@
     <ClInclude Include="ecs\scheduler.hpp" />
     <ClInclude Include="ecs\system.hpp" />
     <ClInclude Include="ecs\types.hpp" />
+    <ClInclude Include="exceptions\audio_error.hpp" />
     <ClInclude Include="exceptions\compress_error.hpp" />
     <ClInclude Include="exceptions\com_error.hpp" />
     <ClInclude Include="exceptions\file_error.hpp" />

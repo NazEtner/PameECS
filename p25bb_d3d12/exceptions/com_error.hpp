@@ -4,7 +4,7 @@
 namespace PameECS::Exceptions {
 	class ComErrorTag {
 	public:
-		static constexpr const char* typeName = "CompressError";
+		static constexpr const char* typeName = "ComError";
 	};
 
 	using ComError = Pame::Exceptions::ExceptionOf<ComErrorTag>;
