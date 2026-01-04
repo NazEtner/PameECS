@@ -8,7 +8,6 @@ namespace PameECS::Audio {
 	public:
 		Player();
 		~Player();
-		void Update();
 		size_t GetVoiceHandle();
 		void ReleaseVoiceHandle(size_t voiceHandle);
 		void Submit(size_t voiceHandle, const PCMEntry* entry);
