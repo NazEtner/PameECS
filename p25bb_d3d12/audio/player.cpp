@@ -7,6 +7,8 @@
 #include <vector>
 #include <stack>
 #include <format>
+#include <thread>
+#include <chrono>
 #include <xaudio2.h>
 #include <wrl/client.h>
 #include <dr_libs/dr_wav.h>
@@ -47,12 +49,13 @@ namespace {
 		constexpr static size_t chunkSize = 64 * 1024;
 		IXAudio2SourceVoice* sourceVoice = nullptr;
 		std::queue<std::vector<uint8_t>> bufferQueue;
-		std::mutex queueMutex;
+		std::mutex mutex;
 		bool inUse = false;
 		WAVEFORMATEXTENSIBLE waveFormat;
 		bool loop = false;
 		size_t samplesProcessed = 0;
 		size_t loopStart = 0;
+		size_t audioEnd = 0;
 		std::array<std::vector<uint8_t>, 2> playing;
 		size_t primary = 0;
 		size_t secondary = 1;
@@ -62,8 +65,9 @@ namespace {
 				sourceVoice->Stop();
 				sourceVoice->FlushSourceBuffers();
 			}
-			std::lock_guard<std::mutex> lock(queueMutex);
+			std::lock_guard<std::mutex> lock(mutex);
 			while (!bufferQueue.empty()) bufferQueue.pop();
+			size_t audioEnd = 0;
 		}
 	};
 
@@ -151,16 +155,74 @@ using PameECS::Audio::Player;
 
 struct Player::Impl {
 	Impl() {
-		XAudio2Create(xaudio2.GetAddressOf());
+		auto result = XAudio2Create(xaudio2.GetAddressOf());
+		if (FAILED(result)) {
+			throw Exceptions::AudioError("Failed to create XAudio2 object.");
+		}
+
+		result = xaudio2->CreateMasteringVoice(&masterVoice);
+		if (FAILED(result)) {
+			throw Exceptions::AudioError("Failed to create mastering voice");
+		}
+		running = true;
+		worker = std::thread([this]() -> void {UpdateVoices(); });
 	}
 	~Impl() {
-
+		running = false;
+		if (worker.joinable()) worker.join();
+		if (masterVoice) {
+			masterVoice->DestroyVoice();
+			masterVoice = nullptr;
+		}
 	}
+
+	// マルチスレッドで動かす物(スレッドプールは使わない)
+	void UpdateVoices();
+	std::atomic<bool> running;
+	std::thread worker;
 	Microsoft::WRL::ComPtr<IXAudio2> xaudio2;
+	IXAudio2MasteringVoice* masterVoice;
 	std::vector<std::unique_ptr<VoiceSlot>> voiceSlots;
 	std::stack<size_t> emptySlots;
 	size_t lastSlotIndex = 0;
 };
+
+void Player::Impl::UpdateVoices() {
+	while (running) {
+		for (auto& slot : voiceSlots) {
+			if (!slot || !slot->inUse || !slot->sourceVoice) continue;
+			XAUDIO2_VOICE_STATE state;
+			slot->sourceVoice->GetState(&state);
+			if (state.BuffersQueued < 2) {
+				std::lock_guard lock(slot->mutex);
+				if (!slot->bufferQueue.empty()) {
+					auto nextChunk = std::move(slot->bufferQueue.front());
+					slot->bufferQueue.pop();
+
+					slot->playing[slot->secondary] = nextChunk;
+					XAUDIO2_BUFFER buffer = { 0 };
+					buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
+					buffer.pAudioData = slot->playing[slot->secondary].data();
+					slot->sourceVoice->SubmitSourceBuffer(&buffer);
+
+					auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
+
+					if (slot->loop && slot->loopStart >= slot->samplesProcessed && slot->loopStart < bufferEndPos) {
+						auto eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
+						auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
+						slot->bufferQueue.push(loopBuf);
+					}
+
+					slot->samplesProcessed = bufferEndPos;
+					if (slot->samplesProcessed >= slot->audioEnd) {
+						slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
+					}
+				}
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
+	}
+}
 
 Player::Player() {
 	m_impl = std::make_unique<Impl>();
@@ -207,9 +269,10 @@ void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 
 	const uint8_t* source = entry->data;
 	size_t remaining = entry->dataSize;
+	size_t samples = entry->dataSize / slot->waveFormat.Format.nBlockAlign;
 
 	{
-		std::lock_guard<std::mutex> lock(slot->queueMutex);
+		std::lock_guard<std::mutex> lock(slot->mutex);
 		while (remaining > 0) {
 			size_t chunkSize = std::min(remaining, VoiceSlot::chunkSize);
 			auto buffer = std::vector<uint8_t>(source, source + chunkSize);
@@ -222,6 +285,7 @@ void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 		slot->loop = entry->loopEnable;
 		slot->loopStart = entry->loopStart;
 		slot->inUse = true;
+		slot->audioEnd = samples;
 	}
 }
 
@@ -253,14 +317,62 @@ void Player::Submit(size_t voiceHandle, const FileEntry* entry) {
 	Submit(voiceHandle, &pcmEntry);
 }
 
+void Player::Play(size_t voiceHandle) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle]) {
+		return;
+	}
+	if (m_impl->voiceSlots[voiceHandle]->inUse) {
+		m_impl->voiceSlots[voiceHandle]->sourceVoice->Start();
+	}
+}
+
+void Player::Pause(size_t voiceHandle) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return;
+	}
+	m_impl->voiceSlots[voiceHandle]->sourceVoice->Stop();
+}
+
+void Player::Stop(size_t voiceHandle) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return;
+	}
+	m_impl->voiceSlots[voiceHandle]->Clear();
+}
+
+void Player::SetVolume(size_t voiceHandle, float volume) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return;
+	}
+	m_impl->voiceSlots[voiceHandle]->sourceVoice->SetVolume(volume);
+}
+
 uint32_t Player::GetOutputChannels() {
-	return 0;
+	DWORD mask = 0;
+	auto result = m_impl->masterVoice->GetChannelMask(&mask);
+	if (FAILED(result)) {
+		throw Exceptions::AudioError("Failed to get channel mask.");
+	}
+	uint32_t count = 0;
+	while (mask != 0) {
+		if ((mask & 1) == 1) count++;
+		mask >>= 1;
+	}
+	return count;
 }
 
 uint32_t Player::GetVoiceChannels(size_t voiceHandle) {
-	return 0;
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return 0;
+	}
+	XAUDIO2_VOICE_DETAILS details;
+	m_impl->voiceSlots[voiceHandle]->sourceVoice->GetVoiceDetails(&details);
+	return details.InputChannels;
 }
 
-void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, const float* matrix) {
-
+void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, float* matrix) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return;
+	}
+	m_impl->voiceSlots[voiceHandle]->sourceVoice->GetOutputMatrix(nullptr, sourceChannels, destChannels, matrix);
 }
