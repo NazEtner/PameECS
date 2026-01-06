@@ -50,7 +50,7 @@ namespace {
 		IXAudio2SourceVoice* sourceVoice = nullptr;
 		std::queue<std::vector<uint8_t>> bufferQueue;
 		std::mutex mutex;
-		bool inUse = false;
+		std::atomic<bool> inUse = false;
 		WAVEFORMATEXTENSIBLE waveFormat;
 		bool loop = false;
 		size_t samplesProcessed = 0;
@@ -67,7 +67,7 @@ namespace {
 			}
 			std::lock_guard<std::mutex> lock(mutex);
 			while (!bufferQueue.empty()) bufferQueue.pop();
-			size_t audioEnd = 0;
+			audioEnd = 0;
 		}
 	};
 
@@ -385,5 +385,5 @@ void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
 		return;
 	}
-	m_impl->voiceSlots[voiceHandle]->sourceVoice->GetOutputMatrix(nullptr, sourceChannels, destChannels, matrix);
+	m_impl->voiceSlots[voiceHandle]->sourceVoice->SetOutputMatrix(nullptr, sourceChannels, destChannels, matrix);
 }
