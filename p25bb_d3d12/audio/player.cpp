@@ -193,6 +193,7 @@ struct Player::Impl {
 void Player::Impl::UpdateVoices() {
 	while (running) {
 		{
+			// このロック本当に必要？
 			std::lock_guard lock(mutex);
 			for (auto& slot : voiceSlots) {
 				if (!slot || !slot->inUse || !slot->sourceVoice) continue;
