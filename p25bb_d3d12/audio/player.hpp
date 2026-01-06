@@ -16,6 +16,7 @@ namespace PameECS::Audio {
 		void Pause(size_t voiceHandle);
 		void Stop(size_t voiceHandle);
 		void SetVolume(size_t voiceHandle, float volume);
+		size_t GetQueuedVoiceCount(size_t voiceHandle);
 		uint32_t GetOutputChannels();
 		uint32_t GetVoiceChannels(size_t voiceHandle);
 		void SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, float* matrix);

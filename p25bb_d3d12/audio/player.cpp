@@ -351,6 +351,13 @@ void Player::SetVolume(size_t voiceHandle, float volume) {
 	m_impl->voiceSlots[voiceHandle]->sourceVoice->SetVolume(volume);
 }
 
+size_t Player::GetQueuedVoiceCount(size_t voiceHandle) {
+	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
+		return 0;
+	}
+	return m_impl->voiceSlots[voiceHandle]->bufferQueue.size();
+}
+
 uint32_t Player::GetOutputChannels() {
 	DWORD mask = 0;
 	auto result = m_impl->masterVoice->GetChannelMask(&mask);
