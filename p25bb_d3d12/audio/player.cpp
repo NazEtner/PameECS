@@ -182,6 +182,7 @@ struct Player::Impl {
 	std::thread worker;
 	Microsoft::WRL::ComPtr<IXAudio2> xaudio2;
 	IXAudio2MasteringVoice* masterVoice;
+	std::mutex mutex;
 	std::vector<std::unique_ptr<VoiceSlot>> voiceSlots;
 	std::stack<size_t> emptySlots;
 	size_t lastSlotIndex = 0;
@@ -189,33 +190,36 @@ struct Player::Impl {
 
 void Player::Impl::UpdateVoices() {
 	while (running) {
-		for (auto& slot : voiceSlots) {
-			if (!slot || !slot->inUse || !slot->sourceVoice) continue;
-			XAUDIO2_VOICE_STATE state;
-			slot->sourceVoice->GetState(&state);
-			if (state.BuffersQueued < 2) {
-				std::lock_guard lock(slot->mutex);
-				if (!slot->bufferQueue.empty()) {
-					auto nextChunk = std::move(slot->bufferQueue.front());
-					slot->bufferQueue.pop();
+		{
+			std::lock_guard lock(mutex);
+			for (auto& slot : voiceSlots) {
+				if (!slot || !slot->inUse || !slot->sourceVoice) continue;
+				XAUDIO2_VOICE_STATE state;
+				slot->sourceVoice->GetState(&state);
+				if (state.BuffersQueued < 2) {
+					std::lock_guard lock(slot->mutex);
+					if (!slot->bufferQueue.empty()) {
+						auto nextChunk = std::move(slot->bufferQueue.front());
+						slot->bufferQueue.pop();
 
-					slot->playing[slot->secondary] = nextChunk;
-					XAUDIO2_BUFFER buffer = { 0 };
-					buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
-					buffer.pAudioData = slot->playing[slot->secondary].data();
-					slot->sourceVoice->SubmitSourceBuffer(&buffer);
+						slot->playing[slot->secondary] = nextChunk;
+						XAUDIO2_BUFFER buffer = { 0 };
+						buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
+						buffer.pAudioData = slot->playing[slot->secondary].data();
+						slot->sourceVoice->SubmitSourceBuffer(&buffer);
 
-					auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
+						auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
 
-					if (slot->loop && slot->loopStart >= slot->samplesProcessed && slot->loopStart < bufferEndPos) {
-						auto eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
-						auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
-						slot->bufferQueue.push(loopBuf);
-					}
+						if (slot->loop && slot->loopStart >= slot->samplesProcessed && slot->loopStart < bufferEndPos) {
+							auto eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
+							auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
+							slot->bufferQueue.push(loopBuf);
+						}
 
-					slot->samplesProcessed = bufferEndPos;
-					if (slot->samplesProcessed >= slot->audioEnd) {
-						slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
+						slot->samplesProcessed = bufferEndPos;
+						if (slot->samplesProcessed >= slot->audioEnd) {
+							slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
+						}
 					}
 				}
 			}
