@@ -52,6 +52,8 @@ namespace {
 		std::mutex mutex;
 		std::atomic<bool> inUse = false;
 		WAVEFORMATEXTENSIBLE waveFormat;
+		std::queue<std::vector<uint8_t>> bufferQueueCopy;
+		bool holdBuffer = true;
 		bool loop = false;
 		size_t samplesProcessed = 0;
 		size_t loopStart = 0;
@@ -290,6 +292,14 @@ void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 		slot->loopStart = entry->loopStart;
 		slot->inUse = true;
 		slot->audioEnd = samples;
+		slot->holdBuffer = !entry->loopEnable ? entry->holdBuffer : false;
+
+		if (slot->holdBuffer) {
+			slot->bufferQueueCopy = slot->bufferQueue;
+		}
+		else {
+			slot->bufferQueueCopy = {};
+		}
 	}
 }
 
@@ -316,6 +326,7 @@ void Player::Submit(size_t voiceHandle, const FileEntry* entry) {
 	pcmEntry.dataSize = pcmData.size() * sizeof(float);
 	pcmEntry.loopEnable = entry->loopEnable;
 	pcmEntry.loopStart = entry->loopStart;
+	pcmEntry.holdBuffer = entry->holdBuffer;
 
 	// 以下で呼ぶSubmitのオーバーロードでは必ずpcmDataをコピーすること
 	Submit(voiceHandle, &pcmEntry);
@@ -325,8 +336,15 @@ void Player::Play(size_t voiceHandle) {
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle]) {
 		return;
 	}
-	if (m_impl->voiceSlots[voiceHandle]->inUse) {
-		m_impl->voiceSlots[voiceHandle]->sourceVoice->Start();
+	auto& voice = m_impl->voiceSlots[voiceHandle];
+	if (voice->inUse) {
+		std::lock_guard<std::mutex> lock(voice->mutex);
+		if (voice->holdBuffer) {
+			voice->bufferQueue = voice->bufferQueueCopy;
+			voice->sourceVoice->Stop();
+			voice->sourceVoice->FlushSourceBuffers();
+		}
+		voice->sourceVoice->Start();
 	}
 }
 
