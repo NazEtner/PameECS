@@ -248,6 +248,7 @@ size_t Player::GetVoiceHandle() {
 
 	auto ret = m_impl->lastSlotIndex++;
 	if (ret >= m_impl->voiceSlots.size()) {
+		std::lock_guard<std::mutex> lock(m_impl->mutex);
 		Helpers::Container::ResizePow2<std::vector<std::unique_ptr<VoiceSlot>>>(m_impl->voiceSlots, ret);
 	}
 	return ret;
