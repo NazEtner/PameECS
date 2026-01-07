@@ -27,7 +27,7 @@ namespace {
 		}
 
 		void Initialize(IXAudio2* xaudio, const WAVEFORMATEXTENSIBLE* waveFormat) {
-			if (!sourceVoice || memcmp(&this->waveFormat, waveFormat, sizeof(WAVEFORMATEX)) != 0) {
+			if (!sourceVoice || memcmp(&this->waveFormat, waveFormat, sizeof(WAVEFORMATEXTENSIBLE)) != 0) {
 				Finalize();
 				auto hr = xaudio->CreateSourceVoice(&sourceVoice, reinterpret_cast<const WAVEFORMATEX*>(waveFormat));
 				if (FAILED(hr)) {
@@ -192,39 +192,50 @@ struct Player::Impl {
 
 void Player::Impl::UpdateVoices() {
 	while (running) {
+		std::vector<VoiceSlot*> slotsSnapshot;
 		{
-			// このロック本当に必要？
 			std::lock_guard lock(mutex);
-			for (auto& slot : voiceSlots) {
-				if (!slot || !slot->inUse || !slot->sourceVoice) continue;
-				XAUDIO2_VOICE_STATE state;
-				slot->sourceVoice->GetState(&state);
-				if (state.BuffersQueued < 2) {
-					std::lock_guard lock(slot->mutex);
-					if (!slot->bufferQueue.empty()) {
-						auto nextChunk = std::move(slot->bufferQueue.front());
-						slot->bufferQueue.pop();
+			slotsSnapshot.reserve(voiceSlots.size());
+			for (auto& s : voiceSlots) slotsSnapshot.emplace_back(s.get());
+		}
+		for (auto& slot : slotsSnapshot) {
+			if (!slot || !slot->inUse || !slot->sourceVoice) continue;
+			XAUDIO2_VOICE_STATE state;
+			slot->sourceVoice->GetState(&state);
+			if (state.BuffersQueued < 2) {
+				std::lock_guard lock(slot->mutex);
+				if (!slot->bufferQueue.empty()) {
+					auto nextChunk = std::move(slot->bufferQueue.front());
+					slot->bufferQueue.pop();
 
-						slot->playing[slot->secondary] = nextChunk;
-						XAUDIO2_BUFFER buffer = { 0 };
-						buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
-						buffer.pAudioData = slot->playing[slot->secondary].data();
-						slot->sourceVoice->SubmitSourceBuffer(&buffer);
+					slot->playing[slot->secondary] = nextChunk;
+					XAUDIO2_BUFFER buffer = { 0 };
+					buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
+					buffer.pAudioData = slot->playing[slot->secondary].data();
+					// end of streamは警告を抑制するだけらしい(Microsoftの公式ドキュメント参照)ので、最悪無くてもよさそう
+					buffer.Flags = slot->bufferQueue.empty() ? XAUDIO2_END_OF_STREAM : 0;
+					slot->sourceVoice->SubmitSourceBuffer(&buffer);
 
-						auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
+					auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
 
-						if (slot->loop && slot->loopStart >= slot->samplesProcessed && slot->loopStart < bufferEndPos) {
-							auto eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
-							auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
-							slot->bufferQueue.push(loopBuf);
+					if (slot->loop && slot->loopStart >= slot->samplesProcessed) {
+						size_t eraseBytes = 0;
+						if (slot->loopStart < bufferEndPos) {
+							eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
 						}
+						auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
+						slot->bufferQueue.push(loopBuf);
+					}
 
-						slot->samplesProcessed = bufferEndPos;
-						if (slot->samplesProcessed >= slot->audioEnd) {
-							slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
-						}
+					slot->samplesProcessed = bufferEndPos;
+					if (slot->samplesProcessed >= slot->audioEnd) {
+						slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
 					}
 				}
+			}
+			std::lock_guard lock(slot->mutex);
+			if (state.BuffersQueued == 0 && slot->bufferQueue.size() == 0) {
+				slot->sourceVoice->Stop();
 			}
 		}
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -256,7 +267,8 @@ size_t Player::GetVoiceHandle() {
 
 void Player::ReleaseVoiceHandle(size_t voiceHandle) {
 	if (voiceHandle < m_impl->voiceSlots.size()) {
-		m_impl->voiceSlots[voiceHandle] = nullptr;
+		Stop(voiceHandle);
+		m_impl->voiceSlots[voiceHandle]->inUse = false;
 		m_impl->emptySlots.push(voiceHandle);
 	}
 }
@@ -351,6 +363,7 @@ void Player::Play(size_t voiceHandle) {
 }
 
 void Player::Pause(size_t voiceHandle) {
+	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
 		return;
 	}
@@ -358,6 +371,7 @@ void Player::Pause(size_t voiceHandle) {
 }
 
 void Player::Stop(size_t voiceHandle) {
+	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
 		return;
 	}
@@ -365,6 +379,7 @@ void Player::Stop(size_t voiceHandle) {
 }
 
 void Player::SetVolume(size_t voiceHandle, float volume) {
+	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
 		return;
 	}
@@ -372,6 +387,7 @@ void Player::SetVolume(size_t voiceHandle, float volume) {
 }
 
 size_t Player::GetQueuedVoiceCount(size_t voiceHandle) {
+	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
 	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
 		return 0;
 	}
