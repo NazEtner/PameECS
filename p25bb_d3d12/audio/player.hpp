@@ -12,7 +12,7 @@ namespace PameECS::Audio {
 		void ReleaseVoiceHandle(size_t voiceHandle);
 		void Submit(size_t voiceHandle, const PCMEntry* entry);
 		void Submit(size_t voiceHandle, const FileEntry* entry);
-		void Submit(size_t voiceHandle, size_t(*callback)(void* userData, uint8_t* dest, size_t samples), const WAVEFORMATEXTENSIBLE& format);
+		void Submit(size_t voiceHandle, size_t(*callback)(void* userData, uint8_t* dest, size_t samples), const WAVEFORMATEXTENSIBLE& format, void* userData);
 		void Play(size_t voiceHandle);
 		void Pause(size_t voiceHandle);
 		void Stop(size_t voiceHandle);
