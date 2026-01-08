@@ -360,7 +360,7 @@ struct Player::Impl {
 	};
 	// 内部型定義 END ----------------------------------------------------------
 
-	static constexpr size_t audioChunkSamples = 65536; // 単位はサンプル 
+	static constexpr size_t audioChunkSamples = 32768; // 単位はサンプル 
 	std::mutex commandMutex;
 	std::queue<std::unique_ptr<Commands::Command>> commandQueue;
 
