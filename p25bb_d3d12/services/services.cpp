@@ -10,6 +10,7 @@ extern "C" {
 
 struct Services::Impl {
 	std::unique_ptr<InputService> inputService;
+	std::unique_ptr<AudioService> audioService;
 };
 
 Services::Services() {
@@ -24,8 +25,11 @@ void Services::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGU
 	debugGUI->AddWindow(
 		"Services",
 		[this]() -> void {
-			if (ImGui::CollapsingHeader("Input")) {
+			if (m_impl->inputService && ImGui::CollapsingHeader("Input")) {
 				m_impl->inputService->ShowDebug();
+			}
+			if (m_impl->audioService && ImGui::CollapsingHeader("Audio")) {
+				m_impl->audioService->ShowDebug();
 			}
 		},
 		{ 480.f, 0.f },
@@ -42,6 +46,14 @@ void Services::SetInputService(std::unique_ptr<InputService>&& inputService) {
 	m_impl->inputService = std::move(inputService);
 }
 
+void Services::SetAudioService(std::unique_ptr<AudioService>&& audioService) {
+	m_impl->audioService = std::move(audioService);
+}
+
 PameECS::Services::InputService* Services::GetInputService() const {
 	return m_impl->inputService.get();
+}
+
+PameECS::Services::AudioService* Services::GetAudioService() const {
+	return m_impl->audioService.get();
 }

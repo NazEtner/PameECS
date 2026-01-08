@@ -480,6 +480,7 @@
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
     <ClCompile Include="lib_impl.cpp" />
+    <ClCompile Include="services\audio_service.cpp" />
     <ClCompile Include="services\input_service.cpp" />
     <ClCompile Include="services\services.cpp" />
   </ItemGroup>
@@ -545,6 +546,7 @@
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />
     <ClInclude Include="macros\dll.hpp" />
+    <ClInclude Include="services\audio_service.hpp" />
     <ClInclude Include="services\input_service.hpp" />
     <ClInclude Include="services\services.hpp" />
     <ClInclude Include="template_types\string_literal.hpp" />

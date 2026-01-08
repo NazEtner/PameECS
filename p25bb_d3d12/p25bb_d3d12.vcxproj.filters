@@ -186,6 +186,9 @@
     <ClCompile Include="lib_impl.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="services\audio_service.cpp">
+      <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -379,6 +382,9 @@
     </ClInclude>
     <ClInclude Include="exceptions\audio_error.hpp">
       <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="services\audio_service.hpp">
+      <Filter>ヘッダー ファイル\services</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

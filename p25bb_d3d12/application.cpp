@@ -224,6 +224,7 @@ void Application::m_initializeServices() {
 
 	auto inputService = std::make_unique<Services::InputService>(m_window->GetWindowHandle(), m_logger);
 	m_services->SetInputService(std::move(inputService));
+	m_services->SetAudioService(std::make_unique<Services::AudioService>());
 
 	m_window->SetMouseDeltaCallback(
 		[services = m_services](int delta) -> void {

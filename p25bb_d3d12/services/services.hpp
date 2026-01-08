@@ -1,5 +1,6 @@
 #pragma once
 #include "input_service.hpp"
+#include "audio_service.hpp"
 #include "../debug_tools/debug_gui_host.hpp"
 
 namespace PameECS::Services {
@@ -17,7 +18,9 @@ namespace PameECS::Services {
 
 		void Update();
 		void SetInputService(std::unique_ptr<InputService>&& inputService);
+		void SetAudioService(std::unique_ptr<AudioService>&& audioService);
 		InputService* GetInputService() const;
+		AudioService* GetAudioService() const;
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;
