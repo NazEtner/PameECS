@@ -17,409 +17,139 @@
 #include <ksmedia.h>
 
 namespace {
-	struct VoiceSlot {
-		VoiceSlot(IXAudio2* xaudio, const WAVEFORMATEXTENSIBLE* waveFormat) {
-			Initialize(xaudio, waveFormat);
-		}
+	namespace Commands {
+		enum class CommandType {
+			AcquireVoice,
+			ReleaseVoice,
+			SubmitPCM,
+			SubmitFile,
+			Play,
+			Pause,
+			Stop,
+			SetVolume,
+			SetOutputMatrix
+		};
 
-		~VoiceSlot() {
-			Finalize();
-		}
+		struct Command {
+			CommandType type;
+			size_t voice;
+		};
 
-		void Initialize(IXAudio2* xaudio, const WAVEFORMATEXTENSIBLE* waveFormat) {
-			if (!sourceVoice || memcmp(&this->waveFormat, waveFormat, sizeof(WAVEFORMATEXTENSIBLE)) != 0) {
-				Finalize();
-				auto hr = xaudio->CreateSourceVoice(&sourceVoice, reinterpret_cast<const WAVEFORMATEX*>(waveFormat));
-				if (FAILED(hr)) {
-					throw PameECS::Exceptions::AudioError(std::format("Failed to create source voice: waveFormat = {}", static_cast<const void*>(waveFormat)));
-				}
-				this->waveFormat = *waveFormat;
-				loop = false;
-				loopStart = 0;
-			}
-		}
+		struct AcquireVoice : public Command {};
+		struct ReleaseVoice : public Command {};
 
-		void Finalize() {
-			Clear();
-			if (sourceVoice) {
-				sourceVoice->DestroyVoice();
-			}
-		}
+		struct SubmitPCM : public Command {
+			PameECS::Audio::PCMEntry pcm;
+		};
 
-		constexpr static size_t chunkSize = 64 * 1024;
-		IXAudio2SourceVoice* sourceVoice = nullptr;
-		std::queue<std::vector<uint8_t>> bufferQueue;
-		std::mutex mutex;
-		std::atomic<bool> inUse = false;
-		WAVEFORMATEXTENSIBLE waveFormat;
-		std::queue<std::vector<uint8_t>> bufferQueueCopy;
-		bool holdBuffer = true;
-		bool loop = false;
-		size_t samplesProcessed = 0;
-		size_t loopStart = 0;
-		size_t audioEnd = 0;
-		std::array<std::vector<uint8_t>, 2> playing;
-		size_t primary = 0;
-		size_t secondary = 1;
+		struct SubmitFile : public Command {
+			PameECS::Audio::FileEntry file;
+		};
 
-		void Clear() {
-			if (sourceVoice) {
-				sourceVoice->Stop();
-				sourceVoice->FlushSourceBuffers();
-			}
-			std::lock_guard<std::mutex> lock(mutex);
-			while (!bufferQueue.empty()) bufferQueue.pop();
-			audioEnd = 0;
-		}
-	};
+		struct SubmitCallback : public Command {
+			size_t(*callback)(void* userData, uint8_t* dest, size_t samples);
+		};
 
-	uint64_t LoadWav(const std::string& fileName, std::vector<float>& audioBuffer, WAVEFORMATEXTENSIBLE* waveFormatEx) {
-		PameECS::File::File<0, 0> file;
-		auto ss = file.LoadSync(fileName);
-		std::vector<uint8_t> fileBinary((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
-		drwav wav;
-		if (!drwav_init_memory(&wav, fileBinary.data(), fileBinary.size(), nullptr)) {
-			return 0;
-		}
-		const size_t dataSize = wav.totalPCMFrameCount * wav.channels;
-		audioBuffer.resize(dataSize, 0);
-		uint64_t framesRead = drwav_read_pcm_frames_f32(&wav, wav.totalPCMFrameCount, audioBuffer.data());
+		struct Play : public Command {};
+		struct Pause : public Command {};
+		struct Stop : public Command {};
 
-		auto& waveFormat = waveFormatEx->Format;
+		struct SetVolume : public Command {
+			float volume;
+		};
 
-		waveFormat.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-		waveFormat.nChannels = wav.channels;
-		waveFormat.nSamplesPerSec = wav.sampleRate;
-		waveFormat.wBitsPerSample = 32;
-		waveFormat.nBlockAlign = (waveFormat.nChannels * waveFormat.wBitsPerSample) / 8;
-		waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
-		waveFormat.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-
-		waveFormatEx->Samples.wValidBitsPerSample = 32;
-		// XAudio2が自動でチャンネルマスクを設定するようにする
-		// 詳細は以下を参照
-		// https://learn.microsoft.com/ja-jp/windows/win32/xaudio2/xaudio2-default-channel-mapping
-		waveFormatEx->dwChannelMask = 0;
-
-		waveFormatEx->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-
-		drwav_uninit(&wav);
-
-		return framesRead;
+		struct SetOutputMatrix : public Command {
+			uint32_t sourceChannel, destChannel;
+			float matrix[64] = {};
+		};
 	}
 
-	uint64_t LoadFlac(const std::string& fileName, std::vector<float>& audioBuffer, WAVEFORMATEXTENSIBLE* waveFormatEx) {
-		PameECS::File::File<0, 0> file;
-		auto ss = file.LoadSync(fileName);
-		std::vector<uint8_t> fileBinary((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
-
-		drflac_uint64 totalPCMFrameCount = 0;
-		unsigned int channels = 0;
-		unsigned int sampleRate = 0;
-
-		float* pcmData = drflac_open_memory_and_read_pcm_frames_f32(
-			fileBinary.data(), fileBinary.size(),
-			&channels, &sampleRate, &totalPCMFrameCount, nullptr
-		);
-
-		if (!pcmData) {
-			return 0;
-		}
-
-		audioBuffer.resize(totalPCMFrameCount * channels);
-		memcpy(audioBuffer.data(), pcmData, totalPCMFrameCount * channels * sizeof(float));
-
-		drflac_free(pcmData, nullptr);
-
-		auto& waveFormat = waveFormatEx->Format;
-
-		waveFormat.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
-		waveFormat.nChannels = channels;
-		waveFormat.nSamplesPerSec = sampleRate;
-		waveFormat.wBitsPerSample = 32;
-		waveFormat.nBlockAlign = (waveFormat.nChannels * waveFormat.wBitsPerSample) / 8;
-		waveFormat.nAvgBytesPerSec = waveFormat.nSamplesPerSec * waveFormat.nBlockAlign;
-		waveFormat.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
-
-		waveFormatEx->Samples.wValidBitsPerSample = 32;
-		// XAudio2が自動でチャンネルマスクを設定するようにする
-		// 詳細は以下を参照
-		// https://learn.microsoft.com/ja-jp/windows/win32/xaudio2/xaudio2-default-channel-mapping
-		waveFormatEx->dwChannelMask = 0;
-
-		waveFormatEx->SubFormat = KSDATAFORMAT_SUBTYPE_IEEE_FLOAT;
-
-		return totalPCMFrameCount;
+	WAVEFORMATEXTENSIBLE FillFormat(uint16_t channels, uint16_t bits, uint32_t rate, bool isFloat) {
+		WAVEFORMATEXTENSIBLE format;
+		format.Format.wFormatTag = WAVE_FORMAT_EXTENSIBLE;
+		format.Format.nChannels = channels;
+		format.Format.nSamplesPerSec = rate;
+		format.Format.wBitsPerSample = bits;
+		format.Format.nBlockAlign = (channels * bits) / 8;
+		format.Format.nAvgBytesPerSec = rate * format.Format.nBlockAlign;
+		format.Format.cbSize = sizeof(WAVEFORMATEXTENSIBLE) - sizeof(WAVEFORMATEX);
+		format.SubFormat = isFloat ? KSDATAFORMAT_SUBTYPE_IEEE_FLOAT : KSDATAFORMAT_SUBTYPE_PCM;
 	}
 }
 
 using PameECS::Audio::Player;
 
 struct Player::Impl {
-	Impl() {
-		auto result = XAudio2Create(xaudio2.GetAddressOf());
-		if (FAILED(result)) {
-			throw Exceptions::AudioError("Failed to create XAudio2 object.");
+	class AudioStream {
+	public:
+		~AudioStream() = default;
+		// 引数はサンプル数、戻り値はバイト数
+		// ビット深度が8のときのみ要求した数に一致するサンプルを取得できたときにsamples == 戻り値になることが期待できる
+		virtual std::vector<uint8_t> GetBuffer(size_t samples) = 0;
+		// バッファ取得前にフォーマットを取得し、ボイスで使われているものと一致しない場合、バッファを取得しない
+		virtual bool IsSameFormat(const WAVEFORMATEXTENSIBLE& format) const = 0;
+	};
+
+	class FlacFileAudioStream : public AudioStream {
+	public:
+		FlacFileAudioStream(const std::string& filePath) {
+			m_file_path = filePath;
 		}
 
-		result = xaudio2->CreateMasteringVoice(&masterVoice);
-		if (FAILED(result)) {
-			throw Exceptions::AudioError("Failed to create mastering voice");
+		~FlacFileAudioStream() {
+			if (m_flac) drflac_close(m_flac);
 		}
-		running = true;
-		worker = std::thread([this]() -> void {UpdateVoices(); });
-	}
-	~Impl() {
-		running = false;
-		if (worker.joinable()) worker.join();
-		if (masterVoice) {
-			masterVoice->DestroyVoice();
-			masterVoice = nullptr;
-		}
-	}
 
-	// マルチスレッドで動かす物(スレッドプールは使わない)
-	void UpdateVoices();
-	std::atomic<bool> running;
+		std::vector<uint8_t> GetBuffer(size_t samples) override {
+			if (!m_is_open) {
+				PameECS::File::File<0, 0> file;
+				auto ss = file.LoadSync(m_file_path);
+				m_file_binary = std::vector<uint8_t>((std::istreambuf_iterator<char>(ss)), std::istreambuf_iterator<char>());
+				m_is_open = true;
+
+				m_flac = drflac_open_memory(m_file_binary.data(), m_file_binary.size(), nullptr);
+				m_format = FillFormat(m_flac->channels, 32, m_flac->sampleRate, true);
+			}
+			if (!m_flac) return {};
+			std::vector<float> pcmFrames(samples * m_flac->channels);
+			size_t size = drflac_read_pcm_frames_f32(m_flac, samples, pcmFrames.data()) * (m_format.Format.wBitsPerSample / 8) * m_flac->channels;
+			std::vector<uint8_t> ret(size);
+			memcpy(ret.data(), pcmFrames.data(), size);
+			return ret;
+		}
+
+		bool IsSameFormat(const WAVEFORMATEXTENSIBLE& other) const override {
+			return memcmp(&m_format, &other, sizeof(WAVEFORMATEXTENSIBLE)) == 0;
+		}
+	private:
+		bool m_is_open = false;
+		std::string m_file_path = "";
+		std::vector<uint8_t> m_file_binary;
+		drflac* m_flac;
+		WAVEFORMATEXTENSIBLE m_format;
+	};
+
+	std::mutex commandMutex;
+	std::queue<Commands::Command> commandQueue;
+
 	std::thread worker;
+	std::atomic<bool> running;
+
 	Microsoft::WRL::ComPtr<IXAudio2> xaudio2;
 	IXAudio2MasteringVoice* masterVoice;
-	std::mutex mutex;
-	std::vector<std::unique_ptr<VoiceSlot>> voiceSlots;
-	std::stack<size_t> emptySlots;
-	size_t lastSlotIndex = 0;
+
+	struct VoiceSlot {
+		IXAudio2SourceVoice* voice = nullptr;
+		WAVEFORMATEXTENSIBLE format;
+		std::queue<std::variant<std::vector<uint8_t>, AudioStream>> pending;
+
+		bool loop = false;
+		size_t loopStartSamples = 0;
+		size_t audioEndSamples = 0;
+		size_t samplesPlayed = 0;
+
+		static constexpr size_t NumBuffers = 3;
+		std::array<std::vector<uint8_t>, NumBuffers> playBuffers;
+		size_t next = 0;
+	};
 };
-
-void Player::Impl::UpdateVoices() {
-	while (running) {
-		std::vector<VoiceSlot*> slotsSnapshot;
-		{
-			std::lock_guard lock(mutex);
-			slotsSnapshot.reserve(voiceSlots.size());
-			for (auto& s : voiceSlots) slotsSnapshot.emplace_back(s.get());
-		}
-		for (auto& slot : slotsSnapshot) {
-			if (!slot || !slot->inUse || !slot->sourceVoice) continue;
-			XAUDIO2_VOICE_STATE state;
-			slot->sourceVoice->GetState(&state);
-			if (state.BuffersQueued < 2) {
-				std::lock_guard lock(slot->mutex);
-				if (!slot->bufferQueue.empty()) {
-					auto nextChunk = std::move(slot->bufferQueue.front());
-					slot->bufferQueue.pop();
-
-					slot->playing[slot->secondary] = nextChunk;
-					XAUDIO2_BUFFER buffer = { 0 };
-					buffer.AudioBytes = static_cast<UINT32>(slot->playing[slot->secondary].size());
-					buffer.pAudioData = slot->playing[slot->secondary].data();
-					// end of streamは警告を抑制するだけらしい(Microsoftの公式ドキュメント参照)ので、最悪無くてもよさそう
-					buffer.Flags = slot->bufferQueue.empty() ? XAUDIO2_END_OF_STREAM : 0;
-					slot->sourceVoice->SubmitSourceBuffer(&buffer);
-
-					auto bufferEndPos = slot->samplesProcessed + nextChunk.size() / slot->waveFormat.Format.nBlockAlign;
-
-					if (slot->loop && slot->loopStart >= slot->samplesProcessed) {
-						size_t eraseBytes = 0;
-						if (slot->loopStart < bufferEndPos) {
-							eraseBytes = (slot->loopStart - slot->samplesProcessed) * slot->waveFormat.Format.nBlockAlign;
-						}
-						auto loopBuf = std::vector<uint8_t>(nextChunk.data() + eraseBytes, nextChunk.data() + nextChunk.size());
-						slot->bufferQueue.push(loopBuf);
-					}
-
-					slot->samplesProcessed = bufferEndPos;
-					if (slot->samplesProcessed >= slot->audioEnd) {
-						slot->samplesProcessed = slot->loopStart + slot->samplesProcessed - slot->audioEnd;
-					}
-				}
-			}
-			std::lock_guard lock(slot->mutex);
-			if (state.BuffersQueued == 0 && slot->bufferQueue.size() == 0) {
-				slot->sourceVoice->Stop();
-			}
-		}
-		std::this_thread::sleep_for(std::chrono::milliseconds(10));
-	}
-}
-
-Player::Player() {
-	m_impl = std::make_unique<Impl>();
-}
-
-Player::~Player() {
-
-}
-
-size_t Player::GetVoiceHandle() {
-	if (!m_impl->emptySlots.empty()) {
-		auto ret = m_impl->emptySlots.top();
-		m_impl->emptySlots.pop();
-		return ret;
-	}
-
-	auto ret = m_impl->lastSlotIndex++;
-	if (ret >= m_impl->voiceSlots.size()) {
-		std::lock_guard<std::mutex> lock(m_impl->mutex);
-		Helpers::Container::ResizePow2<std::vector<std::unique_ptr<VoiceSlot>>>(m_impl->voiceSlots, ret);
-	}
-	return ret;
-}
-
-void Player::ReleaseVoiceHandle(size_t voiceHandle) {
-	if (voiceHandle < m_impl->voiceSlots.size()) {
-		Stop(voiceHandle);
-		m_impl->voiceSlots[voiceHandle]->inUse = false;
-		m_impl->emptySlots.push(voiceHandle);
-	}
-}
-
-void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
-	if (voiceHandle >= m_impl->voiceSlots.size() || !entry) {
-		return;
-	}
-
-	auto& slot = m_impl->voiceSlots[voiceHandle];
-
-	if (!slot) {
-		slot = std::make_unique<VoiceSlot>(m_impl->xaudio2.Get(), &entry->waveFormat);
-	}
-	else {
-		slot->Initialize(m_impl->xaudio2.Get(), &entry->waveFormat);
-	}
-
-	const uint8_t* source = entry->data;
-	size_t remaining = entry->dataSize;
-	size_t samples = entry->dataSize / slot->waveFormat.Format.nBlockAlign;
-
-	{
-		std::lock_guard<std::mutex> lock(slot->mutex);
-		while (remaining > 0) {
-			size_t chunkSize = std::min(remaining, VoiceSlot::chunkSize);
-			auto buffer = std::vector<uint8_t>(source, source + chunkSize);
-			slot->bufferQueue.push(std::move(buffer));
-
-			source += chunkSize;
-			remaining -= chunkSize;
-		}
-
-		slot->loop = entry->loopEnable;
-		slot->loopStart = entry->loopStart;
-		slot->inUse = true;
-		slot->audioEnd = samples;
-		slot->holdBuffer = !entry->loopEnable ? entry->holdBuffer : false;
-
-		if (slot->holdBuffer) {
-			slot->bufferQueueCopy = slot->bufferQueue;
-		}
-		else {
-			slot->bufferQueueCopy = {};
-		}
-	}
-}
-
-void Player::Submit(size_t voiceHandle, const FileEntry* entry) {
-	if (voiceHandle >= m_impl->voiceSlots.size() || !entry) {
-		return;
-	}
-
-	PCMEntry pcmEntry = {};
-	std::vector<float> pcmData;
-	std::string fileName = std::string(entry->fileName, entry->nameSize);
-	switch (entry->codec) {
-	case FileEntry::Codec::WAV:
-		if (LoadWav(fileName, pcmData, &pcmEntry.waveFormat) == 0) return;
-		break;
-	case FileEntry::Codec::FLAC:
-		if (LoadFlac(fileName, pcmData, &pcmEntry.waveFormat) == 0) return;
-		break;
-	default:
-		return;
-	}
-
-	pcmEntry.data = reinterpret_cast<uint8_t*>(pcmData.data());
-	pcmEntry.dataSize = pcmData.size() * sizeof(float);
-	pcmEntry.loopEnable = entry->loopEnable;
-	pcmEntry.loopStart = entry->loopStart;
-	pcmEntry.holdBuffer = entry->holdBuffer;
-
-	// 以下で呼ぶSubmitのオーバーロードでは必ずpcmDataをコピーすること
-	Submit(voiceHandle, &pcmEntry);
-}
-
-void Player::Play(size_t voiceHandle) {
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle]) {
-		return;
-	}
-	auto& voice = m_impl->voiceSlots[voiceHandle];
-	if (voice->inUse) {
-		std::lock_guard<std::mutex> lock(voice->mutex);
-		if (voice->holdBuffer) {
-			voice->bufferQueue = voice->bufferQueueCopy;
-			voice->sourceVoice->Stop();
-			voice->sourceVoice->FlushSourceBuffers();
-		}
-		voice->sourceVoice->Start();
-	}
-}
-
-void Player::Pause(size_t voiceHandle) {
-	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return;
-	}
-	m_impl->voiceSlots[voiceHandle]->sourceVoice->Stop();
-}
-
-void Player::Stop(size_t voiceHandle) {
-	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return;
-	}
-	m_impl->voiceSlots[voiceHandle]->Clear();
-}
-
-void Player::SetVolume(size_t voiceHandle, float volume) {
-	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return;
-	}
-	m_impl->voiceSlots[voiceHandle]->sourceVoice->SetVolume(volume);
-}
-
-size_t Player::GetQueuedVoiceCount(size_t voiceHandle) {
-	std::lock_guard lock(m_impl->voiceSlots[voiceHandle]->mutex);
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return 0;
-	}
-	return m_impl->voiceSlots[voiceHandle]->bufferQueue.size();
-}
-
-uint32_t Player::GetOutputChannels() {
-	DWORD mask = 0;
-	auto result = m_impl->masterVoice->GetChannelMask(&mask);
-	if (FAILED(result)) {
-		throw Exceptions::AudioError("Failed to get channel mask.");
-	}
-	uint32_t count = 0;
-	while (mask != 0) {
-		if ((mask & 1) == 1) count++;
-		mask >>= 1;
-	}
-	return count;
-}
-
-uint32_t Player::GetVoiceChannels(size_t voiceHandle) {
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return 0;
-	}
-	XAUDIO2_VOICE_DETAILS details;
-	m_impl->voiceSlots[voiceHandle]->sourceVoice->GetVoiceDetails(&details);
-	return details.InputChannels;
-}
-
-void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, float* matrix) {
-	if (voiceHandle >= m_impl->voiceSlots.size() || !m_impl->voiceSlots[voiceHandle] || !m_impl->voiceSlots[voiceHandle]->inUse) {
-		return;
-	}
-	m_impl->voiceSlots[voiceHandle]->sourceVoice->SetOutputMatrix(nullptr, sourceChannels, destChannels, matrix);
-}
