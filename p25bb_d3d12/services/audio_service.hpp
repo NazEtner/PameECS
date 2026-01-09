@@ -15,3 +15,7 @@ namespace PameECS::Services {
 		std::unique_ptr<Impl> m_impl;
 	};
 }
+
+extern "C" {
+	PameECS::Audio::Player* ServicesAudioGetPlayer(PameECS::Services::AudioService* service);
+}

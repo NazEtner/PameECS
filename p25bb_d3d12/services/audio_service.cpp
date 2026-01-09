@@ -25,3 +25,9 @@ void AudioService::ShowDebug() {
 PameECS::Audio::Player* AudioService::GetPlayer() {
 	return m_impl->player.get();
 }
+
+extern "C" {
+	PameECS::Audio::Player* ServicesAudioGetPlayer(PameECS::Services::AudioService* service) {
+		return service->GetPlayer();
+	}
+}

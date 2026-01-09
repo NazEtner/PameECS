@@ -328,6 +328,9 @@ struct Player::Impl {
 				voice = nullptr;
 			}
 			matrixInfo.active = false;
+			pending = {};
+			loopBuffer = {};
+			samplesPlayed = 0;
 		}
 		// ボイスが初期化済みかどうかの確認はソースボイスが有効なポインタであるかで行う
 		IXAudio2SourceVoice* voice = nullptr;
@@ -337,7 +340,6 @@ struct Player::Impl {
 		// 次のPlay時に、PCMAudioStreamに変換してpendingの先頭に入れる
 		std::vector<std::unique_ptr<PCMAudioStream>> buffersHeld;
 		std::queue<std::unique_ptr<AudioStream>> loopBuffer;
-		size_t pendingIndex = 0;
 
 		bool holdBuffer = false;
 		bool lockHold = false; // 一度以上ループされていたらホールド用バッファをロックする
@@ -428,22 +430,13 @@ struct Player::Impl {
 
 			if (audioChunkSamples > bufferSamples) {
 				slot->pending.pop();
+				if (slot->pending.empty() && slot->loop) {
+					slot->lockHold = true;
+					std::swap(slot->pending, slot->loopBuffer);
+					slot->samplesPlayed = slot->loopStartSamples;
+				}
+				if (bufferSamples == 0) return;
 			}
-
-			if (slot->pending.empty() && slot->loop) {
-				slot->lockHold = true;
-				std::swap(slot->pending, slot->loopBuffer);
-				slot->samplesPlayed = slot->loopStartSamples;
-			}
-
-			slot->playBuffers[slot->next] = buffer;
-
-			XAUDIO2_BUFFER sourceBuffer = { 0 };
-			sourceBuffer.AudioBytes = static_cast<UINT32>(slot->playBuffers[slot->next].size());
-			sourceBuffer.pAudioData = slot->playBuffers[slot->next].data();
-			sourceBuffer.Flags = slot->pending.empty() ? XAUDIO2_END_OF_STREAM : 0;
-
-			slot->voice->SubmitSourceBuffer(&sourceBuffer);
 
 			if (slot->holdBuffer && !slot->lockHold) {
 				slot->buffersHeld.push_back(
@@ -460,6 +453,16 @@ struct Player::Impl {
 					std::make_unique<PCMAudioStream>(std::vector<uint8_t>(buffer.data() + eraseBytes, buffer.data() + buffer.size()), format)
 				);
 			}
+
+			// slot->playBuffers[slot->next] = buffer;
+			std::swap(slot->playBuffers[slot->next], buffer);
+
+			XAUDIO2_BUFFER sourceBuffer = { 0 };
+			sourceBuffer.AudioBytes = static_cast<UINT32>(slot->playBuffers[slot->next].size());
+			sourceBuffer.pAudioData = slot->playBuffers[slot->next].data();
+			sourceBuffer.Flags = 0;
+
+			slot->voice->SubmitSourceBuffer(&sourceBuffer);
 
 			slot->samplesPlayed += bufferSamples;
 
@@ -569,18 +572,16 @@ struct Player::Impl {
 			break;
 		}
 		case Commands::CommandType::Play:
-			if (!slot) break;
+			if (!slot || slot->active) break;
 			slot->active = true;
 			slot->isPlayRequested = true;
-			if (!slot->buffersHeld.empty()) {
-				while (!slot->pending.empty()) slot->pending.pop();
-
+			if (!slot->buffersHeld.empty() && slot->pending.empty()) {
 				for (const auto& buffer : slot->buffersHeld) {
 					slot->pending.push(std::make_unique<PCMAudioStream>(*buffer));
 				}
 
-				slot->samplesPlayed = 0;
 				slot->lockHold = true;
+				slot->samplesPlayed = 0;
 			}
 			break;
 		case Commands::CommandType::Pause:
@@ -983,6 +984,23 @@ void Player::ShowDebug() {
 			};
 
 		m_impl->commandQueue.push(std::move(cmd));
+	}
+	ImGui::Text("Slot debug");
+	static uint32_t targetHandle = 0;
+	ImGui::InputInt("Target Voice ID##1", reinterpret_cast<int*>(&targetHandle));
+	if (targetHandle >= m_impl->slots.size() || !m_impl->slots[targetHandle]) {
+		ImGui::Text("nullptr");
+	}
+	else {
+		auto& slot = m_impl->slots[targetHandle];
+		ImGui::Text("Queued: %d", slot->pending.size());
+		ImGui::Text("Held  : %d", slot->buffersHeld.size());
+		ImGui::Text("Loop  : %d", slot->loopBuffer.size());
+		ImGui::Text("Next  : %d", slot->next);
+		ImGui::Text("Play buffers: {\n\t%p(%dBytes), \n\t%p(%dBytes), \n\t%p(%dBytes)}",
+			slot->playBuffers[0].data(), slot->playBuffers[0].size(),
+			slot->playBuffers[1].data(), slot->playBuffers[1].size(),
+			slot->playBuffers[2].data(), slot->playBuffers[2].size());
 	}
 }
 
