@@ -985,3 +985,45 @@ void Player::ShowDebug() {
 		m_impl->commandQueue.push(std::move(cmd));
 	}
 }
+
+extern "C" {
+	PECS_DLL_SHARED size_t AudioPlayerGetVoiceHandle(PameECS::Audio::Player* player) {
+		return player->GetVoiceHandle();
+	}
+	PECS_DLL_SHARED void AudioPlayerReleaseVoiceHandle(PameECS::Audio::Player* player, size_t voice) {
+		player->ReleaseVoiceHandle(voice);
+	}
+	PECS_DLL_SHARED void AudioPlayerSubmitPCM(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::PCMEntry* entry) {
+		player->Submit(voice, entry);
+	}
+	PECS_DLL_SHARED void AudioPlayerSubmitFile(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::FileEntry* entry) {
+		player->Submit(voice, entry);
+	}
+	PECS_DLL_SHARED void AudioPlayerSubmitCallback(PameECS::Audio::Player* player, size_t voice, size_t(*callback)(void* userData, uint8_t* dest, size_t samples), const WAVEFORMATEXTENSIBLE& format, void* userData) {
+		player->Submit(voice, callback, format, userData);
+	}
+	PECS_DLL_SHARED void AudioPlayerPlay(PameECS::Audio::Player* player, size_t voiceHandle) {
+		player->Play(voiceHandle);
+	}
+	PECS_DLL_SHARED void AudioPlayerPause(PameECS::Audio::Player* player, size_t voiceHandle) {
+		player->Pause(voiceHandle);
+	}
+	PECS_DLL_SHARED void AudioPlayerStop(PameECS::Audio::Player* player, size_t voiceHandle) {
+		player->Stop(voiceHandle);
+	}
+	PECS_DLL_SHARED void AudioPlayerSetVolume(PameECS::Audio::Player* player, size_t voiceHandle, float volume) {
+		player->SetVolume(voiceHandle, volume);
+	}
+	PECS_DLL_SHARED size_t AudioPlayerGetQueuedVoiceCount(PameECS::Audio::Player* player, size_t voiceHandle) {
+		return player->GetQueuedVoiceCount(voiceHandle);
+	}
+	PECS_DLL_SHARED uint32_t AudioPlayerGetOutputChannels(PameECS::Audio::Player* player) {
+		return player->GetOutputChannels();
+	}
+	PECS_DLL_SHARED uint32_t AudioPlayerGetVoiceChannels(PameECS::Audio::Player* player, size_t voiceHandle) {
+		return player->GetVoiceChannels(voiceHandle);
+	}
+	PECS_DLL_SHARED void AudioPlayerSetOutputMatrix(PameECS::Audio::Player* player, size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, float* matrix) {
+		player->SetOutputMatrix(voiceHandle, sourceChannels, destChannels, matrix);
+	}
+}
