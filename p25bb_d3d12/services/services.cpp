@@ -6,6 +6,10 @@ extern "C" {
 	PECS_DLL_SHARED PameECS::Services::InputService* ServicesGetInputService(const PameECS::Services::Services* services) {
 		return services->GetInputService();
 	}
+
+	PECS_DLL_SHARED PameECS::Services::AudioService* ServicesGetAudioService(const PameECS::Services::Services* services) {
+		return services->GetAudioService();
+	}
 }
 
 struct Services::Impl {

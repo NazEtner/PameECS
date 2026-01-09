@@ -70,6 +70,7 @@ struct ECSHost::Impl {
 	std::vector<std::shared_ptr<System::Base>> systems;
 	std::vector<SyncTask> syncTasks;
 	std::mutex mutex;
+	std::shared_ptr<Services::Services> services;
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -168,6 +169,7 @@ void ECSHost::Update() {
 
 	System::Context context = {};
 	context.ecsHost = this;
+	context.services = m_impl->services.get();
 	GetEntityAliveFlags(context.entityAliveFlags, context.entityAliveFlagsCount);
 	GetEntityGenerations(context.entityGenerations, context.entityGenerationsCount);
 	m_impl->scheduler.Schedule(&context);

@@ -7,6 +7,7 @@
 #include <cassert>
 #include "../macros/dll.hpp"
 #include "types.hpp"
+#include "../services/services.hpp"
 
 namespace PameECS::ECS {
 	class ECSHost;
@@ -15,6 +16,7 @@ namespace PameECS::ECS {
 namespace PameECS::ECS::System {
 	struct Context {
 		ECSHost* ecsHost;
+		Services::Services* services;
 		const uint8_t* entityAliveFlags;
 		size_t entityAliveFlagsCount;
 		const uint64_t* entityGenerations;

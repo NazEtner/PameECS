@@ -4,6 +4,7 @@
 #include "../debug_tools/debug_gui_host.hpp"
 #include "system.hpp"
 #include "sync_task.hpp"
+#include "../services/services.hpp"
 #include <string>
 #include <typeindex>
 #include <vector>
