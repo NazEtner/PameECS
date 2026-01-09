@@ -120,7 +120,8 @@ namespace PameECS::Graphics {
 			}
 
 			if (!m_is_recovery_pending) {
-				m_logger->info("Recovery Step 1: Releasing all D3D12 resources to clear LUID singleton.");
+				m_logger->info("Device reset requiested.");
+				m_logger->info("Releasing all D3D12 resources to clear LUID singleton.");
 
 				m_release(m_reset_flags);
 
@@ -130,21 +131,15 @@ namespace PameECS::Graphics {
 				return;
 			}
 			else {
-				m_logger->info("Recovery Step 2: Recreating DXGI Factory and D3D12 Device.");
+				m_logger->info("Recreating DXGI Factory and D3D12 Device.");
 
-				try {
-					m_initDXGIFactory(m_use_debug_layer, m_use_advanced_debug, m_reset_flags_pending);
-					m_initD3D12(m_reset_flags_pending);
+				m_initDXGIFactory(m_use_debug_layer, m_use_advanced_debug, m_reset_flags_pending);
+				m_initD3D12(m_reset_flags_pending);
 
-					m_is_device_recovered_on_previous_frame = true;
-					m_is_recovery_pending = false;
-					m_reset_flags = 0;
-					m_reset_flags_pending = 0;
-				}
-				catch (...) {
-					m_logger->error("Recovery Step 2 failed. Retrying in the next frame...");
-					throw;
-				}
+				m_is_device_recovered_on_previous_frame = true;
+				m_is_recovery_pending = false;
+				m_reset_flags = 0;
+				m_reset_flags_pending = 0;
 			}
 		}
 
