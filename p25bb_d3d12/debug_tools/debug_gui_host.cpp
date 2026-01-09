@@ -20,6 +20,7 @@ DebugGUIHost::~DebugGUIHost() {
 }
 
 void DebugGUIHost::Update() {
+	if (!m_context) return;
 	ImGui_ImplDX12_NewFrame();
 	ImGui_ImplWin32_NewFrame();
 	ImGui::NewFrame();
@@ -77,8 +78,12 @@ void DebugGUIHost::Update() {
 }
 
 void DebugGUIHost::SubmitRenderTask() {
-	if (m_renderer->IsDeviceRemovedOnPreviousFrame()) {
+	if (m_renderer->NeedReleaseResources()) {
 		m_finalize();
+		return;
+	}
+
+	if (m_renderer->IsDeviceRecoveredOnPreviousFrame()) {
 		m_initialize();
 		return;
 	}

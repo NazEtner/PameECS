@@ -17,6 +17,9 @@ Renderer::Renderer(
 
 	m_fence_event = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
+	m_use_debug_layer = useDebugLayer;
+	m_use_advanced_debug = useAdvancedDebug;
+
 	m_initDXGIFactory(useDebugLayer, useAdvancedDebug);
 	m_initD3D12(0);
 }
@@ -29,6 +32,7 @@ Renderer::~Renderer() {
 }
 
 bool Renderer::Render() {
+	if (m_is_recovery_pending) return false;
 	m_waitForGPU(m_current_frame_index);
 	const uint64_t completedFenceValue = m_fence->GetCompletedValue();
 	while (!m_pending_allocators.empty()) {
@@ -129,13 +133,10 @@ bool Renderer::Present() {
 
 	m_fence_values[m_current_frame_index] = currentFenceValue;
 
-	m_handleError(
-		m_command_queue->Signal(
-			m_fence.Get(),
-			currentFenceValue
-		),
-		"Failed to signal command queue fence."
-	);
+	if (FAILED(m_command_queue->Signal(
+		m_fence.Get(),
+		currentFenceValue
+	))) return false;
 
 	for (auto& allocator : m_allocator_to_sync) {
 		m_pending_allocators.push({ std::move(allocator), currentFenceValue });
@@ -154,13 +155,17 @@ bool Renderer::Present() {
 
 	m_current_frame_index = m_swap_chain->GetCurrentBackBufferIndex();
 
-	m_is_device_removed_on_previous_frame = false;
+	m_is_device_recovered_on_previous_frame = false;
 
 	return true;
 }
 
 void Renderer::Recovery() {
 	try {
+		if (m_is_recovery_pending) {
+			m_resetD3D12();
+			return;
+		}
 		if (m_command_lists.size() > std::numeric_limits<UINT>::max()) {
 			throw Exceptions::RendererError("Command lists overflow.");
 		}
@@ -236,7 +241,9 @@ void Renderer::m_transitionBackBufferToPresent(Microsoft::WRL::ComPtr<ID3D12Grap
 	commandList->Close();
 }
 
-void Renderer::m_initDXGIFactory(bool useDebugLayer, bool useAdvancedDebugLayer) {
+void Renderer::m_initDXGIFactory(bool useDebugLayer, bool useAdvancedDebugLayer, uint32_t flags) {
+	using RendererFlags::ResetFlags;
+	if ((flags & ResetFlags::NoReset) || (flags & ResetFlags::NoDeviceReset)) return;
 	bool debugDisallow = false;
 #ifndef _DEBUG
 	debugDisallow = true;
@@ -285,6 +292,13 @@ void Renderer::m_release(uint32_t flags) {
 	m_pretreatment_render_tasks = {};
 	m_render_tasks = {};
 	if (!(flags & ResetFlags::NoDeviceReset)) {
+		m_command_futures.clear();
+		m_allocator_to_sync.clear();
+		while (!m_pending_allocators.empty()) m_pending_allocators.pop();
+		for (auto& value : m_fence_values) {
+			value = 0;
+		}
+		m_fence_value = 0;
 		m_device = nullptr;
 		m_adapter = nullptr;
 		m_fence = nullptr;
@@ -320,13 +334,12 @@ void Renderer::m_waitForGPU() noexcept {
 	if (!m_fence_event) return;
 
 	const uint64_t waitForFenceValue = ++m_fence_value;
-	m_handleError(
-		m_command_queue->Signal(
-			m_fence.Get(),
-			waitForFenceValue
-		),
-		"Failed to signal command queue fence."
-	);
+
+	if (FAILED(m_command_queue->Signal(
+		m_fence.Get(),
+		waitForFenceValue
+	))) return;
+
 	if (m_fence->GetCompletedValue() < waitForFenceValue) {
 		m_handleError(m_fence->SetEventOnCompletion(waitForFenceValue, m_fence_event), "Failed to set waiting event.");
 		WaitForSingleObject(m_fence_event, INFINITE);

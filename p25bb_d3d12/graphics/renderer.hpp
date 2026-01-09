@@ -69,7 +69,8 @@ namespace PameECS::Graphics {
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetHandle() { return GetRenderTargetHandles()[GetCurrentBufferIndex()]; }
 		const std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>>& GetBackBuffers() { return m_back_buffers; }
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBuffer() { return GetBackBuffers()[GetCurrentBufferIndex()]; }
-		bool IsDeviceRemovedOnPreviousFrame() const { return m_is_device_removed_on_previous_frame; }
+		bool NeedReleaseResources() const { return m_is_recovery_pending; }
+		bool IsDeviceRecoveredOnPreviousFrame() const { return m_is_device_recovered_on_previous_frame; }
 		D3D12_VIEWPORT GetViewport() const { return m_viewport; }
 		D3D12_RECT GetScissorRect() const { return m_scissor_rect; }
 		void SetProtectedContent(bool enabled) noexcept { m_protected_content = enabled; }
@@ -96,7 +97,7 @@ namespace PameECS::Graphics {
 		[[nodiscard]]
 		HRESULT m_enableSynchronizedCommandQueueValidation() noexcept;
 
-		void m_initDXGIFactory(bool useDebugLayer, bool useAdvancedDebugLayer);
+		void m_initDXGIFactory(bool useDebugLayer, bool useAdvancedDebugLayer, uint32_t flags = 0);
 
 		void m_initD3D12(uint32_t flags);
 		// End of initialize functions
@@ -108,12 +109,43 @@ namespace PameECS::Graphics {
 		
 		void m_resetD3D12() {
 			using RendererFlags::ResetFlags;
-			m_release(m_reset_flags);
-			m_initD3D12(m_reset_flags);
-			if (!(m_reset_flags & ResetFlags::NoDeviceReset)) {
-				m_is_device_removed_on_previous_frame = true;
+
+			// デバイスリセットが必要ない場合、またはフラグでスキップされている場合は従来通り
+			if (m_reset_flags & ResetFlags::NoDeviceReset) {
+				m_release(m_reset_flags);
+				m_initDXGIFactory(m_use_debug_layer, m_use_advanced_debug, m_reset_flags);
+				m_initD3D12(m_reset_flags);
+				m_reset_flags = 0;
+				return;
 			}
-			m_reset_flags = 0;
+
+			if (!m_is_recovery_pending) {
+				m_logger->info("Recovery Step 1: Releasing all D3D12 resources to clear LUID singleton.");
+
+				m_release(m_reset_flags);
+
+				m_is_recovery_pending = true;
+				m_reset_flags_pending = m_reset_flags;
+
+				return;
+			}
+			else {
+				m_logger->info("Recovery Step 2: Recreating DXGI Factory and D3D12 Device.");
+
+				try {
+					m_initDXGIFactory(m_use_debug_layer, m_use_advanced_debug, m_reset_flags_pending);
+					m_initD3D12(m_reset_flags_pending);
+
+					m_is_device_recovered_on_previous_frame = true;
+					m_is_recovery_pending = false;
+					m_reset_flags = 0;
+					m_reset_flags_pending = 0;
+				}
+				catch (...) {
+					m_logger->error("Recovery Step 2 failed. Retrying in the next frame...");
+					throw;
+				}
+			}
 		}
 
 		void m_handleError(HRESULT result, const std::string& message) {
@@ -164,9 +196,14 @@ namespace PameECS::Graphics {
 		std::shared_ptr<PameECS::Graphics::Window> m_window;
 
 		uint32_t m_reset_flags = 0;
-		bool m_is_device_removed_on_previous_frame = false;
+		uint32_t m_reset_flags_pending = 0;
+		bool m_use_debug_layer = false;
+		bool m_use_advanced_debug = false;
+		bool m_is_device_recovered_on_previous_frame = false;
+		bool m_is_recovery_pending = false;
 		bool m_reset = false;
 		bool m_protected_content = false;
+		bool m_need_release_resources = false;
 
 		HANDLE m_fence_event = nullptr;
 		uint64_t m_fence_value = 0;
