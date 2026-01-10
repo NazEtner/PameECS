@@ -463,6 +463,8 @@
     <ClCompile Include="..\libraries\imgui\imgui_widgets.cpp" />
     <ClCompile Include="abi\check.cpp" />
     <ClCompile Include="application.cpp" />
+    <ClCompile Include="audio\callbacks\long_flac.cpp" />
+    <ClCompile Include="audio\callbacks\long_wav.cpp" />
     <ClCompile Include="audio\player.cpp" />
     <ClCompile Include="debug_tools\debug_gui_host.cpp" />
     <ClCompile Include="dllmain.cpp" />
@@ -490,6 +492,9 @@
   <ItemGroup>
     <ClInclude Include="abi\check.hpp" />
     <ClInclude Include="application.hpp" />
+    <ClInclude Include="audio\callback.hpp" />
+    <ClInclude Include="audio\callbacks\long_flac.hpp" />
+    <ClInclude Include="audio\callbacks\long_wav.hpp" />
     <ClInclude Include="audio\file_entry.hpp" />
     <ClInclude Include="audio\pcm_entry.hpp" />
     <ClInclude Include="audio\player.hpp" />

@@ -100,6 +100,12 @@
     <Filter Include="ソース ファイル\audio">
       <UniqueIdentifier>{af2d0493-362e-439a-a773-e58d92713f98}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\audio\callbacks">
+      <UniqueIdentifier>{7bf44f07-8ac3-4798-8514-9c13e97b245f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\audio\callbacks">
+      <UniqueIdentifier>{f2ba717b-fc7e-4f0f-9f6f-bb3d85ad956b}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -188,6 +194,12 @@
     </ClCompile>
     <ClCompile Include="services\audio_service.cpp">
       <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\long_flac.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\long_wav.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -385,6 +397,15 @@
     </ClInclude>
     <ClInclude Include="services\audio_service.hpp">
       <Filter>ヘッダー ファイル\services</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\long_flac.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callback.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\long_wav.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

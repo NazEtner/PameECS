@@ -2,6 +2,8 @@
 #include "../exceptions/audio_error.hpp"
 #include "../helpers/container.hpp"
 #include "../file/file.hpp"
+#include "callbacks/long_flac.hpp"
+#include "callbacks/long_wav.hpp"
 #include <mutex>
 #include <queue>
 #include <vector>
@@ -9,12 +11,11 @@
 #include <format>
 #include <thread>
 #include <chrono>
+#include <filesystem>
 #include <xaudio2.h>
 #include <wrl/client.h>
 #include <dr_libs/dr_wav.h>
 #include <dr_libs/dr_flac.h>
-#include <ks.h>
-#include <ksmedia.h>
 #include <imgui/imgui.h>
 
 namespace {
@@ -331,6 +332,7 @@ struct Player::Impl {
 			pending = {};
 			loopBuffer = {};
 			samplesPlayed = 0;
+			callbacks.clear();
 		}
 		// ボイスが初期化済みかどうかの確認はソースボイスが有効なポインタであるかで行う
 		IXAudio2SourceVoice* voice = nullptr;
@@ -358,12 +360,13 @@ struct Player::Impl {
 
 		static constexpr size_t NumBuffers = 3;
 		std::array<std::vector<uint8_t>, NumBuffers> playBuffers;
+		std::vector<std::unique_ptr<Callback, void(*)(Callback*)>> callbacks;
 		size_t next = 0;
 	};
 	// 内部型定義 END ----------------------------------------------------------
 
 	static constexpr size_t audioChunkSamples = 32768; // 単位はサンプル 
-	std::mutex commandMutex;
+	std::mutex mutex;
 	std::queue<std::unique_ptr<Commands::Command>> commandQueue;
 
 	std::thread worker;
@@ -382,7 +385,7 @@ struct Player::Impl {
 		while (running) {
 			std::queue<std::unique_ptr<Commands::Command>> commandSnapshot = {};
 			{
-				std::lock_guard<std::mutex> lock(commandMutex);
+				std::lock_guard<std::mutex> lock(mutex);
 				std::swap(commandQueue, commandSnapshot);
 			}
 			while (!commandSnapshot.empty()) {
@@ -397,7 +400,12 @@ struct Player::Impl {
 	}
 
 	void ProcessSlot(VoiceSlot* slot) {
-		if (!slot || !slot->active) return;
+		if (!slot) return;
+		{
+			std::lock_guard<std::mutex> lock(mutex);
+			std::erase_if(slot->callbacks, [](auto& elm) {return elm->IsExpired(); });
+		}
+		if (!slot->active) return;
 		XAUDIO2_VOICE_STATE state = {};
 		if (slot->voice) {
 			slot->voice->GetState(&state);
@@ -504,7 +512,7 @@ struct Player::Impl {
 	void ProcessCommand(Commands::Command* command) {
 		if (!command) return;
 
-		std::lock_guard<std::mutex> lock(commandMutex);
+		std::lock_guard<std::mutex> lock(mutex);
 
 		auto& slot = GetSlotRef(command->voice);
 
@@ -642,7 +650,7 @@ Player::~Player() {
 }
 
 size_t Player::GetVoiceHandle() {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 
 	size_t handle;
 	if (!m_impl->emptySlots.empty()) {
@@ -664,7 +672,7 @@ size_t Player::GetVoiceHandle() {
 }
 
 void Player::ReleaseVoiceHandle(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 
 	// コマンドを発行
 	auto cmd = std::make_unique<Commands::ReleaseVoice>();
@@ -678,7 +686,7 @@ void Player::ReleaseVoiceHandle(size_t voiceHandle) {
 
 void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 	if (!entry) return;
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 
 	auto cmd = std::make_unique<Commands::SubmitPCM>();
 	cmd->type = Commands::CommandType::SubmitPCM;
@@ -692,21 +700,39 @@ void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 	m_impl->commandQueue.push(std::move(cmd));
 }
 
-void Player::Submit(size_t voiceHandle, const FileEntry* entry) {
+void Player::Submit(size_t voiceHandle, const FileEntry* entry, bool useCallback) {
 	if (!entry) return;
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::error_code ec;
+	auto filename = std::string(entry->fileName, entry->nameSize);
+	if (useCallback && std::filesystem::is_regular_file(filename, ec)) {
+		std::optional<size_t> loopPos;
+		if (entry->loopEnable) loopPos = entry->loopStart;
+		switch (entry->codec) {
+		case FileEntry::Codec::FLAC:
+			Submit<Callbacks::LongFlac>(voiceHandle, filename, loopPos);
+			break;
+		case FileEntry::Codec::WAV:
+			Submit<Callbacks::LongWav>(voiceHandle, filename, loopPos);
+			break;
+		default: break;
+		}
+	}
+	else {
+		std::lock_guard<std::mutex> lock(m_impl->mutex);
 
-	auto cmd = std::make_unique<Commands::SubmitFile>();
-	cmd->type = Commands::CommandType::SubmitFile;
-	cmd->voice = voiceHandle;
-	cmd->file = *entry;
-	cmd->fileName = std::string(entry->fileName, entry->nameSize);
+		auto cmd = std::make_unique<Commands::SubmitFile>();
+		cmd->type = Commands::CommandType::SubmitFile;
+		cmd->voice = voiceHandle;
+		cmd->file = *entry;
+		cmd->fileName = filename;
 
-	m_impl->commandQueue.push(std::move(cmd));
+		m_impl->commandQueue.push(std::move(cmd));
+	}
 }
 
 void Player::Submit(size_t voiceHandle, size_t(*callback)(void*, uint8_t*, size_t), const WAVEFORMATEXTENSIBLE& format, void* userData) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	if (!callback) return;
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 
 	auto cmd = std::make_unique<Commands::SubmitCallback>();
 	cmd->type = Commands::CommandType::SubmitCallback;
@@ -718,8 +744,21 @@ void Player::Submit(size_t voiceHandle, size_t(*callback)(void*, uint8_t*, size_
 	m_impl->commandQueue.push(std::move(cmd));
 }
 
+void Player::Submit(size_t voiceHandle, Callback* callback, void(*deleter)(Callback*)) {
+	if (!callback) return;
+	{
+		std::lock_guard<std::mutex> lock(m_impl->mutex);
+		if (voiceHandle >= m_impl->slots.size() || !m_impl->slots[voiceHandle]) return;
+		m_impl->slots[voiceHandle]->callbacks.emplace_back(
+			std::move(std::unique_ptr<Callback, void(*)(Callback*)>(callback, deleter))
+		);
+	}
+
+	Submit(voiceHandle, callback->GetCallback(), callback->GetFormat(), callback);
+}
+
 void Player::Play(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	auto cmd = std::make_unique<Commands::Play>();
 	cmd->type = Commands::CommandType::Play;
 	cmd->voice = voiceHandle;
@@ -727,7 +766,7 @@ void Player::Play(size_t voiceHandle) {
 }
 
 void Player::Pause(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	auto cmd = std::make_unique<Commands::Pause>();
 	cmd->type = Commands::CommandType::Pause;
 	cmd->voice = voiceHandle;
@@ -735,7 +774,7 @@ void Player::Pause(size_t voiceHandle) {
 }
 
 void Player::Stop(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	auto cmd = std::make_unique<Commands::Stop>();
 	cmd->type = Commands::CommandType::Stop;
 	cmd->voice = voiceHandle;
@@ -743,7 +782,7 @@ void Player::Stop(size_t voiceHandle) {
 }
 
 void Player::SetVolume(size_t voiceHandle, float volume) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	auto cmd = std::make_unique<Commands::SetVolume>();
 	cmd->type = Commands::CommandType::SetVolume;
 	cmd->voice = voiceHandle;
@@ -752,7 +791,7 @@ void Player::SetVolume(size_t voiceHandle, float volume) {
 }
 
 size_t Player::GetQueuedVoiceCount(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	if (voiceHandle >= m_impl->slots.size() || !m_impl->slots[voiceHandle]) return 0;
 	return m_impl->slots[voiceHandle]->pending.size();
 }
@@ -765,14 +804,14 @@ uint32_t Player::GetOutputChannels() {
 }
 
 uint32_t Player::GetVoiceChannels(size_t voiceHandle) {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	if (voiceHandle >= m_impl->slots.size() || !m_impl->slots[voiceHandle]) return 0;
 	return m_impl->slots[voiceHandle]->format.Format.nChannels;
 }
 
 void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32_t destChannels, float* matrix) {
 	if (!matrix) return;
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 
 	auto cmd = std::make_unique<Commands::SetOutputMatrix>();
 	cmd->type = Commands::CommandType::SetOutputMatrix;
@@ -788,28 +827,14 @@ void Player::SetOutputMatrix(size_t voiceHandle, uint32_t sourceChannels, uint32
 }
 
 void Player::ShowDebug() {
-	std::lock_guard<std::mutex> lock(m_impl->commandMutex);
-
 	ImGui::Text("Audio Player Debugger");
 
 	if (ImGui::Button("Acquire New Voice Handle")) {
 		size_t index;
-		if (!m_impl->emptySlots.empty()) {
-			index = m_impl->emptySlots.front();
-			m_impl->emptySlots.pop();
-		}
-		else {
-			index = m_impl->nextSlot++;
-		}
-
-		auto cmd = std::make_unique<Commands::AcquireVoice>();
-		cmd->type = Commands::CommandType::AcquireVoice;
-		cmd->voice = index;
-		m_impl->commandQueue.push(std::move(cmd));
+		index = GetVoiceHandle();
 	}
 
 	ImGui::Separator();
-
 	// --- ボイス一覧 ---
 	if (ImGui::BeginTable("SlotsTable", 7, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Resizable)) {
 		ImGui::TableSetupColumn("ID", ImGuiTableColumnFlags_WidthFixed, 30.0f);
@@ -819,62 +844,64 @@ void Player::ShowDebug() {
 		ImGui::TableSetupColumn("Volume");
 		ImGui::TableSetupColumn("Actions", ImGuiTableColumnFlags_WidthFixed, 150.0f);
 		ImGui::TableHeadersRow();
+		{
+			std::lock_guard<std::mutex> lock(m_impl->mutex);
+			for (size_t i = 0; i < m_impl->slots.size(); ++i) {
+				auto& slot = m_impl->slots[i];
+				if (!slot) continue;
 
-		for (size_t i = 0; i < m_impl->slots.size(); ++i) {
-			auto& slot = m_impl->slots[i];
-			if (!slot) continue;
+				ImGui::TableNextRow();
+				ImGui::PushID(static_cast<int>(i));
 
-			ImGui::TableNextRow();
-			ImGui::PushID(static_cast<int>(i));
+				// ID & Status & Queue
+				ImGui::TableSetColumnIndex(0); ImGui::Text("%zu", i);
+				ImGui::TableSetColumnIndex(1); ImGui::Text(slot->active ? "PLAY" : "STOP");
+				ImGui::TableSetColumnIndex(2); ImGui::Text("Q:%zu H:%zu", slot->pending.size(), slot->buffersHeld.size());
 
-			// ID & Status & Queue
-			ImGui::TableSetColumnIndex(0); ImGui::Text("%zu", i);
-			ImGui::TableSetColumnIndex(1); ImGui::Text(slot->active ? "PLAY" : "STOP");
-			ImGui::TableSetColumnIndex(2); ImGui::Text("Q:%zu H:%zu", slot->pending.size(), slot->buffersHeld.size());
+				// Flags (Loop / Hold Buffer)
+				ImGui::TableSetColumnIndex(3);
+				ImGui::Text("%s %s", slot->loop ? "[L]" : "[-]", slot->holdBuffer ? "[H]" : "[-]");
+				if (ImGui::IsItemHovered()) {
+					ImGui::SetTooltip("L: Loop enabled\nH: Buffer holding enabled");
+				}
 
-			// Flags (Loop / Hold Buffer)
-			ImGui::TableSetColumnIndex(3);
-			ImGui::Text("%s %s", slot->loop ? "[L]" : "[-]", slot->holdBuffer ? "[H]" : "[-]");
-			if (ImGui::IsItemHovered()) {
-				ImGui::SetTooltip("L: Loop enabled\nH: Buffer holding enabled");
+				// Volume
+				ImGui::TableSetColumnIndex(4);
+				ImGui::SetNextItemWidth(-FLT_MIN);
+				if (ImGui::SliderFloat("##v", &slot->volume, 0.0f, 1.0f)) {
+					auto cmd = std::make_unique<Commands::SetVolume>();
+					cmd->type = Commands::CommandType::SetVolume;
+					cmd->voice = i;
+					cmd->volume = slot->volume;
+					m_impl->commandQueue.push(std::move(cmd));
+				}
+
+				// Actions (Play/Stop/Release)
+				ImGui::TableSetColumnIndex(5);
+				if (ImGui::Button("Play")) {
+					auto cmd = std::make_unique<Commands::Play>();
+					cmd->type = Commands::CommandType::Play;
+					cmd->voice = i;
+					m_impl->commandQueue.push(std::move(cmd));
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Stop")) {
+					auto cmd = std::make_unique<Commands::Stop>();
+					cmd->type = Commands::CommandType::Stop;
+					cmd->voice = i;
+					m_impl->commandQueue.push(std::move(cmd));
+				}
+				ImGui::SameLine();
+				if (ImGui::Button("Rel")) {
+					auto cmd = std::make_unique<Commands::ReleaseVoice>();
+					cmd->type = Commands::CommandType::ReleaseVoice;
+					cmd->voice = i;
+					m_impl->commandQueue.push(std::move(cmd));
+					m_impl->emptySlots.push(i);
+				}
+
+				ImGui::PopID();
 			}
-
-			// Volume
-			ImGui::TableSetColumnIndex(4);
-			ImGui::SetNextItemWidth(-FLT_MIN);
-			if (ImGui::SliderFloat("##v", &slot->volume, 0.0f, 1.0f)) {
-				auto cmd = std::make_unique<Commands::SetVolume>();
-				cmd->type = Commands::CommandType::SetVolume;
-				cmd->voice = i;
-				cmd->volume = slot->volume;
-				m_impl->commandQueue.push(std::move(cmd));
-			}
-
-			// Actions (Play/Stop/Release)
-			ImGui::TableSetColumnIndex(5);
-			if (ImGui::Button("Play")) {
-				auto cmd = std::make_unique<Commands::Play>();
-				cmd->type = Commands::CommandType::Play;
-				cmd->voice = i;
-				m_impl->commandQueue.push(std::move(cmd));
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Stop")) {
-				auto cmd = std::make_unique<Commands::Stop>();
-				cmd->type = Commands::CommandType::Stop;
-				cmd->voice = i;
-				m_impl->commandQueue.push(std::move(cmd));
-			}
-			ImGui::SameLine();
-			if (ImGui::Button("Rel")) {
-				auto cmd = std::make_unique<Commands::ReleaseVoice>();
-				cmd->type = Commands::CommandType::ReleaseVoice;
-				cmd->voice = i;
-				m_impl->commandQueue.push(std::move(cmd));
-				m_impl->emptySlots.push(i);
-			}
-
-			ImGui::PopID();
 		}
 		ImGui::EndTable();
 	}
@@ -888,51 +915,43 @@ void Player::ShowDebug() {
 	static bool loopEnable = false;
 	static int loopStart = 0;
 	static bool holdBuffer = false;
+	static bool useCallback = true;
 
 	ImGui::InputInt("Target Voice ID", &targetId);
 	ImGui::InputText("File Path", path, 128);
 	ImGui::Checkbox("Loop Enable", &loopEnable);
 	ImGui::SameLine();
 	ImGui::Checkbox("Hold Buffer", &holdBuffer);
+	ImGui::Checkbox("Use callback", &useCallback);
 	if (loopEnable) {
 		ImGui::InputInt("Loop Start (samples)", &loopStart);
 	}
 
 	if (ImGui::Button("Submit WAV")) {
-		auto cmd = std::make_unique<Commands::SubmitFile>();
-		cmd->type = Commands::CommandType::SubmitFile;
-		cmd->voice = static_cast<size_t>(targetId);
-		cmd->file.codec = FileEntry::Codec::WAV;
-		cmd->file.loopEnable = loopEnable;
-		cmd->file.loopStart = static_cast<size_t>(loopStart);
-		cmd->file.holdBuffer = holdBuffer;
-		cmd->fileName = path;
-		m_impl->commandQueue.push(std::move(cmd));
+		FileEntry entry;
+		entry.codec = FileEntry::Codec::WAV;
+		entry.loopEnable = loopEnable;
+		entry.loopStart = static_cast<size_t>(loopStart);
+		entry.holdBuffer = holdBuffer;
+		entry.fileName = path;
+		entry.nameSize = strnlen_s(path, sizeof(path));
+		Submit(targetId, &entry, useCallback);
 	}
 	ImGui::SameLine();
 	if (ImGui::Button("Submit FLAC")) {
-		auto cmd = std::make_unique<Commands::SubmitFile>();
-		cmd->type = Commands::CommandType::SubmitFile;
-		cmd->voice = static_cast<size_t>(targetId);
-		cmd->file.codec = FileEntry::Codec::FLAC;
-		cmd->file.loopEnable = loopEnable;
-		cmd->file.loopStart = static_cast<size_t>(loopStart);
-		cmd->file.holdBuffer = holdBuffer;
-		cmd->fileName = path;
-		m_impl->commandQueue.push(std::move(cmd));
+		FileEntry entry;
+		entry.codec = FileEntry::Codec::FLAC;
+		entry.loopEnable = loopEnable;
+		entry.loopStart = static_cast<size_t>(loopStart);
+		entry.holdBuffer = holdBuffer;
+		entry.fileName = path;
+		entry.nameSize = strnlen_s(path, sizeof(path));
+		Submit(targetId, &entry, useCallback);
 	}
 
 	// --- コールバック再生テスト ---
 	if (ImGui::Button("Submit Sine Wave (Callback)")) {
-		auto cmd = std::make_unique<Commands::SubmitCallback>();
-		cmd->type = Commands::CommandType::SubmitCallback;
-		cmd->voice = static_cast<size_t>(targetId);
-
-		// 44.1kHz Stereo Float
-		cmd->format = FillFormat(2, 32, 44100, true);
-
-		// デバッグ用の簡易正弦波生成コールバック
-		cmd->callback = [](void* userData, uint8_t* dest, size_t samples) -> size_t {
+		auto callback = [](void* userData, uint8_t* dest, size_t samples) -> size_t {
 			static float phase = 0.0f;
 			float* fDest = reinterpret_cast<float*>(dest);
 			for (size_t i = 0; i < samples; ++i) {
@@ -943,48 +962,12 @@ void Player::ShowDebug() {
 				if (phase > 2.0f * 3.14159f) phase -= 2.0f * 3.14159f;
 			}
 			return samples;
-			};
-		cmd->userData = nullptr;
-		m_impl->commandQueue.push(std::move(cmd));
+		};
+
+		Submit(targetId, callback, FillFormat(2, 32, 44100, true), nullptr);
 	}
-	if (ImGui::Button("Submit FM Synthesis (Callback)")) {
-		auto cmd = std::make_unique<Commands::SubmitCallback>();
-		cmd->type = Commands::CommandType::SubmitCallback;
-		cmd->voice = static_cast<size_t>(targetId);
 
-		cmd->format = FillFormat(2, 32, 44100, true);
-
-		cmd->callback = [](void* userData, uint8_t* dest, size_t samples) -> size_t {
-			static float time = 0.0f;
-			float* fDest = reinterpret_cast<float*>(dest);
-			const float sampleRate = 44100.0f;
-
-			// FMパラメータ
-			const float carrierFreq = 440.0f;    // 基軸となる音
-			const float modRatio = 3.5f;       // モジュレータの比率（非整数だと金属音っぽくなる）
-
-			for (size_t i = 0; i < samples; ++i) {
-				// 時間経過で変調の深さ（Feedback/Index）を変化させて「ミョン」という音にする
-				float modIndex = (sinf(time * 0.5f) + 1.0f) * 5.0f;
-
-				// モジュレータ (Operator 2)
-				float modulator = sinf(time * 2.0f * 3.14159f * carrierFreq * modRatio);
-
-				// キャリア (Operator 1) - モジュレータによって周波数が揺らされる
-				float carrier = sinf(time * 2.0f * 3.14159f * carrierFreq + (modulator * modIndex));
-
-				float output = carrier * 0.2f;
-
-				fDest[i * 2 + 0] = output; // L
-				fDest[i * 2 + 1] = output; // R
-
-				time += 1.0f / sampleRate;
-			}
-			return samples;
-			};
-
-		m_impl->commandQueue.push(std::move(cmd));
-	}
+	std::lock_guard<std::mutex> lock(m_impl->mutex);
 	ImGui::Text("Slot debug");
 	static uint32_t targetHandle = 0;
 	ImGui::InputInt("Target Voice ID##1", reinterpret_cast<int*>(&targetHandle));
@@ -1014,11 +997,14 @@ extern "C" {
 	PECS_DLL_SHARED void AudioPlayerSubmitPCM(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::PCMEntry* entry) {
 		player->Submit(voice, entry);
 	}
-	PECS_DLL_SHARED void AudioPlayerSubmitFile(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::FileEntry* entry) {
-		player->Submit(voice, entry);
+	PECS_DLL_SHARED void AudioPlayerSubmitFile(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::FileEntry* entry, bool useCallback) {
+		player->Submit(voice, entry, useCallback);
 	}
 	PECS_DLL_SHARED void AudioPlayerSubmitCallback(PameECS::Audio::Player* player, size_t voice, size_t(*callback)(void* userData, uint8_t* dest, size_t samples), const WAVEFORMATEXTENSIBLE& format, void* userData) {
 		player->Submit(voice, callback, format, userData);
+	}
+	PECS_DLL_SHARED void AudioPlayerSubmitCallbackObject(PameECS::Audio::Player* player, size_t voiceHandle, PameECS::Audio::Callback* callback, void(*deleter)(PameECS::Audio::Callback*)) {
+		player->Submit(voiceHandle, callback, deleter);
 	}
 	PECS_DLL_SHARED void AudioPlayerPlay(PameECS::Audio::Player* player, size_t voiceHandle) {
 		player->Play(voiceHandle);
