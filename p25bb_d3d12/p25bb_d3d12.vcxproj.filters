@@ -407,5 +407,11 @@
     <ClInclude Include="audio\callbacks\long_wav.hpp">
       <Filter>ヘッダー ファイル\audio\callbacks</Filter>
     </ClInclude>
+    <ClInclude Include="graphics\adapter.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\adapter_task.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

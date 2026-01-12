@@ -48,7 +48,7 @@ namespace PameECS::Audio {
 			AudioPlayerSubmitCallbackObject(
 				this,
 				voiceHandle,
-				new T(args...),
+				new T(std::forward<Args>(args)...),
 				[](Callback* cb) -> void { delete cb; }
 			);
 		}
