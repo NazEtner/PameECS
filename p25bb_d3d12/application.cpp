@@ -84,8 +84,7 @@ void Application::Update() {
 }
 
 void Application::SubmitRenderTask() {
-	// ECSのレンダリングタスクはデバッグGUIより前
-	// m_ecs_host->SubmitRenderTask();
+	// ECSのレンダリングタスクはUpdate内で登録されるので、ここでは何もしない
 	m_debug_gui_host->SubmitRenderTask();
 }
 

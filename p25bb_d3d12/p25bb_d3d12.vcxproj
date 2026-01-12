@@ -474,6 +474,7 @@
     <ClCompile Include="file\archive\archive_creator.cpp" />
     <ClCompile Include="file\archive\archive_loader.cpp" />
     <ClCompile Include="file\file_implementation.cpp" />
+    <ClCompile Include="graphics\adapter.cpp" />
     <ClCompile Include="graphics\command_list_pool.cpp" />
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />

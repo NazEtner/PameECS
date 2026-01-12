@@ -29,7 +29,7 @@ extern "C" {
 namespace PameECS::Graphics {
 	class Adapter {
 	public:
-		Adapter();
+		Adapter(Renderer* renderer);
 		~Adapter();
 
 		bool IsUsedTaskId(uint32_t id) const;
@@ -65,7 +65,7 @@ namespace PameECS::Graphics {
 		}
 
 		void EnqueueCommand(uint32_t id, void* command, size_t commandSize);
-		void Render(Renderer* renderer);
+		void Flush();
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

@@ -201,6 +201,9 @@
     <ClCompile Include="audio\callbacks\long_wav.cpp">
       <Filter>ソース ファイル\audio\callbacks</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\adapter.cpp">
+      <Filter>ソース ファイル\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

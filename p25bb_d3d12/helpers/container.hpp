@@ -2,7 +2,7 @@
 
 namespace PameECS::Helpers::Container {
 	template<typename T, typename U>
-	void ResizePow2(T& container, size_t minSize, U init) {
+	void ResizePow2(T& container, size_t minSize, U&& init) {
 		auto size = container.size();
 		size = size == 0 ? 1 : size;
 		while (size < minSize) {
