@@ -65,7 +65,7 @@ namespace PameECS::Graphics {
 		}
 
 		void EnqueueCommand(uint32_t id, void* command, size_t commandSize);
-		void Flush();
+		void ExecuteLastTask();
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

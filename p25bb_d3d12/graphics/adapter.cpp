@@ -114,7 +114,7 @@ void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
 }
 
 // これは絶対に競合しないはず
-void Adapter::Flush() {
+void Adapter::ExecuteLastTask() {
 	if (m_impl->currentTask) {
 		m_impl->Submit(m_impl->currentTask);
 		m_impl->currentTask = nullptr;

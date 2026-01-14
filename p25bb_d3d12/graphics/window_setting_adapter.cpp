@@ -1,9 +1,9 @@
-#include "window_setting_adaptor.hpp"
+#include "window_setting_adapter.hpp"
 
-using PameECS::Graphics::WindowSettingAdaptor;
+using PameECS::Graphics::WindowSettingAdapter;
 using PameECS::Graphics::Window;
 
-WindowSettingAdaptor::WindowSettingAdaptor() {
+WindowSettingAdapter::WindowSettingAdapter() {
 	if (std::filesystem::exists(m_setting_file_path)) {
 		std::ifstream ifs(m_setting_file_path);
 		nlohmann::json json;
@@ -12,7 +12,7 @@ WindowSettingAdaptor::WindowSettingAdaptor() {
 	}
 }
 
-Window::Properties WindowSettingAdaptor::CreateWindowProperty(const Configs::WindowConfig& config) {
+Window::Properties WindowSettingAdapter::CreateWindowProperty(const Configs::WindowConfig& config) {
 	Window::Properties ret;
 	m_config = config;
 	{
@@ -46,7 +46,7 @@ Window::Properties WindowSettingAdaptor::CreateWindowProperty(const Configs::Win
 	return ret;
 }
 
-void WindowSettingAdaptor::SetStyle(const std::string& style) {
+void WindowSettingAdapter::SetStyle(const std::string& style) {
 	Window::Properties properties;
 	auto it = m_config.windowStyles.find(style);
 	if (it != m_config.windowStyles.end()) {
@@ -64,7 +64,7 @@ void WindowSettingAdaptor::SetStyle(const std::string& style) {
 	m_window->SetProperties(properties);
 }
 
-void WindowSettingAdaptor::SetWidth(const uint32_t width) {
+void WindowSettingAdapter::SetWidth(const uint32_t width) {
 	Window::Properties properties;
 	properties.width = width;
 	m_setting.width = width;
@@ -74,7 +74,7 @@ void WindowSettingAdaptor::SetWidth(const uint32_t width) {
 	m_window->SetProperties(properties);
 }
 
-void WindowSettingAdaptor::SetHeight(const uint32_t height) {
+void WindowSettingAdapter::SetHeight(const uint32_t height) {
 	Window::Properties properties;
 	properties.height = height;
 	m_setting.height = height;
@@ -84,14 +84,14 @@ void WindowSettingAdaptor::SetHeight(const uint32_t height) {
 	m_window->SetProperties(properties);
 }
 
-void WindowSettingAdaptor::SetAltEnterSwitchables(const std::vector<std::string>& switchables) {
+void WindowSettingAdapter::SetAltEnterSwitchables(const std::vector<std::string>& switchables) {
 	Window::Properties properties;
 	properties.altEnterSwitchables = m_convertStyleNamesToStyles(switchables);
 	assert(m_window);
 	m_window->SetProperties(properties);
 }
 
-std::pair<uint32_t, uint32_t> WindowSettingAdaptor::m_calculateWindowSize(const std::string& style, const WindowSetting& setting) const {
+std::pair<uint32_t, uint32_t> WindowSettingAdapter::m_calculateWindowSize(const std::string& style, const WindowSetting& setting) const {
 	uint32_t width = 0;
 	uint32_t height = 0;
 

@@ -9,7 +9,7 @@
 #include <fstream>
 
 namespace PameECS::Graphics {
-	class WindowSettingAdaptor final {
+	class WindowSettingAdapter final {
 		struct WindowSetting : JSON::JSONObject<WindowSetting> {
 			std::string windowStyle = "_defaultWindowStyleName";
 			uint32_t width = 0xFFFFFFFF;
@@ -22,7 +22,7 @@ namespace PameECS::Graphics {
 			}
 		};
 	public:
-		WindowSettingAdaptor();
+		WindowSettingAdapter();
 		// プロシージャは呼び出し側で設定すること
 		Window::Properties CreateWindowProperty(const Configs::WindowConfig& config);
 		void SetWindow(std::shared_ptr<Window>& window) { // 引数にconstをつけられそうだけど、意図と合わないからつけない

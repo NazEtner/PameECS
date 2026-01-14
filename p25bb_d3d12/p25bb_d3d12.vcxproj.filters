@@ -156,7 +156,7 @@
     <ClCompile Include="file\file_implementation.cpp">
       <Filter>ソース ファイル\file</Filter>
     </ClCompile>
-    <ClCompile Include="graphics\window_setting_adaptor.cpp">
+    <ClCompile Include="graphics\window_setting_adapter.cpp">
       <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
     <ClCompile Include="ecs\ecs_host.cpp">
@@ -326,7 +326,7 @@
     <ClInclude Include="configs\renderer_config.hpp">
       <Filter>ヘッダー ファイル\configs</Filter>
     </ClInclude>
-    <ClInclude Include="graphics\window_setting_adaptor.hpp">
+    <ClInclude Include="graphics\window_setting_adapter.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
     </ClInclude>
     <ClInclude Include="ecs\types.hpp">

@@ -17,7 +17,7 @@
 #include "configs/renderer_config.hpp"
 #include "configs/window_config.hpp"
 #include "configs/script_config.hpp"
-#include "graphics/window_setting_adaptor.hpp"
+#include "graphics/window_setting_adapter.hpp"
 #include "ecs/ecs_host.hpp"
 #include "services/services.hpp"
 
@@ -87,7 +87,7 @@ namespace PameECS {
 			<Thread::ThreadPoolTable<false, static_cast<size_t>(Constants::ThreadPoolTableIds::ApplicationMain)>>
 			m_thread_pool_table;
 		std::shared_ptr<DebugTools::DebugGUIHost> m_debug_gui_host;
-		std::shared_ptr<Graphics::WindowSettingAdaptor> m_window_setting_adaptor;
+		std::shared_ptr<Graphics::WindowSettingAdapter> m_window_setting_adaptor;
 		std::shared_ptr<Services::Services> m_services;
 		std::shared_ptr<ECS::ECSHost> m_ecs_host;
 

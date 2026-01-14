@@ -189,7 +189,7 @@ void Application::m_initializeFileSystem() {
 }
 
 void Application::m_initializeWindow() {
-	m_window_setting_adaptor = std::make_shared<Graphics::WindowSettingAdaptor>();
+	m_window_setting_adaptor = std::make_shared<Graphics::WindowSettingAdapter>();
 	auto properties = m_window_setting_adaptor->CreateWindowProperty(m_loadWindowConfig());
 	properties.windowProcedure = WndProc;
 
