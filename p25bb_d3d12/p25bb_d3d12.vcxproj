@@ -485,6 +485,7 @@
     <ClCompile Include="input\mouse.cpp" />
     <ClCompile Include="lib_impl.cpp" />
     <ClCompile Include="services\audio_service.cpp" />
+    <ClCompile Include="services\graphics_service.cpp" />
     <ClCompile Include="services\input_service.cpp" />
     <ClCompile Include="services\services.cpp" />
   </ItemGroup>

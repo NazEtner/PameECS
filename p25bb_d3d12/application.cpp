@@ -71,6 +71,7 @@ void Application::Initialize() {
 	m_initializeWindow();
 	m_initializeRenderer();
 	m_initializeDebugTools();
+	m_initializeGraphicsAdapter();
 	m_initializeServices();
 	m_initializeECS();
 
@@ -84,7 +85,7 @@ void Application::Update() {
 }
 
 void Application::SubmitRenderTask() {
-	// ECSのレンダリングタスクはUpdate内で登録されるので、ここでは何もしない
+	m_graphics_adapter->ExecuteLastTask();
 	m_debug_gui_host->SubmitRenderTask();
 }
 
@@ -94,6 +95,7 @@ void Application::Finalize() {
 
 	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>().Reset();
 	m_thread_pool_table.reset();
+	m_graphics_adapter.reset();
 	m_renderer.reset();
 	m_window.reset();
 	m_window_setting_adaptor.reset();
@@ -217,6 +219,10 @@ void Application::m_initializeDebugTools() {
 	m_debug_gui_host = std::make_shared<DebugTools::DebugGUIHost>(m_window, m_renderer);
 }
 
+void Application::m_initializeGraphicsAdapter() {
+	m_graphics_adapter = std::make_shared<Graphics::Adapter>(m_renderer.get());
+}
+
 void Application::m_initializeServices() {
 	assert(m_window);
 	m_services = std::make_shared<Services::Services>();
@@ -224,6 +230,12 @@ void Application::m_initializeServices() {
 	auto inputService = std::make_unique<Services::InputService>(m_window->GetWindowHandle(), m_logger);
 	m_services->SetInputService(std::move(inputService));
 	m_services->SetAudioService(std::make_unique<Services::AudioService>());
+	m_services->SetGraphicsService(
+		std::make_unique<Services::GraphicsService>(
+			m_graphics_adapter,
+			std::make_shared<Graphics::WindowView>(m_window, m_window_setting_adaptor, m_renderer)
+		)
+	);
 
 	m_window->SetMouseDeltaCallback(
 		[services = m_services](int delta) -> void {

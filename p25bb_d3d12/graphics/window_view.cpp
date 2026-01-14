@@ -45,6 +45,10 @@ WindowView::WindowView(
 	m_impl->renderer = renderer;
 }
 
+WindowView::~WindowView() {
+
+}
+
 void WindowView::SetVSyncEnabled(const bool isVSyncEnabled) {
 	m_impl->renderer->EnableVerticalSync(isVSyncEnabled);
 }

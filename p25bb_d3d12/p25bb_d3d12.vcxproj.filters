@@ -207,6 +207,9 @@
     <ClCompile Include="graphics\window_view.cpp">
       <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="services\graphics_service.cpp">
+      <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

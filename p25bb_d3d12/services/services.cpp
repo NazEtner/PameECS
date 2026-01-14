@@ -15,6 +15,7 @@ extern "C" {
 struct Services::Impl {
 	std::unique_ptr<InputService> inputService;
 	std::unique_ptr<AudioService> audioService;
+	std::unique_ptr<GraphicsService> graphicsService;
 };
 
 Services::Services() {
@@ -54,10 +55,18 @@ void Services::SetAudioService(std::unique_ptr<AudioService>&& audioService) {
 	m_impl->audioService = std::move(audioService);
 }
 
+void Services::SetGraphicsService(std::unique_ptr<GraphicsService>&& graphicsService) {
+	m_impl->graphicsService = std::move(graphicsService);
+}
+
 PameECS::Services::InputService* Services::GetInputService() const {
 	return m_impl->inputService.get();
 }
 
 PameECS::Services::AudioService* Services::GetAudioService() const {
 	return m_impl->audioService.get();
+}
+
+PameECS::Services::GraphicsService* Services::GetGraphicsService() const {
+	return m_impl->graphicsService.get();
 }

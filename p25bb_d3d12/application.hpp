@@ -57,6 +57,7 @@ namespace PameECS {
 		void m_initializeWindow();
 		void m_initializeRenderer();
 		void m_initializeDebugTools();
+		void m_initializeGraphicsAdapter();
 		void m_initializeServices();
 		void m_initializeECS();
 
@@ -89,6 +90,7 @@ namespace PameECS {
 		std::shared_ptr<DebugTools::DebugGUIHost> m_debug_gui_host;
 		std::shared_ptr<Graphics::WindowSettingAdapter> m_window_setting_adaptor;
 		std::shared_ptr<Services::Services> m_services;
+		std::shared_ptr<Graphics::Adapter> m_graphics_adapter;
 		std::shared_ptr<ECS::ECSHost> m_ecs_host;
 
 		bool m_initialized = false;

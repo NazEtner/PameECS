@@ -25,7 +25,7 @@ namespace PameECS::Graphics {
 	class WindowView {
 	public:
 		WindowView(std::shared_ptr<Window>& window, std::shared_ptr<WindowSettingAdapter> adapter, std::shared_ptr<Renderer> renderer);
-		~WindowView() = default;
+		~WindowView();
 		void SetVSyncEnabled(const bool isVSyncEnabled);
 		bool IsVSyncEnabled() const;
 		void SetStyle(const std::string& name) {
