@@ -479,6 +479,7 @@
     <ClCompile Include="graphics\renderer.cpp" />
     <ClCompile Include="graphics\window.cpp" />
     <ClCompile Include="graphics\window_setting_adapter.cpp" />
+    <ClCompile Include="graphics\window_view.cpp" />
     <ClCompile Include="input\gamepad.cpp" />
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
@@ -539,6 +540,7 @@
     <ClInclude Include="graphics\renderer_types.hpp" />
     <ClInclude Include="graphics\window.hpp" />
     <ClInclude Include="graphics\window_setting_adapter.hpp" />
+    <ClInclude Include="graphics\window_view.hpp" />
     <ClInclude Include="helpers\binary.hpp" />
     <ClInclude Include="helpers\compress.hpp" />
     <ClInclude Include="helpers\container.hpp" />

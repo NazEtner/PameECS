@@ -204,6 +204,9 @@
     <ClCompile Include="graphics\adapter.cpp">
       <Filter>ソース ファイル\graphics</Filter>
     </ClCompile>
+    <ClCompile Include="graphics\window_view.cpp">
+      <Filter>ソース ファイル\graphics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -414,6 +417,9 @@
       <Filter>ヘッダー ファイル\graphics</Filter>
     </ClInclude>
     <ClInclude Include="graphics\adapter_task.hpp">
+      <Filter>ヘッダー ファイル\graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="graphics\window_view.hpp">
       <Filter>ヘッダー ファイル\graphics</Filter>
     </ClInclude>
   </ItemGroup>
