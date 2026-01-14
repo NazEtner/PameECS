@@ -557,6 +557,7 @@
     <ClInclude Include="macros\debug.hpp" />
     <ClInclude Include="macros\dll.hpp" />
     <ClInclude Include="services\audio_service.hpp" />
+    <ClInclude Include="services\graphics_service.hpp" />
     <ClInclude Include="services\input_service.hpp" />
     <ClInclude Include="services\services.hpp" />
     <ClInclude Include="template_types\string_literal.hpp" />
