@@ -54,7 +54,9 @@ struct Adapter::Impl {
 	};
 
 	void Submit(AdapterTask* task) {
-		Enqueue<false>(task, task->CreateRenderCommand());
+		if (auto command = task->CreateRenderCommand(); command) {
+			Enqueue<false>(task, command);
+		}
 		if (auto command = task->CreatePretreatmentCommand(); command) {
 			Enqueue<true>(task, command);
 		}
