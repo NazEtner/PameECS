@@ -428,5 +428,8 @@
     <ClInclude Include="services\graphics_service.hpp">
       <Filter>ヘッダー ファイル\services</Filter>
     </ClInclude>
+    <ClInclude Include="file\assets.hpp">
+      <Filter>ヘッダー ファイル\file</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
