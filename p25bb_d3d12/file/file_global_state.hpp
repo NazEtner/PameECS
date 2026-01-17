@@ -2,6 +2,7 @@
 #include <BS_thread_pool.hpp/BS_thread_pool.hpp>
 #include <memory>
 #include <unordered_map>
+#include <mutex>
 #include "file_implementation.hpp"
 
 namespace PameECS::File {
@@ -14,6 +15,7 @@ namespace PameECS::File {
 
 		template<size_t ImplementId>
 		FileImplementation* GetFileImplementation() {
+			std::lock_guard lock(m_mutex);
 			auto& ret = m_getState()->implementations[ImplementId];
 			if (!ret) {
 				ret = std::make_unique<FileImplementation>(m_getState()->threadPool);
@@ -26,6 +28,7 @@ namespace PameECS::File {
 			m_getState()->implementations.clear();
 		}
 	private:
+		std::mutex m_mutex;
 		struct State {
 			std::shared_ptr<BS::thread_pool<0U>> threadPool;
 			std::unordered_map<size_t, std::unique_ptr<FileImplementation>> implementations;

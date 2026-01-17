@@ -15,7 +15,9 @@ GraphicsService::GraphicsService(
 	m_impl->windowView = windowView;
 }
 
-GraphicsService::~GraphicsService() = default;
+GraphicsService::~GraphicsService() {
+
+}
 
 std::shared_ptr<PameECS::Graphics::Adapter> GraphicsService::GetAdapter() {
 	return m_impl->adapter;

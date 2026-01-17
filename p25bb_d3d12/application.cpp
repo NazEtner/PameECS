@@ -97,6 +97,7 @@ void Application::Finalize() {
 	m_thread_pool_table.reset();
 	m_graphics_adapter.reset();
 	m_renderer.reset();
+	m_window->SetMouseDeltaCallback(nullptr);
 	m_window.reset();
 	m_window_setting_adaptor.reset();
 	m_debug_gui_host.reset();

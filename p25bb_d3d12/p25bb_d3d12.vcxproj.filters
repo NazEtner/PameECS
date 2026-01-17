@@ -210,6 +210,9 @@
     <ClCompile Include="services\graphics_service.cpp">
       <Filter>ソース ファイル\services</Filter>
     </ClCompile>
+    <ClCompile Include="file\assets.cpp">
+      <Filter>ソース ファイル\file</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
