@@ -9,7 +9,6 @@ namespace PameECS::Audio {
 		size_t dataSize;
 		size_t loopStart = 0; // ループする場合、戻る位置(サンプル)
 		bool loopEnable = false;
-		bool holdBuffer = true;
 		WAVEFORMATEXTENSIBLE waveFormat;
 	};
 }

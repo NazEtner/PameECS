@@ -338,13 +338,8 @@ struct Player::Impl {
 		IXAudio2SourceVoice* voice = nullptr;
 		WAVEFORMATEXTENSIBLE format = {};
 		std::queue<std::unique_ptr<AudioStream>> pending;
-		// holdBuffer == trueのときに、デコードしたバッファをここに保存しておく
-		// 次のPlay時に、PCMAudioStreamに変換してpendingの先頭に入れる
-		std::vector<std::unique_ptr<PCMAudioStream>> buffersHeld;
 		std::queue<std::unique_ptr<AudioStream>> loopBuffer;
 
-		bool holdBuffer = false;
-		bool lockHold = false; // 一度以上ループされていたらホールド用バッファをロックする
 		bool loop = false;
 		size_t loopStartSamples = 0;
 		size_t samplesPlayed = 0;
@@ -439,17 +434,10 @@ struct Player::Impl {
 			if (audioChunkSamples > bufferSamples) {
 				slot->pending.pop();
 				if (slot->pending.empty() && slot->loop) {
-					slot->lockHold = true;
 					std::swap(slot->pending, slot->loopBuffer);
 					slot->samplesPlayed = slot->loopStartSamples;
 				}
 				if (bufferSamples == 0) return;
-			}
-
-			if (slot->holdBuffer && !slot->lockHold) {
-				slot->buffersHeld.push_back(
-					std::make_unique<PCMAudioStream>(buffer, format)
-				);
 			}
 
 			if (slot->loop && slot->loopStartSamples < slot->samplesPlayed + bufferSamples) {
@@ -501,11 +489,10 @@ struct Player::Impl {
 		return slots[handle]; // nullptrであっても関係なく取得
 	}
 
-	void SetSlotProperty(VoiceSlot* slot, bool loop, size_t loopStart, bool holdBuffer) {
+	void SetSlotProperty(VoiceSlot* slot, bool loop, size_t loopStart) {
 		if (!slot->voice && slot->pending.empty()) {
 			slot->loop = loop;
 			slot->loopStartSamples = loopStart;
-			slot->holdBuffer = holdBuffer;
 		}
 	}
 
@@ -532,18 +519,16 @@ struct Player::Impl {
 		case Commands::CommandType::SubmitPCM: {
 			if (!slot) break;
 			auto pcmCommand = static_cast<Commands::SubmitPCM*>(command);
-			SetSlotProperty(slot.get(), pcmCommand->pcm.loopEnable, pcmCommand->pcm.loopStart, pcmCommand->pcm.holdBuffer);
+			SetSlotProperty(slot.get(), pcmCommand->pcm.loopEnable, pcmCommand->pcm.loopStart);
 			slot->pending.push(
 				std::make_unique<PCMAudioStream>(pcmCommand->buffer, pcmCommand->pcm.waveFormat)
 			);
-			slot->buffersHeld.clear();
-			slot->lockHold = false;
 			break;
 		}
 		case Commands::CommandType::SubmitFile: {
 			if (!slot) break;
 			auto fileCommand = static_cast<Commands::SubmitFile*>(command);
-			SetSlotProperty(slot.get(), fileCommand->file.loopEnable, fileCommand->file.loopStart, fileCommand->file.holdBuffer);
+			SetSlotProperty(slot.get(), fileCommand->file.loopEnable, fileCommand->file.loopStart);
 
 			switch (fileCommand->file.codec) {
 			case FileEntry::Codec::WAV:
@@ -559,14 +544,12 @@ struct Player::Impl {
 			default:
 				break;
 			}
-			slot->buffersHeld.clear();
-			slot->lockHold = false;
 			break;
 		}
 		case Commands::CommandType::SubmitCallback: {
 			if (!slot) break;
 			auto callbackCommand = static_cast<Commands::SubmitCallback*>(command);
-			SetSlotProperty(slot.get(), false, 0, false);
+			SetSlotProperty(slot.get(), false, 0);
 
 			slot->pending.push(
 				std::make_unique<CallbackAudioStream>(
@@ -575,22 +558,12 @@ struct Player::Impl {
 					callbackCommand->userData
 				)
 			);
-
-			slot->buffersHeld.clear();
 			break;
 		}
 		case Commands::CommandType::Play:
 			if (!slot || slot->active) break;
 			slot->active = true;
 			slot->isPlayRequested = true;
-			if (!slot->buffersHeld.empty() && slot->pending.empty()) {
-				for (const auto& buffer : slot->buffersHeld) {
-					slot->pending.push(std::make_unique<PCMAudioStream>(*buffer));
-				}
-
-				slot->lockHold = true;
-				slot->samplesPlayed = 0;
-			}
 			break;
 		case Commands::CommandType::Pause:
 			if (!slot || !slot->voice) break;
@@ -856,13 +829,13 @@ void Player::ShowDebug() {
 				// ID & Status & Queue
 				ImGui::TableSetColumnIndex(0); ImGui::Text("%zu", i);
 				ImGui::TableSetColumnIndex(1); ImGui::Text(slot->active ? "PLAY" : "STOP");
-				ImGui::TableSetColumnIndex(2); ImGui::Text("Q:%zu H:%zu", slot->pending.size(), slot->buffersHeld.size());
+				ImGui::TableSetColumnIndex(2); ImGui::Text("Q:%zu", slot->pending.size());
 
 				// Flags (Loop / Hold Buffer)
 				ImGui::TableSetColumnIndex(3);
-				ImGui::Text("%s %s", slot->loop ? "[L]" : "[-]", slot->holdBuffer ? "[H]" : "[-]");
+				ImGui::Text("%s", slot->loop ? "[L]" : "[-]");
 				if (ImGui::IsItemHovered()) {
-					ImGui::SetTooltip("L: Loop enabled\nH: Buffer holding enabled");
+					ImGui::SetTooltip("L: Loop enabled");
 				}
 
 				// Volume
@@ -914,14 +887,12 @@ void Player::ShowDebug() {
 	static int targetId = 0;
 	static bool loopEnable = false;
 	static int loopStart = 0;
-	static bool holdBuffer = false;
 	static bool useCallback = true;
 
 	ImGui::InputInt("Target Voice ID", &targetId);
 	ImGui::InputText("File Path", path, 128);
 	ImGui::Checkbox("Loop Enable", &loopEnable);
 	ImGui::SameLine();
-	ImGui::Checkbox("Hold Buffer", &holdBuffer);
 	ImGui::Checkbox("Use callback", &useCallback);
 	if (loopEnable) {
 		ImGui::InputInt("Loop Start (samples)", &loopStart);
@@ -932,7 +903,6 @@ void Player::ShowDebug() {
 		entry.codec = FileEntry::Codec::WAV;
 		entry.loopEnable = loopEnable;
 		entry.loopStart = static_cast<size_t>(loopStart);
-		entry.holdBuffer = holdBuffer;
 		entry.fileName = path;
 		entry.nameSize = strnlen_s(path, sizeof(path));
 		Submit(targetId, &entry, useCallback);
@@ -943,7 +913,6 @@ void Player::ShowDebug() {
 		entry.codec = FileEntry::Codec::FLAC;
 		entry.loopEnable = loopEnable;
 		entry.loopStart = static_cast<size_t>(loopStart);
-		entry.holdBuffer = holdBuffer;
 		entry.fileName = path;
 		entry.nameSize = strnlen_s(path, sizeof(path));
 		Submit(targetId, &entry, useCallback);
@@ -977,7 +946,6 @@ void Player::ShowDebug() {
 	else {
 		auto& slot = m_impl->slots[targetHandle];
 		ImGui::Text("Queued: %d", slot->pending.size());
-		ImGui::Text("Held  : %d", slot->buffersHeld.size());
 		ImGui::Text("Loop  : %d", slot->loopBuffer.size());
 		ImGui::Text("Next  : %d", slot->next);
 		ImGui::Text("Play buffers: {\n\t%p(%dBytes), \n\t%p(%dBytes), \n\t%p(%dBytes)}",
