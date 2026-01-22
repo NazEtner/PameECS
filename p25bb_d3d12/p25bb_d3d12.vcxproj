@@ -544,6 +544,7 @@
     <ClInclude Include="graphics\window.hpp" />
     <ClInclude Include="graphics\window_setting_adapter.hpp" />
     <ClInclude Include="graphics\window_view.hpp" />
+    <ClInclude Include="hash\string_hash.hpp" />
     <ClInclude Include="helpers\binary.hpp" />
     <ClInclude Include="helpers\compress.hpp" />
     <ClInclude Include="helpers\container.hpp" />
