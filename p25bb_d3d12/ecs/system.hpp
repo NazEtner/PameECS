@@ -45,6 +45,7 @@ namespace PameECS::ECS::System {
 		Base() = default;
 		virtual ~Base() = default;
 		void Update(const Context* context) noexcept {
+			m_updateBegin(context);
 			for (size_t i = 0; i < context->entityAliveFlagsCount; ++i) {
 				if (!context->entityAliveFlags[i]) continue;
 				assert(context->entityGenerationsCount > i);
@@ -56,10 +57,13 @@ namespace PameECS::ECS::System {
 
 				m_entityUpdate(context, entity);
 			}
+			m_updateEnd(context);
 		}
 		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) const = 0;
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
+		virtual void m_updateBegin(const Context* context) noexcept {}
+		virtual void m_updateEnd(const Context* context) noexcept {}
 	};
 }
 
