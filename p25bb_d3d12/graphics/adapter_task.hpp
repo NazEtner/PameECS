@@ -16,8 +16,8 @@ namespace PameECS::Graphics {
 		// 最後にエンキューされたコマンドはCreateRenderCommandより前にEnqueueCommandがtrueを返していない場合以外に対応する呼び出しでは使用されるべきではない
 		virtual RenderCommandFunc CreateRenderCommand() = 0;
 
-		// 戻り値はそのコマンドを入力した直前までの状態でExecuteする必要があるか
-		// 実際はEnqueueした直後にExecuteされるので、描画時に新しいコマンドを使わないように注意
+		// 戻り値はそのコマンドを入力した直前までの状態でレンダリングコマンドを生成する必要があるか
+		// 実際はEnqueueした直後にレンダリングコマンドを生成するので、描画時に新しいコマンドを使わないように注意
 		virtual bool EnqueueCommand(void* command, size_t commandSize) = 0;
 	};
 }
