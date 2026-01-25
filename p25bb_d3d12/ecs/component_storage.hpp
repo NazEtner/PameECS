@@ -8,7 +8,7 @@ namespace PameECS::ECS {
 	class ComponentStorage : public IComponentStorage {
 	public:
 		ComponentStorage() : IComponentStorage() {
-			m_binary_storage = ComponentBinaryStorage(sizeof(T));
+			m_binary_storage = ComponentBinaryStorage(sizeof(T), alignof(T));
 			T::GetComponentLayoutElements(&m_layout_ptr, &m_layout_count);
 			T::GetNameTag(&m_type_name, &m_type_name_size);
 		}
