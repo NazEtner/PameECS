@@ -19,6 +19,7 @@ extern "C" {
 	PECS_DLL_SHARED uint32_t GraphicsWindowViewGetWidth(const PameECS::Graphics::WindowView* windowView);
 	PECS_DLL_SHARED void GraphicsWindowViewSetHeight(PameECS::Graphics::WindowView* windowView, uint32_t height);
 	PECS_DLL_SHARED uint32_t GraphicsWindowViewGetHeight(const PameECS::Graphics::WindowView* windowView);
+	PECS_DLL_SHARED void GraphicsWindowViewSetProtectedContentEnabled(PameECS::Graphics::WindowView* windowView, bool enabled, bool excludeWithCapture);
 }
  
 namespace PameECS::Graphics {
@@ -36,6 +37,7 @@ namespace PameECS::Graphics {
 		uint32_t GetWidth() const;
 		void SetHeight(const uint32_t height);
 		uint32_t GetHeight() const;
+		void SetProtectedContentEnabled(const bool enabled, const bool excludeFromCapture = false);
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;
