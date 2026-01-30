@@ -33,4 +33,5 @@ namespace PameECS::Services {
 extern "C" {
 	PECS_DLL_SHARED PameECS::Services::InputService* ServicesGetInputService(const PameECS::Services::Services* services);
 	PECS_DLL_SHARED PameECS::Services::AudioService* ServicesGetAudioService(const PameECS::Services::Services* services);
+	PECS_DLL_SHARED PameECS::Services::GraphicsService* ServicesGetGraphicsService(const PameECS::Services::Services* services);
 }

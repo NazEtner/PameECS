@@ -485,6 +485,8 @@
     <ClCompile Include="input\keyboard.cpp" />
     <ClCompile Include="input\mouse.cpp" />
     <ClCompile Include="lib_impl.cpp" />
+    <ClCompile Include="script\script_loader.cpp" />
+    <ClCompile Include="script\script_object.cpp" />
     <ClCompile Include="services\audio_service.cpp" />
     <ClCompile Include="services\graphics_service.cpp" />
     <ClCompile Include="services\input_service.cpp" />
@@ -527,6 +529,7 @@
     <ClInclude Include="exceptions\invalid_component_type.hpp" />
     <ClInclude Include="exceptions\invalid_operation.hpp" />
     <ClInclude Include="exceptions\renderer_error.hpp" />
+    <ClInclude Include="exceptions\script_error.hpp" />
     <ClInclude Include="exceptions\window_error.hpp" />
     <ClInclude Include="file\archive\archive_creator.hpp" />
     <ClInclude Include="file\archive\archive_loader.hpp" />
@@ -560,6 +563,8 @@
     <ClInclude Include="macros\assertion.hpp" />
     <ClInclude Include="macros\debug.hpp" />
     <ClInclude Include="macros\dll.hpp" />
+    <ClInclude Include="script\script_loader.hpp" />
+    <ClInclude Include="script\script_object.hpp" />
     <ClInclude Include="services\audio_service.hpp" />
     <ClInclude Include="services\graphics_service.hpp" />
     <ClInclude Include="services\input_service.hpp" />

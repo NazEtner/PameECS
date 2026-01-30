@@ -74,6 +74,7 @@ void Application::Initialize() {
 	m_initializeGraphicsAdapter();
 	m_initializeServices();
 	m_initializeECS();
+	m_initializeScript();
 
 	m_initialized = true;
 }
@@ -103,6 +104,7 @@ void Application::Finalize() {
 	m_debug_gui_host.reset();
 	m_services.reset();
 	m_ecs_host.reset();
+	m_script_loader.reset();
 	m_finalizeCom();
 
 	m_logger->info("Application finalized.");
@@ -257,6 +259,18 @@ void Application::m_initializeECS() {
 	if (m_debug_gui_host) {
 		m_ecs_host->OpenDebugWindow(m_debug_gui_host);
 	}
+}
+
+void Application::m_initializeScript() {
+	assert(m_logger);
+	assert(m_ecs_host);
+	auto scriptConfig = m_loadScriptConfig();
+	m_script_loader = std::make_shared<Script::ScriptLoader>(
+		scriptConfig,
+		m_logger
+	);
+
+	m_script_loader->LoadAllScripts(m_ecs_host);
 }
 
 void Application::m_finalizeCom() {

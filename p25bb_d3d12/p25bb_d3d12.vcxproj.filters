@@ -109,6 +109,12 @@
     <Filter Include="ヘッダー ファイル\hash">
       <UniqueIdentifier>{81c30201-e411-4b31-b8e5-e507473e6e82}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ソース ファイル\script">
+      <UniqueIdentifier>{160a82b4-5be9-4b2f-bd1d-61833054a21f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\script">
+      <UniqueIdentifier>{8cd96e64-cce3-4624-9f6f-462e6cafe15f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -215,6 +221,12 @@
     </ClCompile>
     <ClCompile Include="file\assets.cpp">
       <Filter>ソース ファイル\file</Filter>
+    </ClCompile>
+    <ClCompile Include="script\script_object.cpp">
+      <Filter>ソース ファイル\script</Filter>
+    </ClCompile>
+    <ClCompile Include="script\script_loader.cpp">
+      <Filter>ソース ファイル\script</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -439,6 +451,15 @@
     </ClInclude>
     <ClInclude Include="hash\string_hash.hpp">
       <Filter>ヘッダー ファイル\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="script\script_object.hpp">
+      <Filter>ヘッダー ファイル\script</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\script_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="script\script_loader.hpp">
+      <Filter>ヘッダー ファイル\script</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

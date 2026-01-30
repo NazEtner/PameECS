@@ -1,3 +1,4 @@
+#pragma once
 #include "component_storage.hpp"
 #include "../helpers/id_generator.hpp"
 #include "../macros/dll.hpp"
