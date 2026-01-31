@@ -5,7 +5,7 @@
 namespace PameECS::ECS {
 	class IComponentStorage {
 	public:
-		IComponentStorage() = default;
+		IComponentStorage(size_t componentSize, size_t align) : m_binary_storage(componentSize, align) {}
 		virtual ~IComponentStorage() = default;
 		ComponentBinaryStorage& GetBinaryStorage() {
 			return m_binary_storage;
