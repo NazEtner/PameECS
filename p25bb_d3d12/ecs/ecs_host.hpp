@@ -124,7 +124,7 @@ namespace PameECS::ECS {
 			if (storageBase == nullptr) [[unlikely]] {
 				return nullptr;
 			}
-			Types::ComponentLayoutElement* layoutPtr = nullptr;
+			const Types::ComponentLayoutElement* layoutPtr = nullptr;
 			size_t layoutCount = 0;
 			T::GetComponentLayoutElements(&layoutPtr, &layoutCount);
 			const char* typeName = nullptr;
