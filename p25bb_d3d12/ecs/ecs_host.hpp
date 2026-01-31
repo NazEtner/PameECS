@@ -98,7 +98,7 @@ namespace PameECS::ECS {
 				delete ptr;
 			};
 			
-			return ECSRegisterComponentStorage(this, id, storage, deleter);
+			return ECSRegisterComponentStorage(this, id.c_str(), storage, deleter);
 		}
 
 		// 戻り値はインデックス
