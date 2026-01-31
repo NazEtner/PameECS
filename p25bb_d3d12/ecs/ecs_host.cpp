@@ -61,7 +61,7 @@ struct ECSHost::Impl {
 	std::vector<uint8_t> entityAliveFlags;
 	std::vector<uint8_t> entityAliveFlagsCopy;
 	bool isAliveFlagsDirty = true;
-	// entityAliveFlags.size() <= lastEntityId
+	// entityAliveFlags.size() >= lastEntityId
 	// && entityGenerations.size() == entityAliveFlags.size()なはず
 	size_t lastEntityId = 0;
 	bool locked = false;
