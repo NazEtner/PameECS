@@ -256,48 +256,48 @@ void Assets::ReleaseHandle(const AssetHandle& handle) {
 extern "C" {
 	PECS_DLL_SHARED bool FileAssetsIsValidHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle) {
-		return assets->IsValidHandle(handle);
+		const PameECS::File::AssetHandle* handle) {
+		return assets->IsValidHandle(*handle);
 	}
 	PECS_DLL_SHARED bool FileAssetsIsValidTicket(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AsyncTicket& ticket) {
-		return assets->IsValidTicket(ticket);
+		const PameECS::File::AsyncTicket* ticket) {
+		return assets->IsValidTicket(*ticket);
 	}
 	PECS_DLL_SHARED void FileAssetsGetAssetHandle(
 		PameECS::File::Assets* assets,
-		PameECS::File::AssetHandle& outHandle,
+		PameECS::File::AssetHandle* outHandle,
 		const char* path,
 		size_t pathSize) {
-		outHandle = assets->GetAssetHandle(path, pathSize);
+		*outHandle = assets->GetAssetHandle(path, pathSize);
 	}
 	PECS_DLL_SHARED void FileAssetsLoad(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& outTicket,
-		const PameECS::File::AssetHandle& handle) {
-		outTicket = assets->Load(handle);
+		PameECS::File::AsyncTicket* outTicket,
+		const PameECS::File::AssetHandle* handle) {
+		*outTicket = assets->Load(*handle);
 	}
 	PECS_DLL_SHARED uint8_t* FileAssetsGetData(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize) {
-		return assets->GetData(ticket, outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize) {
+		return assets->GetData(*ticket, *outSize);
 	}
 	PECS_DLL_SHARED uint8_t* FileAssetsGetDataSync(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize) {
-		return assets->GetDataSync(ticket, outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize) {
+		return assets->GetDataSync(*ticket, *outSize);
 	}
 	PECS_DLL_SHARED void FileAssetsReleaseData(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle,
+		const PameECS::File::AssetHandle* handle,
 		uint8_t* data) {
-		assets->ReleaseData(handle, data);
+		assets->ReleaseData(*handle, data);
 	}
 	PECS_DLL_SHARED void FileAssetsReleaseHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle) {
-		assets->ReleaseHandle(handle);
+		const PameECS::File::AssetHandle* handle) {
+		assets->ReleaseHandle(*handle);
 	}
 }

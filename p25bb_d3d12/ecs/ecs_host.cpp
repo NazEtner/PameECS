@@ -12,26 +12,26 @@ extern "C" {
 		return ecsHost->GetComponentStorageId(component);
 	}
 	PECS_DLL_SHARED bool ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
-		PameECS::ECS::Types::Entity& entity, const char** components, const size_t elementCount,
+		PameECS::ECS::Types::Entity* entity, const char** components, const size_t elementCount,
 		size_t idMin,
 		size_t idMax) {
 		return ecsHost->NewEntity(
-			entity, components, elementCount, idMin, idMax
+			*entity, components, elementCount, idMin, idMax
 		);
 	}
-	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity) {
+	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity) {
 		return ecsHost->RemoveEntity(
-			entity
+			*entity
 		);
 	}
-	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
-		return ecsHost->AddComponent(entity, component);
+	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
+		return ecsHost->AddComponent(*entity, component);
 	}
-	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
-		return ecsHost->RemoveComponent(entity, component);
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
+		return ecsHost->RemoveComponent(*entity, component);
 	}
-	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task) {
-		ecsHost->AddSyncTask(task);
+	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask* task) {
+		ecsHost->AddSyncTask(*task);
 	}
 	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*)) {
 		return ecsHost->RegisterComponentStorage(id, storage, deleter);

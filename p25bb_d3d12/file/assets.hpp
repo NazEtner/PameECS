@@ -48,32 +48,32 @@ namespace PameECS::File {
 extern "C" {
 	PECS_DLL_SHARED bool FileAssetsIsValidHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle);
+		const PameECS::File::AssetHandle* handle);
 	PECS_DLL_SHARED bool FileAssetsIsValidTicket(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AsyncTicket& ticket);
+		const PameECS::File::AsyncTicket* ticket);
 	PECS_DLL_SHARED void FileAssetsGetAssetHandle(
 		PameECS::File::Assets* assets,
-		PameECS::File::AssetHandle& outHandle,
+		PameECS::File::AssetHandle* outHandle,
 		const char* path,
 		size_t pathSize);
 	PECS_DLL_SHARED void FileAssetsLoad(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& outTicket,
-		const PameECS::File::AssetHandle& handle);
+		PameECS::File::AsyncTicket* outTicket,
+		const PameECS::File::AssetHandle* handle);
 	PECS_DLL_SHARED uint8_t* FileAssetsGetData(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize);
 	PECS_DLL_SHARED uint8_t* FileAssetsGetDataSync(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize);
 	PECS_DLL_SHARED void FileAssetsReleaseData(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle,
+		const PameECS::File::AssetHandle* handle,
 		uint8_t* data);
 	PECS_DLL_SHARED void FileAssetsReleaseHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle);
+		const PameECS::File::AssetHandle* handle);
 }

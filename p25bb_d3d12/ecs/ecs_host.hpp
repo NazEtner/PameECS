@@ -22,13 +22,13 @@ namespace PameECS::ECS {
 extern "C" {
 	PECS_DLL_SHARED size_t ECSGetComponentStorageId(const PameECS::ECS::ECSHost* ecsHost, const char* component);
 	PECS_DLL_SHARED bool ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
-		PameECS::ECS::Types::Entity& entity, const char** components, const size_t elementCount,
+		PameECS::ECS::Types::Entity* entity, const char** components, const size_t elementCount,
 		size_t idMin = 0,
 		size_t idMax = std::numeric_limits<size_t>::max());
-	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity);
-	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component);
-	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component);
-	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task);
+	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity);
+	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
+	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask* task);
 	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*));
 	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id);
 	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*));
@@ -61,7 +61,7 @@ namespace PameECS::ECS {
 				cComponents.emplace_back(component.c_str());
 			}
 
-			return ECSNewEntity(this, entity, cComponents.data(), cComponents.size(), idMin, idMax);
+			return ECSNewEntity(this, &entity, cComponents.data(), cComponents.size(), idMin, idMax);
 		}
 
 		bool NewEntity(Types::Entity& entity, const char** components, const size_t elementCount,
@@ -71,13 +71,13 @@ namespace PameECS::ECS {
 		bool RemoveEntity(const Types::Entity& entity);
 
 		bool AddComponent(const Types::Entity& entity, const std::string& component) {
-			return ECSAddComponent(this, entity, component.c_str());
+			return ECSAddComponent(this, &entity, component.c_str());
 		}
 
 		bool AddComponent(const Types::Entity& entity, const char* component);
 
 		bool RemoveComponent(const Types::Entity& entity, const std::string& component) {
-			return ECSRemoveComponent(this, entity, component.c_str());
+			return ECSRemoveComponent(this, &entity, component.c_str());
 		}
 
 		bool RemoveComponent(const Types::Entity& entity, const char* component);
