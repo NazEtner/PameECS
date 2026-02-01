@@ -6,6 +6,7 @@
 #include <utility>
 #include <cassert>
 #include <cstring>
+#include <optional>
 
 namespace PameECS::ECS {
 	class ComponentBinaryStorage {
@@ -13,24 +14,88 @@ namespace PameECS::ECS {
 		ComponentBinaryStorage(size_t componentSize, size_t align) : m_component_size(componentSize), m_align(align) {}
 
 		std::byte* AddComponentData(const Types::Entity& entity) {
-			size_t index = entity.id;
-			if (index >= m_generations.size()) {
-				while (index >= m_generations.size()) {
-					m_reserve();
+			if (auto denseIndex = m_getDenseIndex(entity.id); denseIndex.has_value()) {
+				if (m_generations[*denseIndex] == entity.generation) {
+					return m_getAddressByDenseIndex(*denseIndex);
 				}
 			}
-			m_generations[index] = entity.generation;
-			return &m_storage[index * m_component_size + m_offset];
+
+			size_t pageIndex = entity.id / PAGE_SIZE;
+			size_t offsetIndex = entity.id % PAGE_SIZE;
+
+			if (pageIndex >= m_sparse_pages.size()) {
+				m_sparse_pages.resize(pageIndex + 1);
+			}
+			if (m_sparse_pages[pageIndex].empty()) {
+				m_sparse_pages[pageIndex].resize(PAGE_SIZE, INVALID_DENSE_INDEX);
+			}
+
+			uint32_t newDenseIndex = static_cast<uint32_t>(m_dence_indexes.size());
+			m_sparse_pages[pageIndex][offsetIndex] = newDenseIndex;
+
+			m_dence_indexes.push_back(entity.id);
+			m_generations.push_back(entity.generation);
+
+			m_ensureStorageCapacity(m_dence_indexes.size());
+
+			return m_getAddressByDenseIndex(newDenseIndex);
 		}
 
 		std::byte* GetComponentData(Types::Entity entity) {
-			size_t index = entity.id;
-			if (index >= m_generations.size() || m_generations[index] != entity.generation) {
+			auto index = m_getDenseIndex(entity.id);
+			if (!index.has_value() || m_generations[index.value()] != entity.generation) {
 				return nullptr;
 			}
-			return &m_storage[index * m_component_size + m_offset];
+			return m_getAddressByDenseIndex(index.value());
+		}
+
+		void RemoveComponent(Types::Entity entity) {
+			auto denseIndex = m_getDenseIndex(entity.id);
+			if (!denseIndex.has_value() || m_generations[denseIndex.value()] != entity.generation) {
+				return;
+			}
+
+			uint32_t target = denseIndex.value();
+			uint32_t last = static_cast<uint32_t>(m_dence_indexes.size() - 1);
+			uint64_t lastEntityId = m_dence_indexes.back();
+
+			if (target != last) {
+				std::memcpy(m_getAddressByDenseIndex(target), m_getAddressByDenseIndex(last), m_component_size);
+
+				m_generations[target] = m_generations[last];
+				m_dence_indexes[target] = lastEntityId;
+
+				m_sparse_pages[lastEntityId / PAGE_SIZE][lastEntityId % PAGE_SIZE] = target;
+			}
+
+			m_sparse_pages[entity.id / PAGE_SIZE][entity.id % PAGE_SIZE] = INVALID_DENSE_INDEX;
+			m_dence_indexes.pop_back();
+			m_generations.pop_back();
 		}
 	private:
+		static constexpr size_t PAGE_SIZE = 1024; // 4KB
+		static constexpr size_t INVALID_DENSE_INDEX = 0xFFFFFFFF;
+
+		std::optional<uint32_t> m_getDenseIndex(uint64_t entity_id) const {
+			size_t page_idx = entity_id / PAGE_SIZE;
+			if (page_idx >= m_sparse_pages.size() || m_sparse_pages[page_idx].empty()) {
+				return std::nullopt;
+			}
+			uint32_t idx = m_sparse_pages[page_idx][entity_id % PAGE_SIZE];
+			return (idx == INVALID_DENSE_INDEX) ? std::nullopt : std::make_optional(idx);
+		}
+
+		std::byte* m_getAddressByDenseIndex(size_t dense_idx) {
+			return &m_storage[dense_idx * m_component_size + m_offset];
+		}
+
+		void m_ensureStorageCapacity(size_t required_count) {
+			size_t current_cap = m_storage.size() / m_component_size;
+			if (required_count > current_cap) {
+				m_reserve();
+			}
+		}
+
 		void m_reserve() {
 			size_t currentCapacity = m_storage.size() / m_component_size;
 			size_t newCapacity = currentCapacity == 0 ? 1 : currentCapacity * 2;
@@ -62,7 +127,10 @@ namespace PameECS::ECS {
 		const size_t m_align = 1;
 		size_t m_offset = 0;
 		size_t m_component_size;
+
+		std::vector<std::vector<uint32_t>> m_sparse_pages;
 		std::vector<std::byte> m_storage;
+		std::vector<uint64_t> m_dence_indexes;
 		std::vector<uint64_t> m_generations;
 	};
 }

@@ -16,6 +16,9 @@ namespace PameECS::ECS {
 			const Types::ComponentLayoutElement* layoutPtr, size_t count,
 			const char* typeName, size_t typeNameSize, size_t componentSize) const = 0;
 		virtual bool AddComponent(const Types::Entity& entity) = 0;
+		void RemoveComponent(const Types::Entity& entity) {
+			m_binary_storage.RemoveComponent(entity);
+		}
 	protected:
 		template<typename T>
 		T* m_addComponentAs(const Types::Entity& entity) {

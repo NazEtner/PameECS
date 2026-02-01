@@ -219,8 +219,8 @@ bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component
 	if (storage == nullptr) {
 		return false;
 	}
-	Types::Entity dummyEntity = { entity.id, 0xFFFFFFFF'FFFFFFFF };
-	return storage->AddComponent(dummyEntity);
+	storage->RemoveComponent(entity);
+	return true;
 }
 
 bool ECSHost::RegisterComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage) {
