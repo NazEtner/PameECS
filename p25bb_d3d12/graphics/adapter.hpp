@@ -24,6 +24,7 @@ extern "C" {
 		uint32_t id,
 		void* command,
 		size_t commandSize);
+	PECS_DLL_SHARED PameECS::Graphics::Renderer* GraphicsAdapterGetRenderer(const PameECS::Graphics::Adapter* adapter);
 }
 
 namespace PameECS::Graphics {
@@ -66,6 +67,8 @@ namespace PameECS::Graphics {
 
 		void EnqueueCommand(uint32_t id, void* command, size_t commandSize);
 		void ExecuteLastTask();
+
+		Renderer* GetRenderer() const;
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

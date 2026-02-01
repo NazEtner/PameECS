@@ -42,6 +42,9 @@ extern "C" {
 	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*)) {
 		return ecsHost->AddSystem(system, deleter);
 	}
+	PECS_DLL_SHARED PameECS::Services::Services* ECSGetServices(const PameECS::ECS::ECSHost* ecsHost) {
+		return ecsHost->GetServices();
+	}
 }
 
 struct ECSHost::Impl {
@@ -90,8 +93,9 @@ private:
 	}
 };
 
-ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool) {
+ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool, std::shared_ptr<Services::Services> services) {
 	m_impl = std::make_unique<Impl>(threadPool);
+	m_impl->services = services;
 }
 
 ECSHost::~ECSHost() {}
@@ -264,6 +268,10 @@ size_t ECSHost::AddSystem(System::Base* system, void(*deleter)(System::Base*)) {
 	m_impl->systems.emplace_back(std::move(uniqueSystem));
 
 	return ret;
+}
+
+PameECS::Services::Services* ECSHost::GetServices() const {
+	return m_impl->services.get();
 }
 
 bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& components,

@@ -25,6 +25,9 @@ extern "C" {
 		size_t commandSize) {
 		adapter->EnqueueCommand(id, command, commandSize);
 	}
+	PECS_DLL_SHARED PameECS::Graphics::Renderer* GraphicsAdapterGetRenderer(const PameECS::Graphics::Adapter* adapter) {
+		return adapter->GetRenderer();
+	}
 }
 
 using PameECS::Graphics::Adapter;
@@ -132,4 +135,8 @@ void Adapter::ExecuteLastTask() {
 		m_impl->Submit(m_impl->currentTask);
 		m_impl->currentTask = nullptr;
 	}
+}
+
+PameECS::Graphics::Renderer* Adapter::GetRenderer() const {
+	return m_impl->renderer;
 }

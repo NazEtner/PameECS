@@ -32,12 +32,13 @@ extern "C" {
 	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*));
 	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id);
 	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*));
+	PECS_DLL_SHARED PameECS::Services::Services* ECSGetServices(const PameECS::ECS::ECSHost* ecsHost);
 }
 
 namespace PameECS::ECS {
 	class ECSHost final {
 	public:
-		ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool);
+		ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool, std::shared_ptr<Services::Services> services);
 		~ECSHost();
 		ECSHost(const ECSHost&) = delete;
 		ECSHost& operator=(const ECSHost&) = delete;
@@ -156,6 +157,7 @@ namespace PameECS::ECS {
 		IComponentStorage* GetComponentStorage(const char* id) const;
 		IComponentStorage* GetComponentStorage(const size_t id) const;
 		size_t AddSystem(System::Base* system, void(*deleter)(System::Base*));
+		Services::Services* GetServices() const;
 	private:
 		bool m_newEntity(Types::Entity& entity, const std::span<const char*>& components, size_t idMin, size_t idMax);
 		struct Impl;
