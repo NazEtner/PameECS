@@ -228,6 +228,9 @@
     <ClCompile Include="script\script_loader.cpp">
       <Filter>ソース ファイル\script</Filter>
     </ClCompile>
+    <ClCompile Include="services\file_service.cpp">
+      <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -460,6 +463,9 @@
     </ClInclude>
     <ClInclude Include="script\script_loader.hpp">
       <Filter>ヘッダー ファイル\script</Filter>
+    </ClInclude>
+    <ClInclude Include="services\file_service.hpp">
+      <Filter>ヘッダー ファイル\services</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

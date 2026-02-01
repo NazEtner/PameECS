@@ -239,6 +239,9 @@ void Application::m_initializeServices() {
 			std::make_shared<Graphics::WindowView>(m_window, m_window_setting_adaptor, m_renderer)
 		)
 	);
+	m_services->SetFileService(
+		std::make_unique<Services::FileService>()
+	);
 
 	m_window->SetMouseDeltaCallback(
 		[services = m_services](int delta) -> void {

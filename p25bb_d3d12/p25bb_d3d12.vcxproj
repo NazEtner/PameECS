@@ -488,6 +488,7 @@
     <ClCompile Include="script\script_loader.cpp" />
     <ClCompile Include="script\script_object.cpp" />
     <ClCompile Include="services\audio_service.cpp" />
+    <ClCompile Include="services\file_service.cpp" />
     <ClCompile Include="services\graphics_service.cpp" />
     <ClCompile Include="services\input_service.cpp" />
     <ClCompile Include="services\services.cpp" />
@@ -566,6 +567,7 @@
     <ClInclude Include="script\script_loader.hpp" />
     <ClInclude Include="script\script_object.hpp" />
     <ClInclude Include="services\audio_service.hpp" />
+    <ClInclude Include="services\file_service.hpp" />
     <ClInclude Include="services\graphics_service.hpp" />
     <ClInclude Include="services\input_service.hpp" />
     <ClInclude Include="services\services.hpp" />
