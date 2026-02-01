@@ -17,6 +17,6 @@ namespace PameECS::Services {
 }
 
 extern "C" {
-	PameECS::Graphics::Adapter* ServicesGraphicsGetAdapter(PameECS::Services::GraphicsService* service);
-	PameECS::Graphics::WindowView* ServicesGraphicsGetWindowView(PameECS::Services::GraphicsService* service);
+	PECS_DLL_SHARED PameECS::Graphics::Adapter* ServicesGraphicsGetAdapter(PameECS::Services::GraphicsService* service);
+	PECS_DLL_SHARED PameECS::Graphics::WindowView* ServicesGraphicsGetWindowView(PameECS::Services::GraphicsService* service);
 }

@@ -21,7 +21,7 @@ PameECS::File::Assets* FileService::GetAssets() {
 }
 
 extern "C" {
-	PameECS::File::Assets* ServicesFileGetAssets(PameECS::Services::FileService* service) {
+	PECS_DLL_SHARED PameECS::File::Assets* ServicesFileGetAssets(PameECS::Services::FileService* service) {
 		return service->GetAssets();
 	}
 }

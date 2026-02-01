@@ -28,10 +28,10 @@ std::shared_ptr<PameECS::Graphics::WindowView> GraphicsService::GetWindowView() 
 }
 
 extern "C" {
-	PameECS::Graphics::Adapter* ServicesGraphicsGetAdapter(PameECS::Services::GraphicsService* service) {
+	PECS_DLL_SHARED PameECS::Graphics::Adapter* ServicesGraphicsGetAdapter(PameECS::Services::GraphicsService* service) {
 		return service->GetAdapter().get();
 	}
-	PameECS::Graphics::WindowView* ServicesGraphicsGetWindowView(PameECS::Services::GraphicsService* service) {
+	PECS_DLL_SHARED PameECS::Graphics::WindowView* ServicesGraphicsGetWindowView(PameECS::Services::GraphicsService* service) {
 		return service->GetWindowView().get();
 	}
 }
