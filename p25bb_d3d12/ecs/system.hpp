@@ -59,7 +59,7 @@ namespace PameECS::ECS::System {
 			}
 			m_updateEnd(context);
 		}
-		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) const = 0;
+		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) = 0;
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
 		virtual void m_updateBegin(const Context* context) noexcept {}
