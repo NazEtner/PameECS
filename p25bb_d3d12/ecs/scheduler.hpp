@@ -17,11 +17,11 @@ namespace PameECS::ECS {
 		void m_makePhases(const ECSHost* ecsHost);
 		bool m_checkConflict(
 			const ECSHost* ecsHost,
-			const System::Base* system,
+			System::Base* system,
 			const std::unordered_set<size_t>& write, const std::unordered_set<size_t>& read);
 		void m_updateDependenciesSet(
 			const ECSHost* ecsHost,
-			const System::Base* system,
+			System::Base* system,
 			std::unordered_set<size_t>& write, std::unordered_set<size_t>& read);
 		size_t m_next_system_index = 0; // フェーズの再作成をすべきかを判定するためのもの
 		size_t m_last_committed = 0;

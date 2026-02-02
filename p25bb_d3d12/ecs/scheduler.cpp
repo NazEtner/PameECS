@@ -84,7 +84,7 @@ void Scheduler::m_makePhases(const ECSHost* ecsHost) {
 
 bool Scheduler::m_checkConflict(
 	const ECSHost* ecsHost,
-	const System::Base* system,
+	System::Base* system,
 	const std::unordered_set<size_t>& writeSet, const std::unordered_set<size_t>& readSet) {
 	if (!system) return false;
 	const auto& dependencies = system->GetDependencies(ecsHost);
@@ -101,7 +101,7 @@ bool Scheduler::m_checkConflict(
 
 void Scheduler::m_updateDependenciesSet(
 	const ECSHost* ecsHost,
-	const System::Base* system,
+	System::Base* system,
 	std::unordered_set<size_t>& writeSet,
 	std::unordered_set<size_t>& readSet) {
 	if (!system) return;
