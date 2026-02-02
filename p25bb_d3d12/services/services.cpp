@@ -10,8 +10,13 @@ extern "C" {
 	PECS_DLL_SHARED PameECS::Services::AudioService* ServicesGetAudioService(const PameECS::Services::Services* services) {
 		return services->GetAudioService();
 	}
+
 	PECS_DLL_SHARED PameECS::Services::GraphicsService* ServicesGetGraphicsService(const PameECS::Services::Services* services) {
 		return services->GetGraphicsService();
+	}
+
+	PECS_DLL_SHARED PameECS::Services::FileService* ServicesGetFileService(const PameECS::Services::Services* services) {
+		return services->GetFileService();
 	}
 }
 
