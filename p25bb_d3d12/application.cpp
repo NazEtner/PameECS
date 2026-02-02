@@ -254,10 +254,10 @@ void Application::m_initializeServices() {
 }
 
 void Application::m_initializeECS() {
-	m_thread_pool_table->Allocate<Constants::StringLiterals::ESCScheduleThreadPoolName>();
+	m_thread_pool_table->Allocate<Constants::StringLiterals::ECSScheduleThreadPoolName>();
 
 	m_ecs_host = std::make_shared<ECS::ECSHost>(
-		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ESCScheduleThreadPoolName>(),
+		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ECSScheduleThreadPoolName>(),
 		m_services
 	);
 	if (m_debug_gui_host) {

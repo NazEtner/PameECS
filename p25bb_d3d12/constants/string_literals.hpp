@@ -6,5 +6,5 @@ namespace PameECS::Constants::StringLiterals {
 	inline constexpr auto ArchiveDecompressThreadPoolName = TemplateTypes::StringLiteral("ArchiveDecompress");
 	inline constexpr auto ArchiveMergeThreadPoolName = TemplateTypes::StringLiteral("ArchiveMerge");
 	inline constexpr auto FileIOThreadPoolName = TemplateTypes::StringLiteral("FileIO");
-	inline constexpr auto ESCScheduleThreadPoolName = TemplateTypes::StringLiteral("ECSSchedule");
+	inline constexpr auto ECSScheduleThreadPoolName = TemplateTypes::StringLiteral("ECSSchedule");
 }
