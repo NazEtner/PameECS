@@ -116,7 +116,7 @@ void Scheduler::m_updateDependenciesSet(
 
 void Scheduler::ShowDebug(const ECSHost* ecsHost) {
 	// 1. スケジューラーの統計情報
-	if (ImGui::CollapsingHeader("Scheduler Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
+	if (ImGui::TreeNodeEx("Scheduler Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Text("Total Systems: %zu", m_last_committed);
 		ImGui::Text("Phase Count: %zu", m_phases.size());
 
@@ -124,6 +124,7 @@ void Scheduler::ShowDebug(const ECSHost* ecsHost) {
 			ImGui::SameLine();
 			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), " [Dirty]");
 		}
+		ImGui::TreePop();
 	}
 
 	ImGui::Separator();
@@ -135,8 +136,8 @@ void Scheduler::ShowDebug(const ECSHost* ecsHost) {
 		// std::format で動的にラベルを生成
 		std::string phaseLabel = std::format("Phase {} (Systems: {})", i, phase.systems.size());
 
-		if (ImGui::CollapsingHeader(phaseLabel.c_str())) {
-			ImGui::Indent();
+		if (ImGui::TreeNode(phaseLabel.c_str())) {
+			//ImGui::Indent();
 
 			for (size_t sysIdx = 0; sysIdx < phase.systems.size(); ++sysIdx) {
 				auto* system = phase.systems[sysIdx];
@@ -185,7 +186,8 @@ void Scheduler::ShowDebug(const ECSHost* ecsHost) {
 					ImGui::TreePop();
 				}
 			}
-			ImGui::Unindent();
+			//ImGui::Unindent();
+			ImGui::TreePop();
 		}
 	}
 }
