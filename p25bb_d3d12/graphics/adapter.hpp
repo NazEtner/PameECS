@@ -55,13 +55,13 @@ namespace PameECS::Graphics {
 
 		template <typename T, typename ...Args>
 			requires(std::is_base_of_v<AdapterTask, T>)
-		bool SetTask(uint32_t id, Args... args) {
+		bool SetTask(uint32_t id, Args&&... args) {
 			return GraphicsAdapterSetTask(this, id, new T(std::forward<Args>(args)...), [](AdapterTask* task) -> void { delete task; });
 		}
 
 		template <typename T, typename ...Args> 
 			requires(std::is_base_of_v<AdapterTask, T>)
-		uint32_t SetTask(Args... args) {
+		uint32_t SetTask(Args&&... args) {
 			return SetTask(new T(std::forward<Args>(args)...), [](AdapterTask* task) -> void { delete task; });
 		}
 

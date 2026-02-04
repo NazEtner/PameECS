@@ -104,10 +104,10 @@ namespace PameECS::ECS {
 
 		// 戻り値はインデックス
 		// 一度追加したSystemを削除することはできない
-		template<typename T>
+		template<typename T, typename ...Args>
 			requires std::derived_from<T, System::Base>
-		size_t AddSystem() {
-			auto system = new (std::nothrow) T();
+		size_t AddSystem(Args&&... args) {
+			auto system = new (std::nothrow) T(std::forward<Args>(args)...);
 			auto deleter = [](System::Base* system) -> void {
 				delete system;
 			};
