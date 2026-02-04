@@ -113,3 +113,79 @@ void Scheduler::m_updateDependenciesSet(
 		readSet.insert(read);
 	}
 }
+
+void Scheduler::ShowDebug(const ECSHost* ecsHost) {
+	// 1. スケジューラーの統計情報
+	if (ImGui::CollapsingHeader("Scheduler Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
+		ImGui::Text("Total Systems: %zu", m_last_committed);
+		ImGui::Text("Phase Count: %zu", m_phases.size());
+
+		if (m_phases_dirty) {
+			ImGui::SameLine();
+			ImGui::TextColored(ImVec4(1.0f, 0.0f, 0.0f, 1.0f), " [Dirty]");
+		}
+	}
+
+	ImGui::Separator();
+
+	// 2. フェーズごとの詳細表示
+	for (size_t i = 0; i < m_phases.size(); ++i) {
+		auto& phase = m_phases[i];
+
+		// std::format で動的にラベルを生成
+		std::string phaseLabel = std::format("Phase {} (Systems: {})", i, phase.systems.size());
+
+		if (ImGui::CollapsingHeader(phaseLabel.c_str())) {
+			ImGui::Indent();
+
+			for (size_t sysIdx = 0; sysIdx < phase.systems.size(); ++sysIdx) {
+				auto* system = phase.systems[sysIdx];
+				if (!system) continue;
+
+				// システムのアドレスを識別子としてツリーを作成
+				std::string sysName = std::format("System: {:p}", static_cast<void*>(system));
+
+				if (ImGui::TreeNode(sysName.c_str())) {
+					const auto& deps = system->GetDependencies(ecsHost);
+					const auto& writes = deps.GetWriteDependencies();
+					const auto& reads = deps.GetReadDependencies();
+
+					// Table機能でRead/Writeを左右に並べて表示
+					if (ImGui::BeginTable("DepsTable", 2, ImGuiTableFlags_BordersInnerV | ImGuiTableFlags_RowBg)) {
+						ImGui::TableSetupColumn("Write Access (Conflict Source)");
+						ImGui::TableSetupColumn("Read Access (Shared)");
+						ImGui::TableHeadersRow();
+
+						ImGui::TableNextRow();
+
+						// --- Write Column (Red-ish) ---
+						ImGui::TableSetColumnIndex(0);
+						if (writes.empty()) {
+							ImGui::TextDisabled("No Write Access");
+						}
+						else {
+							for (auto w : writes) {
+								ImGui::TextColored(ImVec4(1.0f, 0.4f, 0.4f, 1.0f), "ID: %zu", w);
+							}
+						}
+
+						// --- Read Column (Blue-ish) ---
+						ImGui::TableSetColumnIndex(1);
+						if (reads.empty()) {
+							ImGui::TextDisabled("No Read Access");
+						}
+						else {
+							for (auto r : reads) {
+								ImGui::TextColored(ImVec4(0.4f, 0.7f, 1.0f, 1.0f), "ID: %zu", r);
+							}
+						}
+
+						ImGui::EndTable();
+					}
+					ImGui::TreePop();
+				}
+			}
+			ImGui::Unindent();
+		}
+	}
+}

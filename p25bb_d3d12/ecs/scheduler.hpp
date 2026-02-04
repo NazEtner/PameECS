@@ -12,6 +12,8 @@ namespace PameECS::ECS {
 		Scheduler(std::shared_ptr<BS::thread_pool<0U>> threadPool) : m_thread_pool(threadPool) {}
 		void Register(System::Base* system);
 		void Schedule(System::Context* context);
+
+		void ShowDebug(const ECSHost* ecsHost);
 	private:
 		void m_commit();
 		void m_makePhases(const ECSHost* ecsHost);

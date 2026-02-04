@@ -141,6 +141,9 @@ void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI
 					NewEntity(entity, {});
 				}
 			}
+			if (ImGui::CollapsingHeader("Scheduler")) {
+				m_impl->scheduler.ShowDebug(this);
+			}
 		},
 		{ 0.f, 0.f },
 		{ 480.f, 560.f },
