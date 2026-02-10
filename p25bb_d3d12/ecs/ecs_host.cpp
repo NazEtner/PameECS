@@ -183,7 +183,7 @@ void ECSHost::Update() {
 
 	assert(!m_impl->locked);
 	for (auto& tasks : m_impl->syncTasks) {
-		tasks.Execute(&context);
+		tasks.Execute(&context, tasks.userdata);
 	}
 }
 
@@ -264,7 +264,7 @@ IComponentStorage* ECSHost::GetComponentStorage(const size_t id) const {
 }
 
 size_t ECSHost::AddSystem(System::Base* system, void(*deleter)(System::Base*)) {
-	if (m_impl->locked) return false;
+	if (m_impl->locked) return std::numeric_limits<size_t>::max();;
 	if (!system) return std::numeric_limits<size_t>::max();
 	auto ret = m_impl->systems.size();
 	auto uniqueSystem = std::shared_ptr<System::Base>(system, deleter);

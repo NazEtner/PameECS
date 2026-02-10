@@ -6,19 +6,20 @@
 namespace PameECS::ECS {
 	class SyncTask {
 	public:
-		explicit SyncTask(void(*task)(System::Context* context)) noexcept : m_sync_task(task) {}
+		explicit SyncTask(void(*task)(System::Context* context, void* userdata)) noexcept : m_sync_task(task) {}
 		~SyncTask() {
 			// nothing to do(このクラスの場合、どこで実行しても変わらないので)
 		}
-		void Execute(System::Context* context) noexcept {
+		void Execute(System::Context* context, void* userdata) noexcept {
 #if defined(_DEBUG)
 			assert(m_sync_task);
 #else
 			if (!m_sync_task) return;
 #endif
-			m_sync_task(context);
+			m_sync_task(context, userdata);
 		}
+		void* userdata = nullptr;
 	private:
-		void(*m_sync_task)(System::Context* context) = nullptr;
+		void(*m_sync_task)(System::Context* context, void* userdata) = nullptr;
 	};
 }
