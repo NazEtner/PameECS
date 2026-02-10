@@ -185,6 +185,8 @@ void ECSHost::Update() {
 	for (auto& tasks : m_impl->syncTasks) {
 		tasks.Execute(&context, tasks.userdata);
 	}
+
+	m_impl->syncTasks.clear();
 }
 
 size_t ECSHost::GetComponentStorageId(const char* name) const {
