@@ -185,7 +185,7 @@ void Scheduler::ShowDebug(const ECSHost* ecsHost, DebugTools::DebugGUIHost* guiH
 					}
 					if (auto debugger = system->GetDebugger(); debugger) {
 						ImGui::Separator();
-						debugger(guiHost->GetContext());
+						debugger(guiHost->GetContext(), system);
 					}
 					ImGui::TreePop();
 				}
