@@ -114,7 +114,7 @@ void Scheduler::m_updateDependenciesSet(
 	}
 }
 
-void Scheduler::ShowDebug(const ECSHost* ecsHost) {
+void Scheduler::ShowDebug(const ECSHost* ecsHost, DebugTools::DebugGUIHost* guiHost) {
 	// 1. スケジューラーの統計情報
 	if (ImGui::TreeNodeEx("Scheduler Stats", ImGuiTreeNodeFlags_DefaultOpen)) {
 		ImGui::Text("Total Systems: %zu", m_last_committed);
@@ -182,6 +182,10 @@ void Scheduler::ShowDebug(const ECSHost* ecsHost) {
 						}
 
 						ImGui::EndTable();
+					}
+					if (auto debugger = system->GetDebugger(); debugger) {
+						ImGui::Separator();
+						debugger(guiHost->GetContext());
 					}
 					ImGui::TreePop();
 				}

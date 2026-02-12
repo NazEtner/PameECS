@@ -103,7 +103,7 @@ ECSHost::~ECSHost() {}
 void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI) {
 	debugGUI->AddWindow(
 		"ECSHost",
-		[this]() -> void {
+		[this, guiPtr = debugGUI.get()]() -> void {
 			if (ImGui::CollapsingHeader("ECS Information")) {
 				ImGui::Text("Component storages: %llu", m_impl->componentStorages.size());
 				ImGui::Text("Entity generations: (%llu, %p)", m_impl->entityGenerations.size(), m_impl->entityGenerations.data());
@@ -142,7 +142,7 @@ void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI
 				}
 			}
 			if (ImGui::CollapsingHeader("Scheduler")) {
-				m_impl->scheduler.ShowDebug(this);
+				m_impl->scheduler.ShowDebug(this, guiPtr);
 			}
 		},
 		{ 0.f, 0.f },

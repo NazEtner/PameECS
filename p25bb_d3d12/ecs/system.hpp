@@ -8,6 +8,7 @@
 #include "../macros/dll.hpp"
 #include "types.hpp"
 #include "../services/services.hpp"
+#include <imgui/imgui.h>
 
 namespace PameECS::ECS {
 	class ECSHost;
@@ -60,6 +61,9 @@ namespace PameECS::ECS::System {
 			m_updateEnd(context);
 		}
 		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) = 0;
+
+		using DebuggerType = void(*)(ImGuiContext* context);
+		virtual DebuggerType GetDebugger() { return nullptr; }
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
 		virtual void m_updateBegin(const Context* context) noexcept {}

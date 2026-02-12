@@ -13,7 +13,7 @@ namespace PameECS::ECS {
 		void Register(System::Base* system);
 		void Schedule(System::Context* context);
 
-		void ShowDebug(const ECSHost* ecsHost);
+		void ShowDebug(const ECSHost* ecsHost, DebugTools::DebugGUIHost* guiHost);
 	private:
 		void m_commit();
 		void m_makePhases(const ECSHost* ecsHost);
