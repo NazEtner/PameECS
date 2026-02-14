@@ -19,6 +19,7 @@ extern "C" {
 		uint32_t id,
 		PameECS::Graphics::AdapterTask* task,
 		void(*deleter)(PameECS::Graphics::AdapterTask*));
+	PECS_DLL_SHARED PameECS::Graphics::AdapterTask* GraphicsAdapterGetTask(const PameECS::Graphics::Adapter* adapter, uint32_t id);
 	PECS_DLL_SHARED void GraphicsAdapterEnqueueCommand(
 		PameECS::Graphics::Adapter* adapter,
 		uint32_t id,
@@ -64,6 +65,8 @@ namespace PameECS::Graphics {
 		uint32_t SetTask(Args&&... args) {
 			return SetTask(new T(std::forward<Args>(args)...), [](AdapterTask* task) -> void { delete task; });
 		}
+
+		AdapterTask* GetTask(uint32_t id) const;
 
 		void EnqueueCommand(uint32_t id, void* command, size_t commandSize);
 		void ExecuteLastTask();

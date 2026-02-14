@@ -18,6 +18,9 @@ extern "C" {
 		void(*deleter)(PameECS::Graphics::AdapterTask*)) {
 		return adapter->SetTask(id, task, deleter);
 	}
+	PECS_DLL_SHARED PameECS::Graphics::AdapterTask* GraphicsAdapterGetTask(const PameECS::Graphics::Adapter* adapter, uint32_t id) {
+		return adapter->GetTask(id);
+	}
 	PECS_DLL_SHARED void GraphicsAdapterEnqueueCommand(
 		PameECS::Graphics::Adapter* adapter,
 		uint32_t id,
@@ -107,6 +110,16 @@ bool Adapter::SetTask(uint32_t id, AdapterTask* task, void(*deleter)(AdapterTask
 	}
 	m_impl->tasks[id] = std::shared_ptr<AdapterTask>(task, deleter);
 	return true;
+}
+
+PameECS::Graphics::AdapterTask* Adapter::GetTask(uint32_t id) const {
+	if (!IsUsedTaskId(id)) {
+		return nullptr;
+	}
+
+	std::lock_guard lock(m_impl->mutex);
+	auto& task = m_impl->tasks[id];
+	return task.get();
 }
 
 void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
