@@ -100,7 +100,7 @@ namespace PameECS::ECS {
 			size_t currentCapacity = m_storage.size() / m_component_size;
 			size_t newCapacity = currentCapacity == 0 ? 1 : currentCapacity * 2;
 			m_storage.resize((newCapacity + 1) * m_component_size);
-			m_generations.resize(newCapacity, 0xFFFFFFFF'FFFFFFFF);
+			// m_generations.resize(newCapacity, 0xFFFFFFFF'FFFFFFFF);
 			auto oldOffset = m_offset;
 			void* ptr = m_storage.data();
 			size_t space = m_storage.size();
