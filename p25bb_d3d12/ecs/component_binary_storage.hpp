@@ -30,13 +30,13 @@ namespace PameECS::ECS {
 				m_sparse_pages[pageIndex].resize(PAGE_SIZE, INVALID_DENSE_INDEX);
 			}
 
-			uint32_t newDenseIndex = static_cast<uint32_t>(m_dence_indexes.size());
+			uint32_t newDenseIndex = static_cast<uint32_t>(m_dense_indexes.size());
 			m_sparse_pages[pageIndex][offsetIndex] = newDenseIndex;
 
-			m_dence_indexes.push_back(entity.id);
+			m_dense_indexes.push_back(entity.id);
 			m_generations.push_back(entity.generation);
 
-			m_ensureStorageCapacity(m_dence_indexes.size());
+			m_ensureStorageCapacity(m_dense_indexes.size());
 
 			return m_getAddressByDenseIndex(newDenseIndex);
 		}
@@ -56,20 +56,20 @@ namespace PameECS::ECS {
 			}
 
 			uint32_t target = denseIndex.value();
-			uint32_t last = static_cast<uint32_t>(m_dence_indexes.size() - 1);
-			uint64_t lastEntityId = m_dence_indexes.back();
+			uint32_t last = static_cast<uint32_t>(m_dense_indexes.size() - 1);
+			uint64_t lastEntityId = m_dense_indexes.back();
 
 			if (target != last) {
 				std::memcpy(m_getAddressByDenseIndex(target), m_getAddressByDenseIndex(last), m_component_size);
 
 				m_generations[target] = m_generations[last];
-				m_dence_indexes[target] = lastEntityId;
+				m_dense_indexes[target] = lastEntityId;
 
 				m_sparse_pages[lastEntityId / PAGE_SIZE][lastEntityId % PAGE_SIZE] = target;
 			}
 
 			m_sparse_pages[entity.id / PAGE_SIZE][entity.id % PAGE_SIZE] = INVALID_DENSE_INDEX;
-			m_dence_indexes.pop_back();
+			m_dense_indexes.pop_back();
 			m_generations.pop_back();
 		}
 	private:
@@ -130,7 +130,7 @@ namespace PameECS::ECS {
 
 		std::vector<std::vector<uint32_t>> m_sparse_pages;
 		std::vector<std::byte> m_storage;
-		std::vector<uint64_t> m_dence_indexes;
+		std::vector<uint64_t> m_dense_indexes;
 		std::vector<uint64_t> m_generations;
 	};
 }
