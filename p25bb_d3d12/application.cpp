@@ -94,6 +94,8 @@ void Application::Finalize() {
 	if (!m_initialized) return;
 	m_logger->info("Finalizing application...");
 
+	m_renderer->Wait();
+
 	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>().Reset();
 	m_thread_pool_table.reset();
 	m_graphics_adapter.reset();
