@@ -3,6 +3,8 @@
 #include "../helpers/id_generator.hpp"
 #include "../helpers/container.hpp"
 #include <mutex>
+#include <unordered_map>
+#include <bitset>
 
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
@@ -74,6 +76,50 @@ struct ECSHost::Impl {
 	std::vector<SyncTask> syncTasks;
 	std::mutex mutex;
 	std::shared_ptr<Services::Services> services;
+
+	static constexpr inline size_t numBits = 1024;
+	// Idが使用済みかを表すもの
+	std::unordered_map<size_t, std::bitset<numBits>> filledBits;
+
+	size_t GetIdBlockIndex(uint64_t id) {
+		return id / numBits;
+	}
+
+	size_t GetIndexInBlock(uint64_t id) {
+		return id % numBits;
+	}
+
+	size_t GetNextBlockStartId(uint64_t id) {
+		return (id + numBits) & ~numBits;
+	}
+
+	bool ThereAreUnusedIdsNearby(uint64_t id) {
+		if (auto it = filledBits.find(GetIdBlockIndex(id)); it != filledBits.end()) {
+			return !it->second.all();
+		}
+		return true;
+	}
+
+	std::bitset<numBits>* GetEntityFilledBitset(uint64_t id) {
+		if (auto it = filledBits.find(GetIdBlockIndex(id)); it != filledBits.end()) {
+			return &it->second;
+		}
+		return nullptr;
+	}
+
+	template <bool Flag>
+	void SetEntityAliveFlag(uint64_t id) {
+		entityAliveFlags[id] = Flag;
+		size_t blockIdx = GetIdBlockIndex(id);
+		size_t offset = GetIndexInBlock(id);
+		if constexpr (Flag) filledBits[blockIdx].set(offset);
+		else {
+			if (auto it = filledBits.find(blockIdx); it != filledBits.end()) {
+				it->second.reset(offset);
+				if (it->second.none()) filledBits.erase(it);
+			}
+		}
+	}
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -209,7 +255,8 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 		return false;
 	}
 	m_impl->isAliveFlagsDirty = true;
-	m_impl->entityAliveFlags[id] = false;
+	// m_impl->entityAliveFlags[id] = false;
+	m_impl->SetEntityAliveFlag<false>(id);
 	return true;
 }
 
@@ -282,26 +329,40 @@ PameECS::Services::Services* ECSHost::GetServices() const {
 bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& components,
 	size_t idMin, size_t idMax) {
 	if (m_impl->locked) return false;
-	auto id = idMin;
-	while (id <= idMax) {
+	auto finalize = [&](size_t id) -> bool {
 		m_impl->ResizeEntities(id + 1);
-		if (!m_impl->entityAliveFlags[id]) {
-			entity.id = id;
-			m_impl->isEntityGenerationsDirty = true;
-			entity.generation = ++m_impl->entityGenerations[id];
-			m_impl->isAliveFlagsDirty = true;
-			m_impl->entityAliveFlags[id] = true;
-			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
-			// コンポーネントの追加
-			for (const auto& compId : components) {
-				auto storage = GetComponentStorage(compId);
-				[[maybe_unused]]
-				bool added = storage && storage->AddComponent(entity);
-				// 失敗しても無視する
-			}
-			return true;
+		entity.id = id;
+		m_impl->isEntityGenerationsDirty = true;
+		entity.generation = ++m_impl->entityGenerations[id];
+		m_impl->isAliveFlagsDirty = true;
+		m_impl->SetEntityAliveFlag<true>(id);
+		m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
+		// コンポーネントの追加
+		for (const auto& compId : components) {
+			auto storage = GetComponentStorage(compId);
+			[[maybe_unused]]
+			bool added = storage && storage->AddComponent(entity);
+			// 失敗しても無視する
 		}
-		id++;
+		return true;
+	};
+	for (auto id = idMin; id <= idMax;) {
+		if (!m_impl->ThereAreUnusedIdsNearby(id)) {
+			id = m_impl->GetNextBlockStartId(id);
+			continue;
+		}
+		if (auto bitset = m_impl->GetEntityFilledBitset(id); bitset) {
+			auto offset = m_impl->GetIndexInBlock(id);
+			while (offset < m_impl->numBits && id <= idMax) {
+				if (!bitset->test(offset))
+					return finalize(id);
+				offset++;
+				id++;
+			}
+		}
+		else {
+			return finalize(id);
+		}
 	}
 	return false;
 }
