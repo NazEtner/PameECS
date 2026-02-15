@@ -149,6 +149,7 @@ namespace PameECS::Graphics {
 
 		void m_waitForGPU(uint32_t frameIndex) noexcept;
 		void m_waitForGPU() noexcept;
+		void m_returnPendingAllocators() noexcept;
 
 		std::shared_ptr<spdlog::logger> m_logger;
 

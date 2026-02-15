@@ -31,23 +31,15 @@ Renderer::~Renderer() {
 	}
 	m_waitForGPU();
 
+	m_returnPendingAllocators();
+
 	CloseHandle(m_fence_event);
 }
 
 bool Renderer::Render() {
 	if (m_is_recovery_pending) return false;
 	m_waitForGPU(m_current_frame_index);
-	const uint64_t completedFenceValue = m_fence->GetCompletedValue();
-	while (!m_pending_allocators.empty()) {
-		auto& entry = m_pending_allocators.front();
-		if (entry.fenceValue <= completedFenceValue) {
-			m_command_list_pool->ReturnCommandAllocator(std::move(entry.allocator));
-			m_pending_allocators.pop();
-		}
-		else {
-			break;
-		}
-	}
+	m_returnPendingAllocators();
 	try {
 		auto clearCommandAllocator = m_command_list_pool->GetCommandAllocator();
 		auto clearCommandList = m_command_list_pool->GetCommandList(clearCommandAllocator.Get());
@@ -346,6 +338,20 @@ void Renderer::m_waitForGPU() noexcept {
 	if (m_fence->GetCompletedValue() < waitForFenceValue) {
 		m_handleError(m_fence->SetEventOnCompletion(waitForFenceValue, m_fence_event), "Failed to set waiting event.");
 		WaitForSingleObject(m_fence_event, INFINITE);
+	}
+}
+
+void Renderer::m_returnPendingAllocators() noexcept {
+	const uint64_t completedFenceValue = m_fence->GetCompletedValue();
+	while (!m_pending_allocators.empty()) {
+		auto& entry = m_pending_allocators.front();
+		if (entry.fenceValue <= completedFenceValue) {
+			m_command_list_pool->ReturnCommandAllocator(std::move(entry.allocator));
+			m_pending_allocators.pop();
+		}
+		else {
+			break;
+		}
 	}
 }
 
