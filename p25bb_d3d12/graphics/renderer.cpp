@@ -26,6 +26,9 @@ Renderer::Renderer(
 
 Renderer::~Renderer() {
 	// リソースはComPtrかshared_ptrなので明示的には解放しない
+	for (size_t i = 0; i < m_fence_values.size(); ++i) {
+		m_waitForGPU(i);
+	}
 	m_waitForGPU();
 
 	CloseHandle(m_fence_event);
