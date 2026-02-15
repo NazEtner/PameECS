@@ -34,6 +34,10 @@ namespace PameECS::ECS {
 			return m_getComponentAs<T>(entity);
 		}
 
+		T* GetComponentByRawIndex(size_t index) {
+			return m_getComponentByRawIndexAs<T>(index);
+		}
+
 		bool AddComponent(const Types::Entity& entity) override {
 			return m_addComponentAs<T>(entity);
 		}

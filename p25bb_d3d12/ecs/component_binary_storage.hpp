@@ -72,6 +72,23 @@ namespace PameECS::ECS {
 			m_dense_indexes.pop_back();
 			m_generations.pop_back();
 		}
+
+		std::byte* GetComponentDataByRawIndex(size_t index) {
+			return m_getAddressByDenseIndex(index);
+		}
+
+		size_t GetCount() const {
+			return m_dense_indexes.size();
+		}
+
+		Types::Entity GetEntityByRawIndex(size_t index) {
+			assert(index < m_dense_indexes.size());
+
+			return Types::Entity{
+				.id = m_dense_indexes[index],
+				.generation = m_generations[index]
+			};
+		}
 	private:
 		static constexpr size_t PAGE_SIZE = 1024; // 4KB
 		static constexpr size_t INVALID_DENSE_INDEX = 0xFFFFFFFF;

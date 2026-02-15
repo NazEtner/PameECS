@@ -45,7 +45,7 @@ namespace PameECS::ECS::System {
 	public:
 		Base() = default;
 		virtual ~Base() = default;
-		void Update(const Context* context) noexcept {
+		virtual void Update(const Context* context) noexcept {
 			m_updateBegin(context);
 			for (size_t i = 0; i < context->entityAliveFlagsCount; ++i) {
 				if (!context->entityAliveFlags[i]) continue;
