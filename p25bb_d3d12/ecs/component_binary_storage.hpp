@@ -107,7 +107,7 @@ namespace PameECS::ECS {
 		}
 
 		void m_ensureStorageCapacity(size_t required_count) {
-			size_t current_cap = m_storage.size() / m_component_size;
+			size_t current_cap = (m_storage.size() > m_offset) ? (m_storage.size() - m_offset) / m_component_size : 0;
 			if (required_count > current_cap) {
 				m_reserve();
 			}
