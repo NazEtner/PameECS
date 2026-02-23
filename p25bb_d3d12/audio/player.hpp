@@ -44,7 +44,7 @@ namespace PameECS::Audio {
 
 		template <typename T, typename... Args>
 			requires(std::is_base_of_v<Callback, T>)
-		void Submit(size_t voiceHandle, Args... args) {
+		void Submit(size_t voiceHandle, Args&&... args) {
 			AudioPlayerSubmitCallbackObject(
 				this,
 				voiceHandle,
