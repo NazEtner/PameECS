@@ -4,14 +4,15 @@
 #include <vector>
 #include <optional>
 #include <dr_libs/dr_wav.h>
+#include <future>
+#include <sstream>
 
 namespace PameECS::Audio::Callbacks {
-	// アーカイブファイルに入っていない長いWAVファイルの再生を軽量化するためのコールバック
-	class LongWav : public Callback {
+	class Wav : public Callback {
 	public:
-		LongWav(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer);
+		Wav(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer);
 
-		virtual ~LongWav();
+		virtual ~Wav();
 
 		CallbackFunction GetCallback() override;
 
@@ -28,6 +29,9 @@ namespace PameECS::Audio::Callbacks {
 		}
 
 		bool IsReady() override {
+			if (m_file_future.valid() && m_file_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+				m_loadWav();
+			}
 			return IsValid();
 		}
 
@@ -36,6 +40,9 @@ namespace PameECS::Audio::Callbacks {
 			drwav_seek_to_pcm_frame(&m_wav, sample);
 		}
 	private:
+		void m_loadWav();
+		std::future<std::stringstream> m_file_future;
+		std::vector<uint8_t> m_file_data;
 		WAVEFORMATEXTENSIBLE m_format = {};
 		std::optional<size_t> m_loop_start = std::nullopt;
 		drwav m_wav = {};

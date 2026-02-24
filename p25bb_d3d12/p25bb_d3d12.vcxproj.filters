@@ -231,6 +231,18 @@
     <ClCompile Include="services\file_service.cpp">
       <Filter>ソース ファイル\services</Filter>
     </ClCompile>
+    <ClCompile Include="audio\player_backend.cpp">
+      <Filter>ソース ファイル\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\pcm.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\flac.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\wav.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -466,6 +478,18 @@
     </ClInclude>
     <ClInclude Include="services\file_service.hpp">
       <Filter>ヘッダー ファイル\services</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\player_backend.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\pcm.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\flac.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\wav.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
