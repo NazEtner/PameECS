@@ -35,7 +35,7 @@ namespace PameECS::Audio {
 		size_t GetVoiceHandle();
 		void ReleaseVoiceHandle(size_t voiceHandle);
 		void Submit(size_t voiceHandle, const PCMEntry* entry);
-		void Submit(size_t voiceHandle, const FileEntry* entry, bool useCallback = true);
+		void Submit(size_t voiceHandle, const FileEntry* entry, bool useStreaming = true);
 
 		void Submit(size_t voiceHandle, Callback* callback, void(*deleter)(Callback*));
 

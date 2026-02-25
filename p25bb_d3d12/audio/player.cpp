@@ -80,11 +80,11 @@ void Player::Submit(size_t voiceHandle, const PCMEntry* entry) {
 	Submit<Callbacks::PCM>(voiceHandle, *entry);
 }
 
-void Player::Submit(size_t voiceHandle, const FileEntry* entry, bool useCallback) {
+void Player::Submit(size_t voiceHandle, const FileEntry* entry, bool useStreaming) {
 	if (!entry) return;
 	std::error_code ec;
 	auto filename = std::string(entry->fileName, entry->nameSize);
-	if (useCallback && std::filesystem::is_regular_file(filename, ec)) {
+	if (useStreaming && std::filesystem::is_regular_file(filename, ec)) {
 		std::optional<size_t> loopPos;
 		if (entry->loopEnable) loopPos = entry->loopStart;
 		switch (entry->codec) {
@@ -280,8 +280,8 @@ extern "C" {
 	PECS_DLL_SHARED void AudioPlayerSubmitPCM(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::PCMEntry* entry) {
 		player->Submit(voice, entry);
 	}
-	PECS_DLL_SHARED void AudioPlayerSubmitFile(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::FileEntry* entry, bool useCallback) {
-		player->Submit(voice, entry, useCallback);
+	PECS_DLL_SHARED void AudioPlayerSubmitFile(PameECS::Audio::Player* player, size_t voice, const PameECS::Audio::FileEntry* entry, bool useStreaming) {
+		player->Submit(voice, entry, useStreaming);
 	}
 	PECS_DLL_SHARED void AudioPlayerSubmitCallbackObject(PameECS::Audio::Player* player, size_t voiceHandle, PameECS::Audio::Callback* callback, void(*deleter)(PameECS::Audio::Callback*)) {
 		player->Submit(voiceHandle, callback, deleter);
