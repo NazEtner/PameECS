@@ -73,6 +73,7 @@ void PlayerBackend::Stop(size_t slotIndex) {
 	slot.sourceVoice->Stop();
 	slot.stopped = true;
 	slot.sourceVoice->FlushSourceBuffers();
+	slot.callback = nullptr;
 }
 
 void PlayerBackend::m_fillAndSubmit(size_t slotIndex) {
