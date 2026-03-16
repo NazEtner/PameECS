@@ -62,7 +62,7 @@ namespace PameECS::ECS::System {
 		}
 		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) = 0;
 
-		using DebuggerType = void(*)(ImGuiContext* context, Base* self);
+		using DebuggerType = void(*)(ImGuiContext* context, Base* self, ECSHost* ecsHost);
 		virtual DebuggerType GetDebugger() { return nullptr; }
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
