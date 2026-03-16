@@ -14,6 +14,7 @@ PlayerBackend::PlayerBackend() : m_voice_callback_handler(this) {
 }
 
 PlayerBackend::~PlayerBackend() {
+	std::lock_guard lock(m_mutex);
 	for (auto& slot : m_voice_slots) {
 		if (!slot.sourceVoice) continue;
 		m_voice_pool.Release(slot.callback->GetFormat(), slot.sourceVoice);
@@ -22,6 +23,7 @@ PlayerBackend::~PlayerBackend() {
 }
 
 void PlayerBackend::Register(size_t slotIndex, Callback* callback, void(*deleter)(Callback*)) {
+	std::lock_guard lock(m_mutex);
 	if (slotIndex >= m_voice_slots.size()) {
 		Helpers::Container::ResizePow2(m_voice_slots, slotIndex + 1);
 	}
@@ -38,6 +40,7 @@ void PlayerBackend::Register(size_t slotIndex, Callback* callback, void(*deleter
 }
 
 bool PlayerBackend::Start(size_t slotIndex) {
+	std::lock_guard lock(m_mutex);
 	if (slotIndex >= m_voice_slots.size()) return false;
 	auto& slot = m_voice_slots[slotIndex];
 	if (!slot.callback || !slot.callback->IsReady()) return false;
@@ -67,6 +70,7 @@ bool PlayerBackend::Start(size_t slotIndex) {
 }
 
 void PlayerBackend::Stop(size_t slotIndex) {
+	std::lock_guard lock(m_mutex);
 	if (slotIndex >= m_voice_slots.size()) return;
 	auto& slot = m_voice_slots[slotIndex];
 	if (!slot.sourceVoice) return;

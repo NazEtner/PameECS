@@ -103,7 +103,7 @@ namespace PameECS::Audio {
 			// バッファが終了したときに呼ばれる
 			void STDMETHODCALLTYPE OnBufferEnd(void* pBufferContext) override {
 				size_t slotIndex = reinterpret_cast<size_t>(pBufferContext) - 1;
-
+				std::lock_guard lock(m_backend->m_mutex);
 				// バックエンドに次のデータを要求する
 				m_backend->m_fillAndSubmit(slotIndex);
 			}
@@ -134,5 +134,6 @@ namespace PameECS::Audio {
 		IXAudio2MasteringVoice* m_master_voice = nullptr;
 		std::vector<VoiceSlot> m_voice_slots;
 		VoicePool m_voice_pool;
+		std::mutex m_mutex;
 	};
 }
