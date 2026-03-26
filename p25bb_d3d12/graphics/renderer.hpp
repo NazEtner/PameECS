@@ -67,6 +67,7 @@ namespace PameECS::Graphics {
 		size_t GetCurrentBufferIndex() { return m_swap_chain->GetCurrentBackBufferIndex(); }
 		const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& GetRenderTargetHandles() { return m_rtv_handles; }
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetHandle() { return GetRenderTargetHandles()[GetCurrentBufferIndex()]; }
+		D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilHandle() { return m_dsv_handle; }
 		const std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>>& GetBackBuffers() { return m_back_buffers; }
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBuffer() { return GetBackBuffers()[GetCurrentBufferIndex()]; }
 		bool NeedReleaseResources() const { return m_is_recovery_pending; }
@@ -90,6 +91,8 @@ namespace PameECS::Graphics {
 		HRESULT m_createSwapChain() noexcept;
 		[[nodiscard]]
 		HRESULT m_createRTVHeap() noexcept;
+		[[nodiscard]]
+		HRESULT m_createDSVHeap() noexcept;
 		[[nodiscard]]
 		HRESULT m_enableDebugLayer() noexcept;
 		[[nodiscard]]
@@ -164,6 +167,9 @@ namespace PameECS::Graphics {
 		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_rtv_heap;
 		std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>> m_back_buffers;
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_rtv_handles;
+		Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_dsv_heap;
+		Microsoft::WRL::ComPtr<ID3D12Resource> m_depth_stencil_buffer;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_dsv_handle;
 		D3D12_VIEWPORT m_viewport = {};
 		D3D12_RECT m_scissor_rect = {};
 		// RendererTypes::RenderCommandはコマンドリストとアロケーターが入った構造体
