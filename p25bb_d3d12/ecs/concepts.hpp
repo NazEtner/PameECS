@@ -12,6 +12,7 @@ namespace PameECS::ECS::Concepts {
 	concept ComponentType =
 		std::is_trivially_copyable_v<T> &&
 		std::is_trivially_destructible_v<T> &&
+		std::is_default_constructible_v<T> &&
 		std::is_class_v<T> &&
 		requires(const Types::ComponentLayoutElement** elements, size_t* count) {
 			{ T::GetComponentLayoutElements(elements, count) } -> std::same_as<void>;

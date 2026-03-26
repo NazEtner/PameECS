@@ -10,12 +10,21 @@ extern "C" {
 	PECS_DLL_SHARED PameECS::Services::AudioService* ServicesGetAudioService(const PameECS::Services::Services* services) {
 		return services->GetAudioService();
 	}
+
+	PECS_DLL_SHARED PameECS::Services::GraphicsService* ServicesGetGraphicsService(const PameECS::Services::Services* services) {
+		return services->GetGraphicsService();
+	}
+
+	PECS_DLL_SHARED PameECS::Services::FileService* ServicesGetFileService(const PameECS::Services::Services* services) {
+		return services->GetFileService();
+	}
 }
 
 struct Services::Impl {
 	std::unique_ptr<InputService> inputService;
 	std::unique_ptr<AudioService> audioService;
 	std::unique_ptr<GraphicsService> graphicsService;
+	std::unique_ptr<FileService> fileService;
 };
 
 Services::Services() {
@@ -59,6 +68,10 @@ void Services::SetGraphicsService(std::unique_ptr<GraphicsService>&& graphicsSer
 	m_impl->graphicsService = std::move(graphicsService);
 }
 
+void Services::SetFileService(std::unique_ptr<FileService>&& fileService) {
+	m_impl->fileService = std::move(fileService);
+}
+
 PameECS::Services::InputService* Services::GetInputService() const {
 	return m_impl->inputService.get();
 }
@@ -69,4 +82,8 @@ PameECS::Services::AudioService* Services::GetAudioService() const {
 
 PameECS::Services::GraphicsService* Services::GetGraphicsService() const {
 	return m_impl->graphicsService.get();
+}
+
+PameECS::Services::FileService* Services::GetFileService() const {
+	return m_impl->fileService.get();
 }

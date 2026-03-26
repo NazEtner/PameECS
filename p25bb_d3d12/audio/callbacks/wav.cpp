@@ -1,24 +1,39 @@
-#include "long_wav.hpp"
+#include "wav.hpp"
+#include "../../file/file.hpp"
 
-using PameECS::Audio::Callbacks::LongWav;
+using PameECS::Audio::Callbacks::Wav;
 using CallbackFunction = PameECS::Audio::Callback::CallbackFunction;
 
-LongWav::LongWav(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer) {
-	if (drwav_init_file(&m_wav, filename.c_str(), nullptr)) {
-		m_format = m_fillFormat(m_wav.channels, 32, m_wav.sampleRate, true);
-		m_loop_start = loopStart;
-		m_is_valid = true;
-		m_hold_buffer = holdBuffer;
-	}
+Wav::Wav(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer) {
+	// if (drwav_init_file(&m_wav, filename.c_str(), nullptr)) {
+	//	m_format = m_fillFormat(m_wav.channels, 32, m_wav.sampleRate, true);
+	//	m_is_valid = true;
+	// }
+	File::File<0, 0> file;
+	m_file_future = file.LoadAsync(filename);
+	m_loop_start = loopStart;
+	m_hold_buffer = holdBuffer;
 }
-LongWav::~LongWav() {
+
+Wav::~Wav() {
 	if (m_is_valid) {
 		drwav_uninit(&m_wav);
 	}
 }
-CallbackFunction LongWav::GetCallback() {
+
+void Wav::m_loadWav() {
+	auto ss = m_file_future.get();
+	auto view = ss.view();
+	m_file_data = std::vector<uint8_t>(view.begin(), view.end());
+	if (drwav_init_memory(&m_wav, m_file_data.data(), m_file_data.size(), nullptr)) {
+		m_format = m_fillFormat(m_wav.channels, 32, m_wav.sampleRate, true);
+		m_is_valid = true;
+	}
+}
+
+CallbackFunction Wav::GetCallback() {
 	return [](void* userData, uint8_t* dest, size_t samples) -> size_t {
-		LongWav* self = reinterpret_cast<LongWav*>(userData);
+		Wav* self = reinterpret_cast<Wav*>(userData);
 		if (!self) return 0;
 		if (!self->m_is_valid) return 0;
 
@@ -39,5 +54,5 @@ CallbackFunction LongWav::GetCallback() {
 
 		std::memcpy(dest, self->m_buffer.data(), samplesRead * self->m_wav.channels * sizeof(float));
 		return samplesRead;
-	};
+		};
 }

@@ -106,6 +106,15 @@
     <Filter Include="ソース ファイル\audio\callbacks">
       <UniqueIdentifier>{f2ba717b-fc7e-4f0f-9f6f-bb3d85ad956b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ヘッダー ファイル\hash">
+      <UniqueIdentifier>{81c30201-e411-4b31-b8e5-e507473e6e82}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ソース ファイル\script">
+      <UniqueIdentifier>{160a82b4-5be9-4b2f-bd1d-61833054a21f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ヘッダー ファイル\script">
+      <UniqueIdentifier>{8cd96e64-cce3-4624-9f6f-462e6cafe15f}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -212,6 +221,27 @@
     </ClCompile>
     <ClCompile Include="file\assets.cpp">
       <Filter>ソース ファイル\file</Filter>
+    </ClCompile>
+    <ClCompile Include="script\script_object.cpp">
+      <Filter>ソース ファイル\script</Filter>
+    </ClCompile>
+    <ClCompile Include="script\script_loader.cpp">
+      <Filter>ソース ファイル\script</Filter>
+    </ClCompile>
+    <ClCompile Include="services\file_service.cpp">
+      <Filter>ソース ファイル\services</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\player_backend.cpp">
+      <Filter>ソース ファイル\audio</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\pcm.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\flac.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
+    </ClCompile>
+    <ClCompile Include="audio\callbacks\wav.cpp">
+      <Filter>ソース ファイル\audio\callbacks</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -433,6 +463,33 @@
     </ClInclude>
     <ClInclude Include="file\assets.hpp">
       <Filter>ヘッダー ファイル\file</Filter>
+    </ClInclude>
+    <ClInclude Include="hash\string_hash.hpp">
+      <Filter>ヘッダー ファイル\hash</Filter>
+    </ClInclude>
+    <ClInclude Include="script\script_object.hpp">
+      <Filter>ヘッダー ファイル\script</Filter>
+    </ClInclude>
+    <ClInclude Include="exceptions\script_error.hpp">
+      <Filter>ヘッダー ファイル\exceptions</Filter>
+    </ClInclude>
+    <ClInclude Include="script\script_loader.hpp">
+      <Filter>ヘッダー ファイル\script</Filter>
+    </ClInclude>
+    <ClInclude Include="services\file_service.hpp">
+      <Filter>ヘッダー ファイル\services</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\player_backend.hpp">
+      <Filter>ヘッダー ファイル\audio</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\pcm.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\flac.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
+    </ClInclude>
+    <ClInclude Include="audio\callbacks\wav.hpp">
+      <Filter>ヘッダー ファイル\audio\callbacks</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

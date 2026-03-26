@@ -27,6 +27,9 @@ extern "C" {
 	PECS_DLL_SHARED uint32_t GraphicsWindowViewGetHeight(const PameECS::Graphics::WindowView* windowView) {
 		return windowView->GetHeight();
 	}
+	PECS_DLL_SHARED void GraphicsWindowViewSetProtectedContentEnabled(PameECS::Graphics::WindowView* windowView, bool enabled, bool excludeFromCapture) {
+		windowView->SetProtectedContentEnabled(enabled, excludeFromCapture);
+	}
 }
 
 struct WindowView::Impl {
@@ -84,4 +87,25 @@ uint32_t WindowView::GetHeight() const {
 		return properties.height.value();
 	}
 	return 0;
+}
+
+void WindowView::SetProtectedContentEnabled(const bool enabled, const bool excludeFromCapture) {
+	m_impl->renderer->SetProtectedContent(enabled);
+	m_impl->renderer->Reset(RendererFlags::NoDeviceReset);
+	if (enabled && excludeFromCapture) {
+		if (!SetWindowDisplayAffinity(
+			m_impl->window->GetWindowHandle(),
+			WDA_EXCLUDEFROMCAPTURE)) {
+			SetWindowDisplayAffinity(
+				m_impl->window->GetWindowHandle(),
+				WDA_MONITOR
+			);
+		}
+	}
+	else {
+		SetWindowDisplayAffinity(
+			m_impl->window->GetWindowHandle(),
+			WDA_NONE
+		);
+	}
 }

@@ -13,9 +13,10 @@ namespace PameECS::Audio {
 		using CallbackFunction = size_t(*)(void* userData, uint8_t* dest, size_t samples);
 		virtual CallbackFunction GetCallback() = 0;
 		virtual WAVEFORMATEXTENSIBLE GetFormat() = 0;
-		virtual void* GetUserData() = 0;
 		virtual bool IsValid() = 0;
 		virtual bool IsExpired() = 0;
+		virtual bool IsReady() = 0;
+		virtual void Seek(size_t sample) = 0;
 	protected:
 		WAVEFORMATEXTENSIBLE m_fillFormat(uint16_t channels, uint16_t bits, uint32_t rate, bool isFloat) {
 			WAVEFORMATEXTENSIBLE format;

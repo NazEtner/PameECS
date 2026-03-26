@@ -4,6 +4,9 @@
 #include <sstream>
 #include <mutex>
 #include <unordered_map>
+#include <stack>
+#include <string_view>
+#include "../hash/string_hash.hpp"
 
 using PameECS::File::Assets;
 using PameECS::File::AssetHandle;
@@ -20,12 +23,16 @@ namespace {
 		std::unordered_map<uint8_t*, std::unique_ptr<std::vector<uint8_t>>> loadedData;
 		std::unordered_map<uint32_t, TicketInfo> tickets;
 		bool active = true;
+		uint32_t nextTicketId = 1;
+		std::stack<uint32_t> freeTicketIds;
 	};
 }
 
 struct Assets::Impl {
 	std::mutex mutex;
 	std::unordered_map<uint32_t, HandleInfo> handles;
+	std::unordered_map<std::string, uint32_t, Hash::StringHash, std::equal_to<>> pathToId;
+	std::stack<uint32_t> emptyIds;
 };
 
 Assets::Assets() {
@@ -57,21 +64,30 @@ bool Assets::IsValidTicket(const AsyncTicket& ticket) const {
 AssetHandle Assets::GetAssetHandle(const char* path, size_t pathSize) {
 	std::lock_guard lock(m_impl->mutex);
 
-	for (const auto& [id, handleInfo] : m_impl->handles) {
-		if (handleInfo.path == std::string(path, pathSize) && handleInfo.active) {
-			AssetHandle handle = {};
-			handle.id = id;
-			handle.generation = handleInfo.generation;
-			return handle;
-		}
+	auto sv = std::string_view(path, pathSize);
+
+	auto it = m_impl->pathToId.find(sv);
+	if (it != m_impl->pathToId.end()) {
+		AssetHandle handle = {};
+		handle.id = it->second;
+		handle.generation = m_impl->handles[it->second].generation;
+		return handle;
 	}
 
 	uint32_t newId = static_cast<uint32_t>(m_impl->handles.size() + 1);
-	m_impl->handles[newId] = HandleInfo{ std::string(path, pathSize), 1, {}, {}, true };
+	uint32_t generation = 1;
 
+	if (!m_impl->emptyIds.empty()) {
+		newId = m_impl->emptyIds.top();
+		m_impl->emptyIds.pop();
+		generation = m_impl->handles[newId].generation;
+	}
+
+	m_impl->handles[newId] = HandleInfo{ std::string(path, pathSize), generation, {}, {}, true, 1 };
+	m_impl->pathToId[m_impl->handles[newId].path] = newId;
 	AssetHandle handle = {};
 	handle.id = newId;
-	handle.generation = 1;
+	handle.generation = generation;
 	return handle;
 }
 
@@ -82,8 +98,18 @@ AsyncTicket Assets::Load(const AssetHandle& handle) {
 	if (it == m_impl->handles.end() || it->second.generation != handle.generation) {
 		return AsyncTicket{};
 	}
-
-	uint32_t newTicketId = static_cast<uint32_t>(it->second.tickets.size() + 1);
+	uint32_t newTicketId = 0;
+	if (!it->second.freeTicketIds.empty()) {
+		newTicketId = it->second.freeTicketIds.top();
+		it->second.freeTicketIds.pop();
+	}
+	else {
+		newTicketId = it->second.nextTicketId++;
+		if (newTicketId == 0) [[unlikely]] {
+			it->second.nextTicketId = 0;
+			throw Exceptions::FileError("Ticket ID overflow");
+		}
+	}
 
 	auto file = File<0, 0>(); // ImplementIdとGlobalStateIdは0で固定
 	auto future = file.LoadAsync(it->second.path);
@@ -120,6 +146,7 @@ uint8_t* Assets::GetData(AsyncTicket& ticket, size_t& outSize) {
 	try {
 		auto ss = ticketInfo.future.get();
 		handleInfo.tickets.erase(ticketIt);
+		handleInfo.freeTicketIds.push(ticket.id);
 
 		auto data = std::make_unique<std::vector<uint8_t>>(
 			std::istreambuf_iterator<char>(ss),
@@ -136,6 +163,7 @@ uint8_t* Assets::GetData(AsyncTicket& ticket, size_t& outSize) {
 	}
 	catch (...) {
 		handleInfo.tickets.erase(ticketIt);
+		handleInfo.freeTicketIds.push(ticket.id);
 		ticket.id = 0;
 		ticket.handle.generation = 0;
 		return nullptr;
@@ -143,7 +171,7 @@ uint8_t* Assets::GetData(AsyncTicket& ticket, size_t& outSize) {
 }
 
 uint8_t* Assets::GetDataSync(AsyncTicket& ticket, size_t& outSize) {
-	std::lock_guard lock(m_impl->mutex);
+	std::unique_lock lock(m_impl->mutex);
 
 	auto handleIt = m_impl->handles.find(ticket.handle.id);
 	if (handleIt == m_impl->handles.end() || handleIt->second.generation != ticket.handle.generation) {
@@ -162,8 +190,11 @@ uint8_t* Assets::GetDataSync(AsyncTicket& ticket, size_t& outSize) {
 
 	auto& ticketInfo = ticketIt->second;
 	try {
+		lock.unlock();
 		auto ss = ticketInfo.future.get();
+		lock.lock();
 		handleInfo.tickets.erase(ticketIt);
+		handleInfo.freeTicketIds.push(ticket.id);
 
 		auto data = std::make_unique<std::vector<uint8_t>>(
 			std::istreambuf_iterator<char>(ss),
@@ -180,6 +211,7 @@ uint8_t* Assets::GetDataSync(AsyncTicket& ticket, size_t& outSize) {
 	}
 	catch (...) {
 		handleInfo.tickets.erase(ticketIt);
+		handleInfo.freeTicketIds.push(ticket.id);
 		ticket.id = 0;
 		ticket.handle.generation = 0;
 		return nullptr;
@@ -208,58 +240,64 @@ void Assets::ReleaseHandle(const AssetHandle& handle) {
 	if (handleIt == m_impl->handles.end() || handleIt->second.generation != handle.generation) {
 		return;
 	}
+	m_impl->emptyIds.push(handle.id);
 
 	handleIt->second.active = false;
 	handleIt->second.generation++;
+	if (handleIt->second.generation == 0) [[unlikely]] {
+		handleIt->second.generation = 1;
+	}
 	handleIt->second.loadedData.clear();
 	handleIt->second.tickets.clear();
+	handleIt->second.freeTicketIds = std::stack<uint32_t>();
+	m_impl->pathToId.erase(handleIt->second.path);
 }
 
 extern "C" {
 	PECS_DLL_SHARED bool FileAssetsIsValidHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle) {
-		return assets->IsValidHandle(handle);
+		const PameECS::File::AssetHandle* handle) {
+		return assets->IsValidHandle(*handle);
 	}
 	PECS_DLL_SHARED bool FileAssetsIsValidTicket(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AsyncTicket& ticket) {
-		return assets->IsValidTicket(ticket);
+		const PameECS::File::AsyncTicket* ticket) {
+		return assets->IsValidTicket(*ticket);
 	}
 	PECS_DLL_SHARED void FileAssetsGetAssetHandle(
 		PameECS::File::Assets* assets,
-		PameECS::File::AssetHandle& outHandle,
+		PameECS::File::AssetHandle* outHandle,
 		const char* path,
 		size_t pathSize) {
-		outHandle = assets->GetAssetHandle(path, pathSize);
+		*outHandle = assets->GetAssetHandle(path, pathSize);
 	}
 	PECS_DLL_SHARED void FileAssetsLoad(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& outTicket,
-		const PameECS::File::AssetHandle& handle) {
-		outTicket = assets->Load(handle);
+		PameECS::File::AsyncTicket* outTicket,
+		const PameECS::File::AssetHandle* handle) {
+		*outTicket = assets->Load(*handle);
 	}
 	PECS_DLL_SHARED uint8_t* FileAssetsGetData(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize) {
-		return assets->GetData(ticket, outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize) {
+		return assets->GetData(*ticket, *outSize);
 	}
 	PECS_DLL_SHARED uint8_t* FileAssetsGetDataSync(
 		PameECS::File::Assets* assets,
-		PameECS::File::AsyncTicket& ticket,
-		size_t& outSize) {
-		return assets->GetDataSync(ticket, outSize);
+		PameECS::File::AsyncTicket* ticket,
+		size_t* outSize) {
+		return assets->GetDataSync(*ticket, *outSize);
 	}
 	PECS_DLL_SHARED void FileAssetsReleaseData(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle,
+		const PameECS::File::AssetHandle* handle,
 		uint8_t* data) {
-		assets->ReleaseData(handle, data);
+		assets->ReleaseData(*handle, data);
 	}
 	PECS_DLL_SHARED void FileAssetsReleaseHandle(
 		PameECS::File::Assets* assets,
-		const PameECS::File::AssetHandle& handle) {
-		assets->ReleaseHandle(handle);
+		const PameECS::File::AssetHandle* handle) {
+		assets->ReleaseHandle(*handle);
 	}
 }

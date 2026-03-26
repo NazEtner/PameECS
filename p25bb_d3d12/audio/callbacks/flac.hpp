@@ -1,17 +1,17 @@
 #pragma once
 #include "../callback.hpp"
+#include "../../file/file.hpp"
 #include <string>
 #include <vector>
 #include <optional>
-#include <dr_libs/dr_wav.h>
+#include <dr_libs/dr_flac.h>
 
 namespace PameECS::Audio::Callbacks {
-	// アーカイブファイルに入っていない長いWAVファイルの再生を軽量化するためのコールバック
-	class LongWav : public Callback {
+	class Flac : public Callback {
 	public:
-		LongWav(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer);
+		Flac(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer);
 
-		virtual ~LongWav();
+		virtual ~Flac();
 
 		CallbackFunction GetCallback() override;
 
@@ -20,7 +20,7 @@ namespace PameECS::Audio::Callbacks {
 		}
 
 		bool IsValid() override {
-			return m_is_valid;
+			return m_flac;
 		}
 
 		bool IsExpired() override {
@@ -28,20 +28,25 @@ namespace PameECS::Audio::Callbacks {
 		}
 
 		bool IsReady() override {
+			if (m_file_future.valid() && m_file_future.wait_for(std::chrono::seconds(0)) == std::future_status::ready) {
+				m_loadFlac();
+			}
 			return IsValid();
 		}
 
 		void Seek(size_t sample) override {
 			if (!IsValid()) return;
-			drwav_seek_to_pcm_frame(&m_wav, sample);
+			drflac_seek_to_pcm_frame(m_flac, sample);
 		}
 	private:
+		void m_loadFlac();
+		std::future<std::stringstream> m_file_future;
+		std::vector<uint8_t> m_file_data;
 		WAVEFORMATEXTENSIBLE m_format = {};
 		std::optional<size_t> m_loop_start = std::nullopt;
-		drwav m_wav = {};
-		bool m_is_valid = false;
+		drflac* m_flac = nullptr;
+		std::vector<float> m_buffer;
 		bool m_is_expired = false;
 		bool m_hold_buffer = false;
-		std::vector<float> m_buffer;
 	};
 }

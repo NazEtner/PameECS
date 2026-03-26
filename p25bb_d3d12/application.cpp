@@ -74,6 +74,7 @@ void Application::Initialize() {
 	m_initializeGraphicsAdapter();
 	m_initializeServices();
 	m_initializeECS();
+	m_initializeScript();
 
 	m_initialized = true;
 }
@@ -93,6 +94,8 @@ void Application::Finalize() {
 	if (!m_initialized) return;
 	m_logger->info("Finalizing application...");
 
+	m_renderer->Wait();
+
 	File::FileGlobalState<static_cast<size_t>(Constants::FileGlobalStateIds::Common)>().Reset();
 	m_thread_pool_table.reset();
 	m_graphics_adapter.reset();
@@ -103,6 +106,7 @@ void Application::Finalize() {
 	m_debug_gui_host.reset();
 	m_services.reset();
 	m_ecs_host.reset();
+	m_script_loader.reset();
 	m_finalizeCom();
 
 	m_logger->info("Application finalized.");
@@ -237,6 +241,9 @@ void Application::m_initializeServices() {
 			std::make_shared<Graphics::WindowView>(m_window, m_window_setting_adaptor, m_renderer)
 		)
 	);
+	m_services->SetFileService(
+		std::make_unique<Services::FileService>()
+	);
 
 	m_window->SetMouseDeltaCallback(
 		[services = m_services](int delta) -> void {
@@ -249,14 +256,27 @@ void Application::m_initializeServices() {
 }
 
 void Application::m_initializeECS() {
-	m_thread_pool_table->Allocate<Constants::StringLiterals::ESCScheduleThreadPoolName>();
+	m_thread_pool_table->Allocate<Constants::StringLiterals::ECSScheduleThreadPoolName>();
 
 	m_ecs_host = std::make_shared<ECS::ECSHost>(
-		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ESCScheduleThreadPoolName>()
+		m_thread_pool_table->GetThreadPool<Constants::StringLiterals::ECSScheduleThreadPoolName>(),
+		m_services
 	);
 	if (m_debug_gui_host) {
 		m_ecs_host->OpenDebugWindow(m_debug_gui_host);
 	}
+}
+
+void Application::m_initializeScript() {
+	assert(m_logger);
+	assert(m_ecs_host);
+	auto scriptConfig = m_loadScriptConfig();
+	m_script_loader = std::make_shared<Script::ScriptLoader>(
+		scriptConfig,
+		m_logger
+	);
+
+	m_script_loader->LoadAllScripts(m_ecs_host);
 }
 
 void Application::m_finalizeCom() {

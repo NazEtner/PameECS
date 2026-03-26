@@ -18,12 +18,18 @@ extern "C" {
 		void(*deleter)(PameECS::Graphics::AdapterTask*)) {
 		return adapter->SetTask(id, task, deleter);
 	}
+	PECS_DLL_SHARED PameECS::Graphics::AdapterTask* GraphicsAdapterGetTask(const PameECS::Graphics::Adapter* adapter, uint32_t id) {
+		return adapter->GetTask(id);
+	}
 	PECS_DLL_SHARED void GraphicsAdapterEnqueueCommand(
 		PameECS::Graphics::Adapter* adapter,
 		uint32_t id,
 		void* command,
 		size_t commandSize) {
 		adapter->EnqueueCommand(id, command, commandSize);
+	}
+	PECS_DLL_SHARED PameECS::Graphics::Renderer* GraphicsAdapterGetRenderer(const PameECS::Graphics::Adapter* adapter) {
+		return adapter->GetRenderer();
 	}
 }
 
@@ -33,7 +39,8 @@ struct Adapter::Impl {
 	Renderer* renderer = nullptr;
 	std::vector<std::shared_ptr<AdapterTask>> tasks;
 	AdapterTask* currentTask = nullptr;
-	std::atomic<uint32_t> nextTaskId = 0;
+	std::set<uint32_t> usedTaskIds;
+	uint32_t nextTaskId = 0;
 	std::mutex mutex;
 
 	template <bool IsPretreatment>
@@ -76,23 +83,43 @@ bool Adapter::IsUsedTaskId(uint32_t id) const {
 	if (id >= m_impl->tasks.size() || !m_impl->tasks[id]) {
 		return false;
 	}
+	if (m_impl->usedTaskIds.find(id) == m_impl->usedTaskIds.end()) {
+		return false;
+	}
 	return true;
 }
 
 uint32_t Adapter::GetLowestAvailableTaskId() const {
-	return m_impl->nextTaskId++;
+	std::lock_guard lock(m_impl->mutex);
+	auto it = m_impl->usedTaskIds.find(m_impl->nextTaskId);
+	while (it != m_impl->usedTaskIds.end()) {
+		++m_impl->nextTaskId;
+		it = m_impl->usedTaskIds.find(m_impl->nextTaskId);
+	}
+	return m_impl->nextTaskId;
 }
 
 bool Adapter::SetTask(uint32_t id, AdapterTask* task, void(*deleter)(AdapterTask*)) {
 	if (IsUsedTaskId(id)) {
 		return false;
 	}
+	m_impl->usedTaskIds.insert(id);
 	std::lock_guard lock(m_impl->mutex);
 	if (id >= m_impl->tasks.size()) {
 		Helpers::Container::ResizePow2(m_impl->tasks, static_cast<size_t>(id) + 1);
 	}
 	m_impl->tasks[id] = std::shared_ptr<AdapterTask>(task, deleter);
 	return true;
+}
+
+PameECS::Graphics::AdapterTask* Adapter::GetTask(uint32_t id) const {
+	if (!IsUsedTaskId(id)) {
+		return nullptr;
+	}
+
+	std::lock_guard lock(m_impl->mutex);
+	auto& task = m_impl->tasks[id];
+	return task.get();
 }
 
 void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
@@ -121,4 +148,8 @@ void Adapter::ExecuteLastTask() {
 		m_impl->Submit(m_impl->currentTask);
 		m_impl->currentTask = nullptr;
 	}
+}
+
+PameECS::Graphics::Renderer* Adapter::GetRenderer() const {
+	return m_impl->renderer;
 }

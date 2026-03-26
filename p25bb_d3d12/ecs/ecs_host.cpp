@@ -3,6 +3,8 @@
 #include "../helpers/id_generator.hpp"
 #include "../helpers/container.hpp"
 #include <mutex>
+#include <unordered_map>
+#include <bitset>
 
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
@@ -12,26 +14,26 @@ extern "C" {
 		return ecsHost->GetComponentStorageId(component);
 	}
 	PECS_DLL_SHARED bool ECSNewEntity(PameECS::ECS::ECSHost* ecsHost,
-		PameECS::ECS::Types::Entity& entity, const char** components, const size_t elementCount,
+		PameECS::ECS::Types::Entity* entity, const char** components, const size_t elementCount,
 		size_t idMin,
 		size_t idMax) {
 		return ecsHost->NewEntity(
-			entity, components, elementCount, idMin, idMax
+			*entity, components, elementCount, idMin, idMax
 		);
 	}
-	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity) {
+	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity) {
 		return ecsHost->RemoveEntity(
-			entity
+			*entity
 		);
 	}
-	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
-		return ecsHost->AddComponent(entity, component);
+	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
+		return ecsHost->AddComponent(*entity, component);
 	}
-	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity& entity, const char* component) {
-		return ecsHost->RemoveComponent(entity, component);
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
+		return ecsHost->RemoveComponent(*entity, component);
 	}
-	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask& task) {
-		ecsHost->AddSyncTask(task);
+	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask* task) {
+		ecsHost->AddSyncTask(*task);
 	}
 	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*)) {
 		return ecsHost->RegisterComponentStorage(id, storage, deleter);
@@ -41,6 +43,9 @@ extern "C" {
 	}
 	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*)) {
 		return ecsHost->AddSystem(system, deleter);
+	}
+	PECS_DLL_SHARED PameECS::Services::Services* ECSGetServices(const PameECS::ECS::ECSHost* ecsHost) {
+		return ecsHost->GetServices();
 	}
 }
 
@@ -61,7 +66,7 @@ struct ECSHost::Impl {
 	std::vector<uint8_t> entityAliveFlags;
 	std::vector<uint8_t> entityAliveFlagsCopy;
 	bool isAliveFlagsDirty = true;
-	// entityAliveFlags.size() <= lastEntityId
+	// entityAliveFlags.size() >= lastEntityId
 	// && entityGenerations.size() == entityAliveFlags.size()なはず
 	size_t lastEntityId = 0;
 	bool locked = false;
@@ -71,6 +76,50 @@ struct ECSHost::Impl {
 	std::vector<SyncTask> syncTasks;
 	std::mutex mutex;
 	std::shared_ptr<Services::Services> services;
+
+	static constexpr inline size_t numBits = 1024;
+	// Idが使用済みかを表すもの
+	std::unordered_map<size_t, std::bitset<numBits>> filledBits;
+
+	size_t GetIdBlockIndex(uint64_t id) {
+		return id / numBits;
+	}
+
+	size_t GetIndexInBlock(uint64_t id) {
+		return id % numBits;
+	}
+
+	size_t GetNextBlockStartId(uint64_t id) {
+		return (id + numBits) & ~numBits;
+	}
+
+	bool ThereAreUnusedIdsNearby(uint64_t id) {
+		if (auto it = filledBits.find(GetIdBlockIndex(id)); it != filledBits.end()) {
+			return !it->second.all();
+		}
+		return true;
+	}
+
+	std::bitset<numBits>* GetEntityFilledBitset(uint64_t id) {
+		if (auto it = filledBits.find(GetIdBlockIndex(id)); it != filledBits.end()) {
+			return &it->second;
+		}
+		return nullptr;
+	}
+
+	template <bool Flag>
+	void SetEntityAliveFlag(uint64_t id) {
+		entityAliveFlags[id] = Flag;
+		size_t blockIdx = GetIdBlockIndex(id);
+		size_t offset = GetIndexInBlock(id);
+		if constexpr (Flag) filledBits[blockIdx].set(offset);
+		else {
+			if (auto it = filledBits.find(blockIdx); it != filledBits.end()) {
+				it->second.reset(offset);
+				if (it->second.none()) filledBits.erase(it);
+			}
+		}
+	}
 
 	void ResizeComponents(size_t minSize) {
 		// 少なくともminSize以上の容量を確保する
@@ -90,8 +139,9 @@ private:
 	}
 };
 
-ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool) {
+ECSHost::ECSHost(std::shared_ptr<BS::thread_pool<0U>> threadPool, std::shared_ptr<Services::Services> services) {
 	m_impl = std::make_unique<Impl>(threadPool);
+	m_impl->services = services;
 }
 
 ECSHost::~ECSHost() {}
@@ -99,7 +149,7 @@ ECSHost::~ECSHost() {}
 void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI) {
 	debugGUI->AddWindow(
 		"ECSHost",
-		[this]() -> void {
+		[this, guiPtr = debugGUI.get()]() -> void {
 			if (ImGui::CollapsingHeader("ECS Information")) {
 				ImGui::Text("Component storages: %llu", m_impl->componentStorages.size());
 				ImGui::Text("Entity generations: (%llu, %p)", m_impl->entityGenerations.size(), m_impl->entityGenerations.data());
@@ -136,6 +186,9 @@ void ECSHost::OpenDebugWindow(std::shared_ptr<DebugTools::DebugGUIHost> debugGUI
 					Types::Entity entity = {};
 					NewEntity(entity, {});
 				}
+			}
+			if (ImGui::CollapsingHeader("Scheduler")) {
+				m_impl->scheduler.ShowDebug(this, guiPtr);
 			}
 		},
 		{ 0.f, 0.f },
@@ -176,8 +229,10 @@ void ECSHost::Update() {
 
 	assert(!m_impl->locked);
 	for (auto& tasks : m_impl->syncTasks) {
-		tasks.Execute(&context);
+		tasks.Execute(&context, tasks.userdata);
 	}
+
+	m_impl->syncTasks.clear();
 }
 
 size_t ECSHost::GetComponentStorageId(const char* name) const {
@@ -200,7 +255,8 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 		return false;
 	}
 	m_impl->isAliveFlagsDirty = true;
-	m_impl->entityAliveFlags[id] = false;
+	// m_impl->entityAliveFlags[id] = false;
+	m_impl->SetEntityAliveFlag<false>(id);
 	return true;
 }
 
@@ -219,8 +275,8 @@ bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component
 	if (storage == nullptr) {
 		return false;
 	}
-	Types::Entity dummyEntity = { entity.id, 0xFFFFFFFF'FFFFFFFF };
-	return storage->AddComponent(dummyEntity);
+	storage->RemoveComponent(entity);
+	return true;
 }
 
 bool ECSHost::RegisterComponentStorage(const std::string& id, std::shared_ptr<IComponentStorage> storage) {
@@ -257,7 +313,7 @@ IComponentStorage* ECSHost::GetComponentStorage(const size_t id) const {
 }
 
 size_t ECSHost::AddSystem(System::Base* system, void(*deleter)(System::Base*)) {
-	if (m_impl->locked) return false;
+	if (m_impl->locked) return std::numeric_limits<size_t>::max();;
 	if (!system) return std::numeric_limits<size_t>::max();
 	auto ret = m_impl->systems.size();
 	auto uniqueSystem = std::shared_ptr<System::Base>(system, deleter);
@@ -266,29 +322,47 @@ size_t ECSHost::AddSystem(System::Base* system, void(*deleter)(System::Base*)) {
 	return ret;
 }
 
+PameECS::Services::Services* ECSHost::GetServices() const {
+	return m_impl->services.get();
+}
+
 bool ECSHost::m_newEntity(Types::Entity& entity, const std::span<const char*>& components,
 	size_t idMin, size_t idMax) {
 	if (m_impl->locked) return false;
-	auto id = idMin;
-	while (id <= idMax) {
+	auto finalize = [&](size_t id) -> bool {
 		m_impl->ResizeEntities(id + 1);
-		if (!m_impl->entityAliveFlags[id]) {
-			entity.id = id;
-			m_impl->isEntityGenerationsDirty = true;
-			entity.generation = ++m_impl->entityGenerations[id];
-			m_impl->isAliveFlagsDirty = true;
-			m_impl->entityAliveFlags[id] = true;
-			m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
-			// コンポーネントの追加
-			for (const auto& compId : components) {
-				auto storage = GetComponentStorage(compId);
-				[[maybe_unused]]
-				bool added = storage && storage->AddComponent(entity);
-				// 失敗しても無視する
-			}
-			return true;
+		entity.id = id;
+		m_impl->isEntityGenerationsDirty = true;
+		entity.generation = ++m_impl->entityGenerations[id];
+		m_impl->isAliveFlagsDirty = true;
+		m_impl->SetEntityAliveFlag<true>(id);
+		m_impl->lastEntityId = std::max(m_impl->lastEntityId, id);
+		// コンポーネントの追加
+		for (const auto& compId : components) {
+			auto storage = GetComponentStorage(compId);
+			[[maybe_unused]]
+			bool added = storage && storage->AddComponent(entity);
+			// 失敗しても無視する
 		}
-		id++;
+		return true;
+	};
+	for (auto id = idMin; id <= idMax;) {
+		if (!m_impl->ThereAreUnusedIdsNearby(id)) {
+			id = m_impl->GetNextBlockStartId(id);
+			continue;
+		}
+		if (auto bitset = m_impl->GetEntityFilledBitset(id); bitset) {
+			auto offset = m_impl->GetIndexInBlock(id);
+			while (offset < m_impl->numBits && id <= idMax) {
+				if (!bitset->test(offset))
+					return finalize(id);
+				offset++;
+				id++;
+			}
+		}
+		else {
+			return finalize(id);
+		}
 	}
 	return false;
 }

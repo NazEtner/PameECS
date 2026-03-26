@@ -9,7 +9,7 @@ namespace PameECS::Audio::Callbacks {
 	// アーカイブファイルに入っていない長いFLACファイルの再生を軽量化するためのコールバック
 	class LongFlac : public Callback {
 	public:
-		LongFlac(std::string filename, std::optional<size_t> loopStart);
+		LongFlac(const std::string& filename, std::optional<size_t> loopStart, bool holdBuffer);
 
 		virtual ~LongFlac();
 
@@ -19,16 +19,21 @@ namespace PameECS::Audio::Callbacks {
 			return m_format;
 		}
 
-		void* GetUserData() override {
-			return this;
-		}
-
 		bool IsValid() override {
 			return m_flac;
 		}
 
 		bool IsExpired() override {
-			return m_is_expired;
+			return m_is_expired && !m_hold_buffer;
+		}
+
+		bool IsReady() override {
+			return IsValid();
+		}
+
+		void Seek(size_t sample) override {
+			if (!IsValid()) return;
+			drflac_seek_to_pcm_frame(m_flac, sample);
 		}
 	private:
 		WAVEFORMATEXTENSIBLE m_format = {};
@@ -36,5 +41,6 @@ namespace PameECS::Audio::Callbacks {
 		drflac* m_flac = nullptr;
 		std::vector<float> m_buffer;
 		bool m_is_expired = false;
+		bool m_hold_buffer = false;
 	};
 }

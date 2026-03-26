@@ -12,9 +12,8 @@
 - ECSの実装 <完了！>
 - 入力システムの実装 <完了！>
 - オーディオシステムの実装 <完了！>
-- ECS->Rendererのインターフェイスを実装
-- スクリプト読み込みの実装
-- ビルトインComponent, System
+- ECS->Rendererのインターフェイスを実装 <完了！>
+- スクリプト読み込みの実装 <完了！>
 
 ## コントリビューションルール
 このプロジェクトは現在（ライセンス的に）コントリビューションを受け付けていませんが、今後の進捗に応じてライセンスを変更し、それに伴いコントリビューションを受け付けるようにする予定です。
@@ -33,9 +32,8 @@
 - Implement ECS <Completed!>
 - Implement input system <Completed!>
 - Implement audio system <Completed!>
-- Implement ECS->Renderer interface
-- Implement script loading
-- Built-in Components and Systems
+- Implement ECS->Renderer interface <Completed!>
+- Implement script loading <Completed!>
 
 ## Contribution Rules
 This project is currently **not accepting contributions** due to licensing, but in the future, the license will be updated and contributions will be welcomed accordingly.  

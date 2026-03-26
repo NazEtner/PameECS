@@ -20,6 +20,7 @@
 #include "graphics/window_setting_adapter.hpp"
 #include "ecs/ecs_host.hpp"
 #include "services/services.hpp"
+#include "script/script_loader.hpp"
 
 namespace PameECS {
 	class Application : public Pame::Core::IApplication {
@@ -60,6 +61,7 @@ namespace PameECS {
 		void m_initializeGraphicsAdapter();
 		void m_initializeServices();
 		void m_initializeECS();
+		void m_initializeScript();
 
 		void m_finalizeCom();
 
@@ -92,6 +94,7 @@ namespace PameECS {
 		std::shared_ptr<Services::Services> m_services;
 		std::shared_ptr<Graphics::Adapter> m_graphics_adapter;
 		std::shared_ptr<ECS::ECSHost> m_ecs_host;
+		std::shared_ptr<Script::ScriptLoader> m_script_loader;
 
 		bool m_initialized = false;
 		bool m_is_com_initialized = false;

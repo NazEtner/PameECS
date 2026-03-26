@@ -27,7 +27,7 @@ PameECS::Audio::Player* AudioService::GetPlayer() {
 }
 
 extern "C" {
-	PameECS::Audio::Player* ServicesAudioGetPlayer(PameECS::Services::AudioService* service) {
+	PECS_DLL_SHARED PameECS::Audio::Player* ServicesAudioGetPlayer(PameECS::Services::AudioService* service) {
 		return service->GetPlayer();
 	}
 }

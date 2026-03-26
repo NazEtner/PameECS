@@ -19,11 +19,13 @@ extern "C" {
 		uint32_t id,
 		PameECS::Graphics::AdapterTask* task,
 		void(*deleter)(PameECS::Graphics::AdapterTask*));
+	PECS_DLL_SHARED PameECS::Graphics::AdapterTask* GraphicsAdapterGetTask(const PameECS::Graphics::Adapter* adapter, uint32_t id);
 	PECS_DLL_SHARED void GraphicsAdapterEnqueueCommand(
 		PameECS::Graphics::Adapter* adapter,
 		uint32_t id,
 		void* command,
 		size_t commandSize);
+	PECS_DLL_SHARED PameECS::Graphics::Renderer* GraphicsAdapterGetRenderer(const PameECS::Graphics::Adapter* adapter);
 }
 
 namespace PameECS::Graphics {
@@ -54,18 +56,22 @@ namespace PameECS::Graphics {
 
 		template <typename T, typename ...Args>
 			requires(std::is_base_of_v<AdapterTask, T>)
-		bool SetTask(uint32_t id, Args... args) {
+		bool SetTask(uint32_t id, Args&&... args) {
 			return GraphicsAdapterSetTask(this, id, new T(std::forward<Args>(args)...), [](AdapterTask* task) -> void { delete task; });
 		}
 
 		template <typename T, typename ...Args> 
 			requires(std::is_base_of_v<AdapterTask, T>)
-		uint32_t SetTask(Args... args) {
+		uint32_t SetTask(Args&&... args) {
 			return SetTask(new T(std::forward<Args>(args)...), [](AdapterTask* task) -> void { delete task; });
 		}
 
+		AdapterTask* GetTask(uint32_t id) const;
+
 		void EnqueueCommand(uint32_t id, void* command, size_t commandSize);
 		void ExecuteLastTask();
+
+		Renderer* GetRenderer() const;
 	private:
 		struct Impl;
 		std::unique_ptr<Impl> m_impl;

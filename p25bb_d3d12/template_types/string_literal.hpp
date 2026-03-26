@@ -1,5 +1,6 @@
 #pragma once
 #include "../macros/assertion.hpp"
+#include <algorithm>
 
 namespace PameECS::TemplateTypes {
 	template <size_t N>

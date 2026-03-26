@@ -8,6 +8,7 @@
 #include "../macros/dll.hpp"
 #include "types.hpp"
 #include "../services/services.hpp"
+#include <imgui/imgui.h>
 
 namespace PameECS::ECS {
 	class ECSHost;
@@ -44,7 +45,8 @@ namespace PameECS::ECS::System {
 	public:
 		Base() = default;
 		virtual ~Base() = default;
-		void Update(const Context* context) noexcept {
+		virtual void Update(const Context* context) noexcept {
+			m_updateBegin(context);
 			for (size_t i = 0; i < context->entityAliveFlagsCount; ++i) {
 				if (!context->entityAliveFlags[i]) continue;
 				assert(context->entityGenerationsCount > i);
@@ -56,10 +58,16 @@ namespace PameECS::ECS::System {
 
 				m_entityUpdate(context, entity);
 			}
+			m_updateEnd(context);
 		}
-		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) const = 0;
+		virtual const Dependencies& GetDependencies(const ECSHost* ecsHost) = 0;
+
+		using DebuggerType = void(*)(ImGuiContext* context, Base* self, ECSHost* ecsHost);
+		virtual DebuggerType GetDebugger() { return nullptr; }
 	protected:
 		virtual void m_entityUpdate(const Context* context, const Types::Entity& entity) noexcept {}
+		virtual void m_updateBegin(const Context* context) noexcept {}
+		virtual void m_updateEnd(const Context* context) noexcept {}
 	};
 }
 

@@ -62,6 +62,10 @@ namespace PameECS::Graphics {
 			return m_vertical_sync_enabled;
 		}
 
+		void Wait() noexcept {
+			m_waitForGPU();
+		}
+
 		Microsoft::WRL::ComPtr<ID3D12Device3>& GetDevice() { return m_device; }
 		size_t GetNumFrameBuffers()noexcept { return m_back_buffers.size(); }
 		size_t GetCurrentBufferIndex() { return m_swap_chain->GetCurrentBackBufferIndex(); }
@@ -152,6 +156,7 @@ namespace PameECS::Graphics {
 
 		void m_waitForGPU(uint32_t frameIndex) noexcept;
 		void m_waitForGPU() noexcept;
+		void m_returnPendingAllocators() noexcept;
 
 		std::shared_ptr<spdlog::logger> m_logger;
 
