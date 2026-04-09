@@ -5,6 +5,7 @@
 #include <mutex>
 #include <unordered_map>
 #include <bitset>
+#include <queue>
 
 using PameECS::ECS::ECSHost;
 using PameECS::ECS::IComponentStorage;
@@ -29,7 +30,7 @@ extern "C" {
 	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
 		return ecsHost->AddComponent(*entity, component);
 	}
-	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component) {
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, size_t component) {
 		return ecsHost->RemoveComponent(*entity, component);
 	}
 	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask* task) {
@@ -69,6 +70,7 @@ struct ECSHost::Impl {
 	// entityAliveFlags.size() >= lastEntityId
 	// && entityGenerations.size() == entityAliveFlags.size()なはず
 	size_t lastEntityId = 0;
+	std::queue<Types::Entity> deadEntities;
 	bool locked = false;
 	Scheduler scheduler;
 	std::unordered_set<size_t> unlocked;
@@ -233,6 +235,16 @@ void ECSHost::Update() {
 	}
 
 	m_impl->syncTasks.clear();
+
+	while (!m_impl->deadEntities.empty()) {
+		auto& entity = m_impl->deadEntities.front();
+
+		for (auto& storage : m_impl->componentStorages) {
+			storage->RemoveComponent(entity);
+		}
+
+		m_impl->deadEntities.pop();
+	}
 }
 
 size_t ECSHost::GetComponentStorageId(const char* name) const {
@@ -257,6 +269,7 @@ bool ECSHost::RemoveEntity(const Types::Entity& entity) {
 	m_impl->isAliveFlagsDirty = true;
 	// m_impl->entityAliveFlags[id] = false;
 	m_impl->SetEntityAliveFlag<false>(id);
+	m_impl->deadEntities.push(entity);
 	return true;
 }
 
@@ -269,10 +282,10 @@ bool ECSHost::AddComponent(const Types::Entity& entity, const char* component) {
 	return storage->AddComponent(entity);
 }
 
-bool ECSHost::RemoveComponent(const Types::Entity& entity, const char* component) {
+bool ECSHost::RemoveComponent(const Types::Entity& entity, size_t id) {
 	if (m_impl->locked) return false;
-	auto storage = GetComponentStorage(component);
-	if (storage == nullptr) {
+	auto storage = GetComponentStorage(id);
+	if (!storage) {
 		return false;
 	}
 	storage->RemoveComponent(entity);

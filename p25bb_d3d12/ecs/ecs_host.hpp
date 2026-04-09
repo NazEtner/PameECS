@@ -27,7 +27,8 @@ extern "C" {
 		size_t idMax = std::numeric_limits<size_t>::max());
 	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity);
 	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
-	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
+	//PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
+	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, size_t id);
 	PECS_DLL_SHARED void ECSAddSyncTask(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::SyncTask* task);
 	PECS_DLL_SHARED bool ECSRegisterComponentStorage(PameECS::ECS::ECSHost* ecsHost, const char* id, PameECS::ECS::IComponentStorage* storage, void(*deleter)(PameECS::ECS::IComponentStorage*));
 	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id);
@@ -78,10 +79,15 @@ namespace PameECS::ECS {
 		bool AddComponent(const Types::Entity& entity, const char* component);
 
 		bool RemoveComponent(const Types::Entity& entity, const std::string& component) {
-			return ECSRemoveComponent(this, &entity, component.c_str());
+			// return ECSRemoveComponent(this, &entity, component.c_str());
+			return ECSRemoveComponent(this, &entity, GetComponentStorageId(component));
 		}
 
-		bool RemoveComponent(const Types::Entity& entity, const char* component);
+		bool RemoveComponent(const Types::Entity& entity, const char* component) {
+			return ECSRemoveComponent(this, &entity, ECSGetComponentStorageId(this, component));
+		}
+
+		bool RemoveComponent(const Types::Entity& entity, size_t id);
 
 		// 内部用のAPI
 		void LockAll();
