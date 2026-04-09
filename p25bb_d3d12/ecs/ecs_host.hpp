@@ -26,6 +26,7 @@ extern "C" {
 		size_t idMin = 0,
 		size_t idMax = std::numeric_limits<size_t>::max());
 	PECS_DLL_SHARED bool ECSRemoveEntity(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity);
+	PECS_DLL_SHARED void ECSRemoveEntityRange(PameECS::ECS::ECSHost* ecsHost, size_t idMin, size_t idMax);
 	PECS_DLL_SHARED bool ECSAddComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
 	//PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, const char* component);
 	PECS_DLL_SHARED bool ECSRemoveComponent(PameECS::ECS::ECSHost* ecsHost, const PameECS::ECS::Types::Entity* entity, size_t id);
@@ -71,6 +72,7 @@ namespace PameECS::ECS {
 			size_t idMax = std::numeric_limits<size_t>::max());
 
 		bool RemoveEntity(const Types::Entity& entity);
+		void RemoveEntityRange(size_t idMin, size_t idMax);
 
 		bool AddComponent(const Types::Entity& entity, const std::string& component) {
 			return ECSAddComponent(this, &entity, component.c_str());
