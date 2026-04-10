@@ -107,7 +107,7 @@ struct ECSHost::Impl {
 
 	bool ThereAreUsedIdsNearby(uint64_t id) {
 		if (auto it = filledBits.find(GetIdBlockIndex(id)); it != filledBits.end()) {
-			return !it->second.any();
+			return it->second.any();
 		}
 		return false;
 	}
