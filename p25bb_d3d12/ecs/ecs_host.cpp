@@ -250,6 +250,7 @@ void ECSHost::Update() {
 		auto& entity = m_impl->deadEntities.front();
 
 		for (auto& storage : m_impl->componentStorages) {
+			if (!storage) continue;
 			storage->RemoveComponent(entity);
 		}
 
