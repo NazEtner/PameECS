@@ -35,6 +35,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		return 0;
 	case WM_SIZE:
+		if (wParam == SIZE_MINIMIZED) break;
 		if (renderer) {
 			renderer->Reset(PameECS::Graphics::RendererFlags::NoDeviceReset);
 			return 0;
@@ -52,6 +53,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (window) {
 			window->OnMouseDelta(GET_WHEEL_DELTA_WPARAM(wParam));
 		}
+		break;
+	case WM_GETMINMAXINFO: {
+		if (!window) break;
+		MINMAXINFO* pmmi = reinterpret_cast<MINMAXINFO*>(lParam);
+
+		RECT minLimit = { 0, 0, 1, 1 };
+		auto props = window->GetProperties(~PameECS::Graphics::Window::PropertyGetFlags::NoWindowStyle);
+		if (!props.windowStyle.has_value()) break;
+		AdjustWindowRect(&minLimit, props.windowStyle.value(), static_cast<bool>(GetMenu(hWnd)));
+
+		pmmi->ptMinTrackSize.x = minLimit.right - minLimit.left;
+		pmmi->ptMinTrackSize.y = minLimit.bottom - minLimit.top;
+
+		return 0;
+	}
 	default:
 		break;
 	}
