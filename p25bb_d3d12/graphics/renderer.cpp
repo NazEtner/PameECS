@@ -528,7 +528,7 @@ HRESULT Renderer::m_createDSVHeap() noexcept {
 
 	D3D12_RESOURCE_DESC depthResDesc = {};
 	depthResDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-	depthResDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthResDesc.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	depthResDesc.Width = width;
 	depthResDesc.Height = height;
 	depthResDesc.DepthOrArraySize = 1;
@@ -539,7 +539,7 @@ HRESULT Renderer::m_createDSVHeap() noexcept {
 	depthResDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
 
 	D3D12_CLEAR_VALUE depthOptimizedClearValue = {};
-	depthOptimizedClearValue.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
+	depthOptimizedClearValue.Format = DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
 	depthOptimizedClearValue.DepthStencil.Depth = 1.0f;
 	depthOptimizedClearValue.DepthStencil.Stencil = 0;
 
