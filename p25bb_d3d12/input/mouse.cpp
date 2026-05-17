@@ -74,6 +74,10 @@ extern "C" {
 	PECS_DLL_SHARED const char* InputMouseGetHoveredRectName(const PameECS::Input::Mouse* mouse) {
 		return mouse->GetHoveredRectName();
 	}
+
+	PECS_DLL_SHARED void InputMouseSetCursorStatus(PameECS::Input::Mouse* mouse, PameECS::Input::CursorStatus status) {
+		mouse->SetCursorStatus(status);
+	}
 }
 
 struct Mouse::Impl {
@@ -102,6 +106,7 @@ struct Mouse::Impl {
 	std::stack<size_t> inactiveRectIndex;
 	std::string hoveredNameCache;
 	bool isAnyRectHovered = false;
+	PameECS::Input::CursorStatus cursorStatus = PameECS::Input::CursorStatus::Arrow;
 	std::mutex mutex;
 };
 
@@ -152,6 +157,48 @@ void Mouse::ShowDebug() {
 				if (released) ImGui::TextColored(ImVec4(1, 0, 0, 1), "TRG"); else ImGui::Text("-");
 			}
 			ImGui::EndTable();
+		}
+
+		ImGui::Separator();
+
+		if (ImGui::TreeNode("Cursor Shape Test")) {
+			// 現在の形状（または直前にセットした状態）を文字列にして表示する仕組みがあると便利です
+			// ※もし現在値を保持するゲッターがあればそれに差し替えてください
+			static PameECS::Input::CursorStatus testStatus = PameECS::Input::CursorStatus::Default;
+
+			const char* statusStr = "Unknown";
+			switch (testStatus) {
+			case PameECS::Input::CursorStatus::Default: statusStr = "Default (Arrow)"; break;
+			case PameECS::Input::CursorStatus::Hand:    statusStr = "Hand";            break;
+			case PameECS::Input::CursorStatus::Wait:    statusStr = "Wait (Hourglass)"; break;
+			case PameECS::Input::CursorStatus::Arrow:   statusStr = "Arrow";           break;
+			}
+			ImGui::Text("Last Test Status: %s", statusStr);
+
+			ImGui::Spacing();
+			ImGui::Text("Force Set Cursor:");
+
+			// クリックしたら即座に変更関数を叩く
+			if (ImGui::Button("Arrow (Default)")) {
+				testStatus = PameECS::Input::CursorStatus::Arrow;
+				this->SetCursorStatus(testStatus);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Hand (Link)")) {
+				testStatus = PameECS::Input::CursorStatus::Hand;
+				this->SetCursorStatus(testStatus);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button("Wait (Busy)")) {
+				testStatus = PameECS::Input::CursorStatus::Wait;
+				this->SetCursorStatus(testStatus);
+			}
+
+			// 注意書き（もし毎フレーム別のシステムが書き換えている場合のデバッグ用ヒント）
+			ImGui::TextDisabled("Note: If other UI systems overwrite this frame-by-frame,");
+			ImGui::TextDisabled("the shape change above might be instantly overridden.");
+
+			ImGui::TreePop();
 		}
 
 		ImGui::Separator();
@@ -320,6 +367,20 @@ void Mouse::Update() {
 			m_impl->isAnyRectHovered = true;
 		}
 	}
+
+	switch (m_impl->cursorStatus) {
+	case PameECS::Input::CursorStatus::Hand:
+		SetCursor(LoadCursor(NULL, IDC_HAND));
+		break;
+	case PameECS::Input::CursorStatus::Wait:
+		SetCursor(LoadCursor(NULL, IDC_WAIT));
+		break;
+	case PameECS::Input::CursorStatus::Arrow:
+	case PameECS::Input::CursorStatus::Default: [[fallthrough]];
+	default:
+		SetCursor(LoadCursor(NULL, IDC_ARROW));
+		break;
+	}
 }
 
 bool Mouse::IsLeftButtonDown() const {
@@ -445,4 +506,10 @@ const char* Mouse::GetHoveredRectName() const {
 	if (!m_impl->isAnyRectHovered) return nullptr;
 
 	return m_impl->hoveredNameCache.c_str();
+}
+
+void Mouse::SetCursorStatus(PameECS::Input::CursorStatus status) {
+	std::lock_guard lock(m_impl->mutex);
+
+	m_impl->cursorStatus = status;
 }

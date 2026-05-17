@@ -6,6 +6,13 @@
 
 namespace PameECS::Input {
 	class Mouse;
+
+	enum class CursorStatus {
+		Arrow = 0,
+		Hand,
+		Wait,
+		Default,
+	};
 }
 
 extern "C" {
@@ -38,6 +45,8 @@ extern "C" {
 	PECS_DLL_SHARED void InputMouseClearRect(PameECS::Input::Mouse* mouse);
 
 	PECS_DLL_SHARED const char* InputMouseGetHoveredRectName(const PameECS::Input::Mouse* mouse);
+
+	PECS_DLL_SHARED void InputMouseSetCursorStatus(PameECS::Input::Mouse* mouse, PameECS::Input::CursorStatus status);
 }
 
 namespace PameECS::Input {
@@ -101,6 +110,8 @@ namespace PameECS::Input {
 			return false;
 		}
 		const char* GetHoveredRectName() const;
+
+		void SetCursorStatus(CursorStatus status);
 
 		void OnMouseDelta(int delta);
 	private:
