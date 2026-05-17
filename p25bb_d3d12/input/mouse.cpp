@@ -503,6 +503,7 @@ void Mouse::ClearRect() {
 }
 
 const char* Mouse::GetHoveredRectName() const {
+	std::lock_guard lock(m_impl->mutex);
 	if (!m_impl->isAnyRectHovered) return nullptr;
 
 	return m_impl->hoveredNameCache.c_str();
