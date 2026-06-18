@@ -221,8 +221,9 @@ void Mouse::ShowDebug() {
 					return ImVec2(px, py);
 				};
 
-				std::lock_guard lock(m_impl->mutex);
 				const char* hoveredName = GetHoveredRectName();
+
+				std::lock_guard lock(m_impl->mutex);
 
 				for (const auto& rect : m_impl->rects) {
 					if (!rect.isActive) continue;
