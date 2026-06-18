@@ -36,7 +36,7 @@ namespace PameECS::JSON {
 
 	template <typename T>
 	void to_json(nlohmann::json& j, const JSONObject<T>& p) {
-		j = p.Serialize();
+		j = const_cast<JSONObject<T>&>(p).Serialize();
 	}
 
 	template <typename T>
