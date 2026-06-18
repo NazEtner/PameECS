@@ -263,7 +263,7 @@ void Mouse::ShowDebug() {
 				this->ClearRect();
 			}
 
-			std::lock_guard lock(m_impl->mutex);
+			// std::lock_guard lock(m_impl->mutex);
 
 			const char* hoveredName = GetHoveredRectName();
 			ImGui::Text("Total Rects: %zu", m_impl->rects.size());
