@@ -81,7 +81,7 @@ void Keyboard::Update() {
 		m_impl->prevKeyState[i] = m_impl->keyState[i];
 		if (isForeground) {
 			m_impl->keyState[i] = GetAsyncKeyState(static_cast<int>(i)) & 0x8000;
-			m_impl->isAnyKeyDown = true;
+			m_impl->isAnyKeyDown = m_impl->isAnyKeyDown || m_impl->keyState[i];
 		}
 		else {
 			m_impl->keyState[i] = false;

@@ -72,6 +72,7 @@ namespace PameECS::Graphics {
 		const std::vector<D3D12_CPU_DESCRIPTOR_HANDLE>& GetRenderTargetHandles() { return m_rtv_handles; }
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRenderTargetHandle() { return GetRenderTargetHandles()[GetCurrentBufferIndex()]; }
 		D3D12_CPU_DESCRIPTOR_HANDLE GetDepthStencilHandle() { return m_dsv_handle; }
+		Microsoft::WRL::ComPtr<ID3D12Resource> GetDepthStencilBuffer() { return m_depth_stencil_buffer; }
 		const std::vector<Microsoft::WRL::ComPtr<ID3D12Resource>>& GetBackBuffers() { return m_back_buffers; }
 		Microsoft::WRL::ComPtr<ID3D12Resource> GetCurrentBuffer() { return GetBackBuffers()[GetCurrentBufferIndex()]; }
 		bool NeedReleaseResources() const { return m_is_recovery_pending; }

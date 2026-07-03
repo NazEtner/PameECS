@@ -218,7 +218,7 @@ void Window::m_create() {
 	windowClass.hInstance = hInstance;
 	windowClass.lpszClassName = m_properties.className.value().c_str();
 	windowClass.lpfnWndProc = m_properties.windowProcedure.value();
-	windowClass.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	windowClass.hCursor = NULL;
 	windowClass.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));
 
 	if (RegisterClass(&windowClass) == 0) {

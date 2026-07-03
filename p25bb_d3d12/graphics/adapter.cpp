@@ -44,13 +44,13 @@ struct Adapter::Impl {
 	std::mutex mutex;
 
 	template <bool IsPretreatment>
-	void Enqueue(AdapterTask * task, AdapterTask::RenderCommandFunc func) {
+	void Enqueue(AdapterTask * task, AdapterTask::RenderCommandFunc func, void* dataPtr) {
 		// RenderCommandFuncはRenderCommandに記録する関数ポインタの型
 		// RenderCommandは実際のコマンドリスト等を格納する構造体
 		renderer->EnqueueRenderTask<IsPretreatment>(
-			[task, func](RendererTypes::RenderCommand renderCommand) -> RendererTypes::RenderCommand {
+			[task, func, dataPtr](RendererTypes::RenderCommand renderCommand) -> RendererTypes::RenderCommand {
 				if (func) {
-					if (func(renderCommand, task)) {
+					if (func(renderCommand, task, dataPtr)) {
 						return renderCommand;
 					}
 				}
@@ -61,11 +61,12 @@ struct Adapter::Impl {
 	};
 
 	void Submit(AdapterTask* task) {
-		if (auto command = task->CreateRenderCommand(); command) {
-			Enqueue<false>(task, command);
+		void* dataPtr = nullptr;
+		if (auto command = task->CreateRenderCommand(&dataPtr); command) {
+			Enqueue<false>(task, command, dataPtr);
 		}
-		if (auto command = task->CreatePretreatmentCommand(); command) {
-			Enqueue<true>(task, command);
+		if (auto command = task->CreatePretreatmentCommand(&dataPtr); command) {
+			Enqueue<true>(task, command, dataPtr);
 		}
 	};
 };
@@ -103,8 +104,8 @@ bool Adapter::SetTask(uint32_t id, AdapterTask* task, void(*deleter)(AdapterTask
 	if (IsUsedTaskId(id)) {
 		return false;
 	}
-	m_impl->usedTaskIds.insert(id);
 	std::lock_guard lock(m_impl->mutex);
+	m_impl->usedTaskIds.insert(id);
 	if (id >= m_impl->tasks.size()) {
 		Helpers::Container::ResizePow2(m_impl->tasks, static_cast<size_t>(id) + 1);
 	}
@@ -143,6 +144,8 @@ void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
 }
 
 // これは絶対に競合しないはず
+// マルチスレッドで呼ばれるスクリプトから呼び出す手段が存在せず、
+// ゲームエンジンの内部処理でも全ての処理が完了した後にメインスレッドでしか呼ばれないうえに、そのタイミングでは描画が始まっていないため
 void Adapter::ExecuteLastTask() {
 	if (m_impl->currentTask) {
 		m_impl->Submit(m_impl->currentTask);
