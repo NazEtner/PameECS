@@ -64,6 +64,8 @@ bool PlayerBackend::Start(size_t slotIndex) {
 	if (state.BuffersQueued == 0) {
 		for (size_t i = 0; i < slot.soundBuffer.size(); ++i) m_fillAndSubmit(slotIndex);
 	}
+	// コールバックが期限切れの場合、m_fillAndSubmitがsourceVoiceを解放していることがある
+	if (!slot.sourceVoice) return false;
 	slot.sourceVoice->Start();
 
 	return true;
