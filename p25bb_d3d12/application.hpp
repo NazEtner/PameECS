@@ -40,7 +40,7 @@ namespace PameECS {
 		void Finalize() override;
 
 		bool IsStopped() override {
-			return false; // とりあえず
+			return m_ecs_host && m_ecs_host->Stopped();
 		}
 
 		bool IsResetRequired() override {

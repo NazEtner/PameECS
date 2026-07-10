@@ -35,6 +35,7 @@ extern "C" {
 	PECS_DLL_SHARED PameECS::ECS::IComponentStorage* ECSGetComponentStorage(const PameECS::ECS::ECSHost* ecsHost, const size_t id);
 	PECS_DLL_SHARED size_t ECSAddSystem(PameECS::ECS::ECSHost* ecsHost, PameECS::ECS::System::Base* system, void(*deleter)(PameECS::ECS::System::Base*));
 	PECS_DLL_SHARED PameECS::Services::Services* ECSGetServices(const PameECS::ECS::ECSHost* ecsHost);
+	PECS_DLL_SHARED void ECSStop(PameECS::ECS::ECSHost* ecsHost);
 }
 
 namespace PameECS::ECS {
@@ -166,6 +167,10 @@ namespace PameECS::ECS {
 		IComponentStorage* GetComponentStorage(const size_t id) const;
 		size_t AddSystem(System::Base* system, void(*deleter)(System::Base*));
 		Services::Services* GetServices() const;
+
+		void Stop();
+
+		bool Stopped() const;
 	private:
 		bool m_newEntity(Types::Entity& entity, const std::span<const char*>& components, size_t idMin, size_t idMax);
 		struct Impl;

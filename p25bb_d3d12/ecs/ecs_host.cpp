@@ -51,6 +51,10 @@ extern "C" {
 	PECS_DLL_SHARED PameECS::Services::Services* ECSGetServices(const PameECS::ECS::ECSHost* ecsHost) {
 		return ecsHost->GetServices();
 	}
+
+	PECS_DLL_SHARED void ECSStop(PameECS::ECS::ECSHost* ecsHost) {
+		return ecsHost->Stop();
+	}
 }
 
 struct ECSHost::Impl {
@@ -81,6 +85,7 @@ struct ECSHost::Impl {
 	std::vector<SyncTask> syncTasks;
 	std::mutex mutex;
 	std::shared_ptr<Services::Services> services;
+	bool stopped = false;
 
 	static constexpr inline size_t numBits = 1024;
 	// Idが使用済みかを表すもの
@@ -439,4 +444,14 @@ void ECSHost::GetEntityGenerations(const uint64_t*& generations, size_t& count) 
 
 	generations = m_impl->entityGenerationsCopy.data();
 	count = std::min(m_impl->lastEntityId + 1, m_impl->entityGenerationsCopy.size());
+}
+
+void ECSHost::Stop() {
+	std::lock_guard lock(m_impl->mutex);
+	m_impl->stopped = true;
+}
+
+bool ECSHost::Stopped() const {
+	std::lock_guard lock(m_impl->mutex);
+	return m_impl->stopped;
 }
