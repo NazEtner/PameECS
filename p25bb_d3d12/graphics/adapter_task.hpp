@@ -16,8 +16,7 @@ namespace PameECS::Graphics {
 		// 最後にエンキューされたコマンドはCreateRenderCommandより前にEnqueueCommandがtrueを返していない場合以外に対応する呼び出しでは使用されるべきではない
 		virtual RenderCommandFunc CreateRenderCommand(void**) = 0;
 
-		// 戻り値はそのコマンドを入力した直前までの状態でレンダリングコマンドを生成する必要があるか
-		// 実際はEnqueueした直後にレンダリングコマンドを生成するので、描画時に新しいコマンドを使わないように注意
-		virtual bool EnqueueCommand(void* command, size_t commandSize) = 0;
+		// 戻り値: このEnqueueCommand呼び出しで新たに確定したバッチの個数。呼び出し側はこの数だけCreateRenderCommandを呼ぶ。
+		virtual size_t EnqueueCommand(void* command, size_t commandSize) = 0;
 	};
 }

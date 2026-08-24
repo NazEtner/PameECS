@@ -60,14 +60,23 @@ struct Adapter::Impl {
 		);
 	};
 
-	void Submit(AdapterTask* task) {
+	// 戻り値: CreateRenderCommandで実際にレンダーコマンドを1個排出できたか
+	bool Submit(AdapterTask* task) {
 		void* dataPtr = nullptr;
+		bool produced = false;
 		if (auto command = task->CreateRenderCommand(&dataPtr); command) {
 			Enqueue<false>(task, command, dataPtr);
+			produced = true;
 		}
 		if (auto command = task->CreatePretreatmentCommand(&dataPtr); command) {
 			Enqueue<true>(task, command, dataPtr);
 		}
+		return produced;
+	};
+
+	// タスクを手放す時専用。末尾のバッチも含めて全部吐き出し切る。
+	void SubmitAll(AdapterTask* task) {
+		while (Submit(task)) {}
 	};
 };
 
@@ -135,9 +144,12 @@ void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
 	}
 
 	if (task.get() != m_impl->currentTask && m_impl->currentTask) {
-		m_impl->Submit(m_impl->currentTask);
+		// 別タスクに切り替わるので、直前のタスクの末尾のバッチも含めて全部吐き出す
+		m_impl->SubmitAll(m_impl->currentTask);
 	}
-	if (task->EnqueueCommand(command, commandSize)) {
+	// 新たに確定したバッチの数だけSubmitする。
+	size_t newBatches = task->EnqueueCommand(command, commandSize);
+	for (size_t i = 0; i < newBatches; ++i) {
 		m_impl->Submit(task.get());
 	}
 	m_impl->currentTask = task.get();
@@ -148,7 +160,7 @@ void Adapter::EnqueueCommand(uint32_t id, void* command, size_t commandSize) {
 // ゲームエンジンの内部処理でも全ての処理が完了した後にメインスレッドでしか呼ばれないうえに、そのタイミングでは描画が始まっていないため
 void Adapter::ExecuteLastTask() {
 	if (m_impl->currentTask) {
-		m_impl->Submit(m_impl->currentTask);
+		m_impl->SubmitAll(m_impl->currentTask);
 		m_impl->currentTask = nullptr;
 	}
 }
