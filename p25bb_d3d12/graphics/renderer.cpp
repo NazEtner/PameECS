@@ -38,6 +38,8 @@ Renderer::~Renderer() {
 
 bool Renderer::Render() {
 	if (m_is_recovery_pending) return false;
+	// 通常はWaitForFrameResources()で待ち済み (その場合ここは即座に抜ける)。
+	// リカバリ保留でスキップされた場合のための保険として残す
 	m_waitForGPU(m_current_frame_index);
 	m_returnPendingAllocators();
 	try {

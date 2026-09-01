@@ -40,6 +40,15 @@ namespace PameECS::Graphics {
 			renderTaskQueue->push(std::move(renderTask));
 		}
 
+		// これからCPUが書き込むリングスロット(GetCurrentBufferIndex()で選ばれる方)を、GPUが読み終わるまで待つ。
+		// アップロードバッファはバックバッファと同じ枚数で回しているため、この待ちを描画データの生成より
+		// 前に済ませないと、GPUがまだ読んでいるスロットをCPUが上書きしてしまう
+		void WaitForFrameResources() noexcept override {
+			if (m_is_recovery_pending) return;
+			if (!m_swap_chain) return;
+			m_waitForGPU(static_cast<uint32_t>(m_swap_chain->GetCurrentBackBufferIndex()));
+		}
+
 		bool Render() override;
 		bool Present() override;
 		void Recovery() override;

@@ -69,6 +69,10 @@ void CoreLoop::Execute() {
 		if (!m_renderer)
 			throw Exceptions::InvalidState("Renderer is not initialized.");
 		while (m_window->Update() && !m_application->IsStopped()) {
+			// Application::Update()の中でアップロードバッファのリングスロットへ描画データを書き込むので、
+			// GPUが同じスロット(バックバッファ枚数ぶん前のフレーム)を読み終わるのを先に待つ。
+			// Render()の中の待ちでは書き込みより後になり、GPUが読んでいる最中のデータを踏む
+			m_renderer->WaitForFrameResources();
 			m_application->Update();
 			m_application->SubmitRenderTask();
 			if (m_renderer->Reset(1u << 31) || (!m_renderer->Render() || !m_renderer->Present())) {
