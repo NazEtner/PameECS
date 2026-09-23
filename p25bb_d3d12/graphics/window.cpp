@@ -67,42 +67,11 @@ void Window::Destroy() noexcept {
 }
 
 void Window::OnAltEnterPressed() {
-	assert(m_properties.windowStyle.has_value());
-	if (!m_window_handle) {
-		throw Exceptions::WindowError("Window handle is null.");
-	}
-	if (!m_properties.altEnterSwitchables || m_properties.altEnterSwitchables->empty()) {
-		return;
-	}
-	auto currentStyle = m_properties.windowStyle.value();
-	auto it = std::find(
-		m_properties.altEnterSwitchables->begin(),
-		m_properties.altEnterSwitchables->end(),
-		currentStyle
-	);
-	DWORD newStyle;
-	if (it != m_properties.altEnterSwitchables->end()) {
-		it++;
-		if (it == m_properties.altEnterSwitchables->end()) {
-			newStyle = m_properties.altEnterSwitchables->front();
-		}
-		else {
-			newStyle = *it;
-		}
-	}
-	else {
-		newStyle = m_properties.altEnterSwitchables->front();
-	}
-	m_alt_enter_properties_cache[currentStyle] = GetProperties();
-	auto propertyIt = m_alt_enter_properties_cache.find(newStyle);
-	Properties property;
-	if (propertyIt != m_alt_enter_properties_cache.end()) {
-		property = propertyIt->second;
-	}
-	else {
-		property.windowStyle = newStyle;
-	}
-	SetProperties(property);
+	m_alt_enter_callback();
+}
+
+void Window::SetAltEnterCallback(std::function<void()>&& callback) {
+	m_alt_enter_callback = std::move(callback);
 }
 
 void Window::SetMouseDeltaCallback(std::function<void(int)>&& callback) {
@@ -120,66 +89,63 @@ void Window::SetProperties(const Properties& property) {
 		throw Exceptions::WindowError("Window handle is null.");
 	}
 
-	if (property.windowStyle.has_value()) {
+	const bool styleChanged = property.windowStyle.has_value();
+	const bool sizeChanged = property.width.has_value() || property.height.has_value();
+	const bool positionChanged = property.x.has_value() || property.y.has_value();
+
+	if (styleChanged) {
 		auto style = property.windowStyle.value();
 		SetLastError(0);
 		if (SetWindowLongPtr(m_window_handle, GWL_STYLE, static_cast<LONG_PTR>(style)) == 0 && GetLastError() != 0) {
 			std::string message = std::string("Failed to set window style : ") + Helpers::Errors::Windows::GetLastErrorMessage();
 			throw Exceptions::WindowError(message.c_str());
 		}
-
-		SetWindowPos(
-			m_window_handle,
-			nullptr,
-			0, 0, 0, 0,
-			SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED
-		);
 		m_properties.windowStyle = style;
 	}
 
-	if (property.width.has_value() || property.height.has_value()) {
-		uint32_t width = property.width.value_or(m_properties.width.value_or(800));
-		uint32_t height = property.height.value_or(m_properties.height.value_or(600));
-		RECT rect;
-		if (GetWindowRect(m_window_handle, &rect)) {
-			rect.right = rect.left + width;
-			rect.bottom = rect.top + height;
-			auto style = m_properties.windowStyle.value();
-			if (AdjustWindowRect(&rect, style, FALSE) == 0) {
+	if (styleChanged || sizeChanged || positionChanged) {
+		// スタイル・サイズ・位置の反映はSetWindowPos一回にまとめる
+		// 分けるとWM_SIZEが途中のサイズで飛んで、そのたびにスワップチェーンが作り直される
+		RECT current;
+		if (!GetWindowRect(m_window_handle, &current)) {
+			std::string message = std::string("Failed to get window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
+			throw Exceptions::WindowError(message.c_str());
+		}
+
+		UINT flags = SWP_NOZORDER | SWP_NOACTIVATE;
+		if (styleChanged) flags |= SWP_FRAMECHANGED;
+
+		int w = 0;
+		int h = 0;
+		if (sizeChanged) {
+			uint32_t width = property.width.value_or(m_properties.width.value_or(800));
+			uint32_t height = property.height.value_or(m_properties.height.value_or(600));
+			// 原点で計算しないと、枠の分だけ左上にずれた座標が返ってくる
+			RECT rect = { 0, 0, static_cast<LONG>(width), static_cast<LONG>(height) };
+			if (AdjustWindowRect(&rect, m_properties.windowStyle.value(), FALSE) == 0) {
 				std::string message = std::string("Failed to adjust window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
 				throw Exceptions::WindowError(message.c_str());
 			}
-
-			auto x = rect.left;
-			auto y = rect.top;
-			auto w = rect.right - rect.left;
-			auto h = rect.bottom - rect.top;
-
-			if (y < 0) y = 0;
-
-			SetWindowPos(
-				m_window_handle,
-				nullptr,
-				x, y,
-				w, h,
-				SWP_NOZORDER | SWP_NOACTIVATE
-			);
+			w = rect.right - rect.left;
+			h = rect.bottom - rect.top;
 			m_properties.width = width;
 			m_properties.height = height;
 		}
 		else {
-			std::string message = std::string("Failed to get window rect: ") + Helpers::Errors::Windows::GetLastErrorMessage();
-			throw Exceptions::WindowError(message.c_str());
+			flags |= SWP_NOSIZE;
 		}
+
+		int x = property.x.value_or(current.left);
+		int y = property.y.value_or(current.top);
+		// 明示的に指定された位置は、上にモニタがある場合もあるので負でもそのまま使う
+		if (!property.y.has_value() && y < 0) y = 0;
+
+		SetWindowPos(m_window_handle, nullptr, x, y, w, h, flags);
 	}
 
 	if (property.windowName.has_value()) {
 		SetWindowText(m_window_handle, property.windowName.value().c_str());
 		m_properties.windowName = property.windowName;
-	}
-
-	if (property.altEnterSwitchables.has_value()) {
-		m_properties.altEnterSwitchables = property.altEnterSwitchables;
 	}
 }
 
@@ -188,9 +154,10 @@ void Window::m_setDefaultProperties(const Properties& properties) {
 	m_properties.windowName = properties.windowName.value_or("DefaultWindowName");
 	m_properties.width = properties.width.value_or(800);
 	m_properties.height = properties.height.value_or(600);
+	m_properties.x = properties.x;
+	m_properties.y = properties.y;
 	m_properties.windowStyle = properties.windowStyle.value_or(WS_OVERLAPPEDWINDOW | WS_VISIBLE);
 	m_properties.windowProcedure = properties.windowProcedure.value_or(DefWindowProc);
-	m_properties.altEnterSwitchables = properties.altEnterSwitchables.value_or({});
 }
 
 void Window::m_create() {
@@ -243,8 +210,8 @@ void Window::m_create() {
 		m_properties.className.value().c_str(),
 		m_properties.windowName.value().c_str(),
 		style,
-		CW_USEDEFAULT,
-		CW_USEDEFAULT,
+		m_properties.x.value_or(CW_USEDEFAULT),
+		m_properties.y.value_or(CW_USEDEFAULT),
 		windowRect.right - windowRect.left,
 		windowRect.bottom - windowRect.top,
 		nullptr,

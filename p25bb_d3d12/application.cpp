@@ -44,9 +44,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	case WM_SYSKEYDOWN:
 		if (wParam == VK_RETURN) {
 			if (window) {
-				window->OnAltEnterPressed();
+				// 押しっぱなしのキーリピート (lParamの30ビット目) で切り替えが往復しないようにする
+				if (!(lParam & (1 << 30))) {
+					window->OnAltEnterPressed();
+				}
 				return 0;
 			}
+		}
+		break;
+	case WM_SYSCHAR:
+		// DefWindowProcに渡すとメニューのニーモニックとして扱われてビープ音が鳴る
+		if (wParam == VK_RETURN) {
+			return 0;
 		}
 		break;
 	case WM_MOUSEWHEEL:
@@ -220,6 +229,14 @@ void Application::m_initializeWindow() {
 	m_window->Show();
 
 	m_window_setting_adaptor->SetWindow(m_window);
+	// アダプタがウィンドウを持っているので、弱参照にしないと循環参照になる
+	m_window->SetAltEnterCallback(
+		[adapter = std::weak_ptr(m_window_setting_adaptor)]() -> void {
+			if (auto locked = adapter.lock()) {
+				locked->SwitchToNextAltEnterStyle();
+			}
+		}
+	);
 }
 
 void Application::m_initializeRenderer() {

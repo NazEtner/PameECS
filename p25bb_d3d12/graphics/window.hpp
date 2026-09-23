@@ -19,7 +19,7 @@ namespace PameECS::Graphics {
 			NoWidth = 1 << 2,
 			NoHeight = 1 << 3,
 			NoWindowStyle = 1 << 4,
-			NoAltEnterSwitchables = 1 << 5,
+			NoPosition = 1 << 5,
 			// ウィンドウプロシージャの関数ポインタを取得する意味がないので取得させない
 		};
 
@@ -32,14 +32,16 @@ namespace PameECS::Graphics {
 			std::optional<uint32_t> width;
 			// nulloptであれば600
 			std::optional<uint32_t> height;
+			// 枠を含めたウィンドウ左上のスクリーン座標
+			// nulloptであれば、コンストラクタではCW_USEDEFAULT、SetPropertiesでは現在の位置を維持する
+			std::optional<int32_t> x;
+			std::optional<int32_t> y;
 			// nulloptであればWS_OVERLAPPEDWINDOW | WS_VISIBLE
 			std::optional<DWORD> windowStyle;
 			// コンストラクタ呼び出しでのみ使用可能、nulloptであればDefWindowProc
 			// 値を入れるならDestroyWindow()を使用せずにthis->Destroy()を使うか、WM_CLOSEでPostQuitMessage(0)を呼ぶこと
 			// 値を入れなければDestroyWindow()が二回呼ばれてしまって、Windowsのバグとかで変な挙動をする可能性もあるから、何かしらのプロシージャを入れるのを推奨
 			std::optional<WNDPROC> windowProcedure;
-			// Alt+Enterを押したときに切り替えるウィンドウスタイル
-			std::optional<std::vector<DWORD>> altEnterSwitchables;
 		};
 
 		Window(const Properties& properties, std::shared_ptr<spdlog::logger>& logger);
@@ -74,8 +76,13 @@ namespace PameECS::Graphics {
 			if (!(flags & NoWindowStyle)) {
 				result.windowStyle = m_properties.windowStyle;
 			}
-			if (!(flags & NoAltEnterSwitchables)) {
-				result.altEnterSwitchables = m_properties.altEnterSwitchables;
+			// ドラッグで動くのでキャッシュせず、毎回ウィンドウから取る
+			if (m_window_handle && !(flags & NoPosition)) {
+				RECT rect;
+				if (GetWindowRect(m_window_handle, &rect)) {
+					result.x = rect.left;
+					result.y = rect.top;
+				}
 			}
 			return result;
 		}
@@ -89,6 +96,8 @@ namespace PameECS::Graphics {
 
 		void Destroy() noexcept; // DestroyWindow()のラッパー的なやつ
 		void OnAltEnterPressed(); // Alt+Enterが押されたときに呼ぶ
+		// スタイルの切り替えは設定の保存やサイズの計算と一緒にやる必要があるので、Window自身ではやらずに外に任せる
+		void SetAltEnterCallback(std::function<void()>&& callback);
 		void SetMouseDeltaCallback(std::function<void(int)>&& callback);
 		void OnMouseDelta(int delta);
 	private:
@@ -107,6 +116,6 @@ namespace PameECS::Graphics {
 		Properties m_properties;
 		std::shared_ptr<spdlog::logger> m_logger;
 		std::function<void(int)> mouseDeltaCallback = [](int) -> void {};
-		std::unordered_map<DWORD, Properties> m_alt_enter_properties_cache;
+		std::function<void()> m_alt_enter_callback = []() -> void {};
 	};
 }

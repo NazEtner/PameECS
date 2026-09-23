@@ -29,9 +29,12 @@ namespace PameECS::Graphics {
 			m_window = window;
 		}
 		void SetStyle(const std::string& style);
+		// sizeIgnoresのスタイル中は、次にサイズを持つスタイルへ戻ったときのサイズとして保存だけする
 		void SetWidth(const uint32_t width);
 		void SetHeight(const uint32_t height);
 		void SetAltEnterSwitchables(const std::vector<std::string>& switchables);
+		// altEnterSwitchablesの中で、今のスタイルの次のスタイルに切り替える
+		void SwitchToNextAltEnterStyle();
 	private:
 		void m_save() {
 			try {
@@ -44,22 +47,25 @@ namespace PameECS::Graphics {
 			}
 		}
 
-		std::vector<DWORD> m_convertStyleNamesToStyles(const std::vector<std::string>& styleNames) {
-			std::vector<DWORD> styles;
-			for (const auto& styleName : styleNames) {
-				auto it = m_config.windowStyles.find(styleName);
-				if (it != m_config.windowStyles.end()) {
-					styles.push_back(it->second);
-				}
-			}
-			return styles;
+		bool m_isSizeIgnored(const std::string& style) const {
+			return m_config.sizeIgnores.contains(style);
 		}
 
-		std::pair<uint32_t, uint32_t> m_calculateWindowSize(const std::string& style, const WindowSetting& setting) const;
+		// sizeIgnoresのスタイルのときに使うモニタの矩形
+		// ウィンドウができていればウィンドウが一番多く乗っているモニタ、なければプライマリモニタ
+		RECT m_getMonitorRect(bool workArea = false) const;
+		// サイズを持つスタイルのときのクライアントサイズ
+		// 設定値がモニタの作業領域に収まらなければデフォルトサイズにする
+		std::pair<uint32_t, uint32_t> m_getWindowedSize(DWORD style) const;
+		// サイズを持つスタイルのときに、ドラッグで変わったサイズと位置を覚えておく
+		void m_captureWindowedState();
 		// ファイルシステムにはFile::File<1, 0>ではなく、fstreamを使う
 		const std::filesystem::path m_setting_file_path = "window_setting.json";
+		// width, heightはサイズを持つスタイルのときのクライアントサイズで、sizeIgnoresのスタイル中は書き換えない
 		WindowSetting m_setting;
 		Configs::WindowConfig m_config;
 		std::shared_ptr<Window> m_window;
+		// フルスクリーンから戻ったときに元の位置に戻すため (起動をまたいでは覚えない)
+		std::optional<POINT> m_windowed_position;
 	};
 }
