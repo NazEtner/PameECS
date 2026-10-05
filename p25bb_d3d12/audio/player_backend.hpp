@@ -93,6 +93,7 @@ namespace PameECS::Audio {
 		bool Start(size_t slotIndex);
 		void Stop(size_t slotIndex);
 	private:
+		static constexpr size_t InFlightBuffers = 2;
 		void m_fillAndSubmit(size_t slotIndex);
 
 		class VoiceCallbackHandler : public IXAudio2VoiceCallback {
@@ -102,8 +103,12 @@ namespace PameECS::Audio {
 
 			// バッファが終了したときに呼ばれる
 			void STDMETHODCALLTYPE OnBufferEnd(void* pBufferContext) override {
-				size_t slotIndex = reinterpret_cast<size_t>(pBufferContext) - 1;
+				auto context = reinterpret_cast<uintptr_t>(pBufferContext);
+				size_t slotIndex = static_cast<size_t>(context & 0xFFFF'FFFF) - 1;
+				uint32_t generation = static_cast<uint32_t>(context >> 32);
 				std::lock_guard lock(m_backend->m_mutex);
+				// Stop で捨てたバッファの終了通知は無視する (補充すると再生し直した側のバッファ数が狂う)
+				if (slotIndex >= m_backend->m_voice_slots.size() || m_backend->m_voice_slots[slotIndex].generation != generation) return;
 				// バックエンドに次のデータを要求する
 				m_backend->m_fillAndSubmit(slotIndex);
 			}
@@ -124,9 +129,13 @@ namespace PameECS::Audio {
 
 			IXAudio2SourceVoice* sourceVoice = nullptr;
 			std::unique_ptr<Callback, void(*)(Callback*)> callback = { nullptr, nullptr };
-			std::array<std::vector<uint8_t>, 2> soundBuffer;
+			// 再生中に積んでおくのは InFlightBuffers 個。Stop で捨てたバッファの領域が音声スレッドから
+			// 解放されるのを待たずに次の再生を積めるよう、その倍の数を巡回させる
+			std::array<std::vector<uint8_t>, 4> soundBuffer;
 			bool stopped = false;
 			size_t currentBuffer = 0;
+			// Stop のたびに進める。バッファの pContext に埋め込み、捨てたバッファの終了通知を見分ける
+			uint32_t generation = 0;
 		};
 
 		VoiceCallbackHandler m_voice_callback_handler;

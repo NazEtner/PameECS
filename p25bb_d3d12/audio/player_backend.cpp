@@ -57,12 +57,16 @@ bool PlayerBackend::Start(size_t slotIndex) {
 
 	slot.sourceVoice->Stop();
 
+	// Stop の直後は FlushSourceBuffers が音声スレッドでまだ処理されておらず、捨てたバッファが
+	// BuffersQueued に数えられたままになっている。それを見て積まずにいると、捨てたバッファの
+	// 終了通知が来るまで無音になるので、Stop 後は待たずに頭からのバッファを積み直す
+	bool restart = slot.stopped;
 	slot.stopped = false;
 
 	XAUDIO2_VOICE_STATE state = {};
 	slot.sourceVoice->GetState(&state);
-	if (state.BuffersQueued == 0) {
-		for (size_t i = 0; i < slot.soundBuffer.size(); ++i) m_fillAndSubmit(slotIndex);
+	if (restart || state.BuffersQueued == 0) {
+		for (size_t i = 0; i < InFlightBuffers; ++i) m_fillAndSubmit(slotIndex);
 	}
 	// コールバックが期限切れの場合、m_fillAndSubmitがsourceVoiceを解放していることがある
 	if (!slot.sourceVoice) return false;
@@ -78,6 +82,7 @@ void PlayerBackend::Stop(size_t slotIndex) {
 	if (!slot.sourceVoice) return;
 	slot.sourceVoice->Stop();
 	slot.stopped = true;
+	slot.generation++;
 	slot.sourceVoice->FlushSourceBuffers();
 }
 
@@ -102,7 +107,7 @@ void PlayerBackend::m_fillAndSubmit(size_t slotIndex) {
 		XAUDIO2_BUFFER buffer = { 0 };
 		buffer.AudioBytes = static_cast<UINT32>(read * slot.callback->GetFormat().Format.nBlockAlign);
 		buffer.pAudioData = slot.soundBuffer[bufferIndex].data();
-		buffer.pContext = reinterpret_cast<void*>(slotIndex + 1);
+		buffer.pContext = reinterpret_cast<void*>((static_cast<uintptr_t>(slot.generation) << 32) | static_cast<uintptr_t>(slotIndex + 1));
 
 		slot.sourceVoice->SubmitSourceBuffer(&buffer);
 	}
