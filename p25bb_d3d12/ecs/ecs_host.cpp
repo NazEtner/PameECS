@@ -100,7 +100,7 @@ struct ECSHost::Impl {
 	}
 
 	size_t GetNextBlockStartId(uint64_t id) {
-		return (id + numBits) & ~numBits;
+		return (id + numBits) & ~(numBits - 1);
 	}
 
 	bool ThereAreUnusedIdsNearby(uint64_t id) {
